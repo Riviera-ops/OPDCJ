@@ -1593,7 +1593,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <div class="card">
     <div class="ch collapsible" data-start="closed">
       <div class="ico">🌡️</div>
-      <h3>Températures de coulage</h3>
+      <h3><span class="step-num"></span> Températures de coulage</h3>
       <span class="tag" id="tb-tag">Direct</span>
     </div>
     <div class="cb">
@@ -1640,7 +1640,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
        RÉSULTATS PESÉE
   ═════════════════════════════════════ -->
   <div class="card">
-    <div class="ch collapsible"><div class="ico">⚖️</div><h3>Pesée du lot</h3></div>
+    <div class="ch collapsible"><div class="ico">⚖️</div><h3><span class="step-num"></span> Pesée du lot</h3></div>
     <div class="cb">
       <div class="sum-strip">
         <div class="sum-box"><div class="sl">Pièces</div><div class="sv" id="r-qty">–</div></div>
@@ -4256,15 +4256,14 @@ function updatePizzaFlowUI(){
   renumberPizzaSteps();
 }
 
-// Renumérote séquentiellement les badges .step-num des cards d'étape visibles.
-// Farine (card partagée) = 1, puis Fermentation / Poolish-Biga (si visible) / Pâton.
+// Renumérote séquentiellement TOUS les badges .step-num visibles, dans l'ordre du DOM.
+// Les cards masquées (pane inactif, étape Poolish/Biga repliée via .hidden) sont ignorées,
+// ce qui évite les trous (ex. 1·2·4) et garde une numérotation continue dans chaque mode.
+// Couvre : Farine, Fermentation, Poolish/Biga, Pâton, Températures de coulage, Pesée du lot.
 function renumberPizzaSteps(){
   let n = 1;
-  const flour = document.querySelector('.pz-shared-flour-card .step-num');
-  if(flour) flour.textContent = n++;
-  document.querySelectorAll('#pane-pizza .step-num').forEach(el=>{
-    const card = el.closest('.card');
-    if(card && card.classList.contains('hidden')) return; // étape masquée → ignorée
+  document.querySelectorAll('.step-num').forEach(el=>{
+    if(el.offsetParent === null) return; // élément (ou ancêtre) masqué → non compté
     el.textContent = n++;
   });
 }
