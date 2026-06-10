@@ -372,20 +372,14 @@ body.dark .nav-btn.active{background:rgba(255,255,255,.12);color:var(--prim-dk);
 .ch.collapsible .coll-chev{margin-left:auto;}
 .ch.collapsible .tag{margin-left:auto;}
 .ch.collapsible .tag ~ .coll-chev{margin-left:6px;}
+/* idem pour le badge composition farine (pas une .tag) */
+.ch .fl-badge{margin-left:auto;}
+.ch.collapsible .fl-badge ~ .coll-chev{margin-left:6px;}
 
 /* ── FLOUR COMPOSITION ── */
-.fl-section{background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px;}
-.fl-header{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;
-  user-select:none;background:var(--card);border-bottom:1px solid var(--border);}
-.fl-header span.fl-title{font-size:12px;font-weight:800;color:var(--prim-dk);
-  text-transform:uppercase;letter-spacing:.5px;flex:1;}
 .fl-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;
   background:var(--ok);color:#fff;transition:background .2s;}
 .fl-badge.warn{background:var(--warn);}
-.fl-chevron{font-size:10px;color:var(--muted);transition:transform .2s;}
-.fl-chevron.open{transform:rotate(180deg);}
-.fl-body{padding:8px 12px 10px;}
 .fl-divider{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
   color:var(--muted);padding:8px 0 4px;border-top:1px solid var(--border);margin-top:4px;}
 .fl-row{display:flex;align-items:center;gap:7px;padding:4px 0;}
@@ -940,14 +934,14 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
     </div>
 
-    <!-- Composition farine — collapsible -->
-    <div class="fl-section">
-      <div class="fl-header" id="fl-toggle">
-        <span class="fl-title">🌾 Composition farine</span>
+    <!-- Composition farine — card standard collapsible (harmonisée) -->
+    <div class="card">
+      <div class="ch collapsible">
+        <div class="ico">🌾</div>
+        <h3>Composition farine</h3>
         <span id="fl-badge" class="fl-badge">T65 100 %</span>
-        <span class="fl-chevron" id="fl-chev">▼</span>
       </div>
-      <div id="fl-body" class="fl-body hidden">
+      <div id="fl-body" class="cb">
 
         <!-- FARINES — total doit = 100 % -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -4598,18 +4592,6 @@ function init(){
   initTheme();
   initCollapsibles();
   initPlanning(); // V15 : initialiser le planning avancé
-
-  // Composition farine — toggle collapsible
-  const flToggle=$('fl-toggle');
-  const flBody=$('fl-body');
-  const flChev=$('fl-chev');
-  if(flToggle&&flBody){
-    flToggle.addEventListener('click',()=>{
-      const open=!flBody.classList.contains('hidden');
-      flBody.classList.toggle('hidden',open);
-      if(flChev) flChev.classList.toggle('open',!open);
-    });
-  }
 
   // Composition farine — listeners checkboxes et inputs
   const flInputs=document.querySelectorAll('.fl-pct,[id^="fc-"]');
