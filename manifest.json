@@ -2,6 +2,7 @@
   "name": "Ô Pain De Ce Jour",
   "short_name": "Ô Pain",
   "description": "Mon carnet de boulangerie",
+  "id": "/opdcj-/",
   "start_url": "/opdcj-/",
   "scope": "/opdcj-/",
   "display": "standalone",
@@ -13,13 +14,40 @@
       "src": "/opdcj-/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/opdcj-/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/opdcj-/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/opdcj-/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/opdcj-/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "Ô Pain De Ce Jour — écran Recette"
+    },
+    {
+      "src": "/opdcj-/screenshot-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Ô Pain De Ce Jour — vue bureau"
     }
   ]
 }
