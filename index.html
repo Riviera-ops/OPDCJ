@@ -1,38 +1,46 @@
-boula<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V20</title>
+<title>Ô Pain De Ce Jour V21</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ô Pain">
-<meta name="theme-color" content="#6B3A1F">
+<meta name="theme-color" content="#C4633F">
+<link rel="manifest" href="/manifest.json">
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:      #F2E0BC;
-  --bg2:     #E8D0A0;
-  --card:    #FBF4E4;
-  --prim:    #A0522D;
-  --prim-lt: #C4703F;
-  --prim-dk: #6B3318;
-  --acc:     #E8A030;
-  --acc-bg:  #FBF0D4;
-  --txt:     #2A1505;
-  --txt-m:   #5C3418;
-  --muted:   #8A6040;
-  --border:  #D4B896;
-  --ok:      #3E7A52;
+  --bg:      #F4E3D5;
+  --bg2:     #EFD7C6;
+  --card:    #FFF6EF;
+  --surface-2:#FBE3D5;
+  --icon-bubble:#FBE3D5;
+  --prim:    #C4633F;
+  --prim-lt: #D98A66;
+  --prim-dk: #A24E2F;
+  --acc:     #C4633F;
+  --acc-bg:  #FBE3D5;
+  --txt:     #5A2E1B;
+  --txt-m:   #7A4E36;
+  --muted:   #A55E3C;
+  --icon:    #C99B7A;
+  --border:  #F0D8C8;
+  --rule:    #F6E6DA;
+  --sage:    #7A8B5C;
+  --sage-on: #FFFFFF;
+  --on-prim: #FFFFFF;
+  --ok:      #7A8B5C;
   --warn:    #C06020;
   --danger:  #A83030;
-  --sh-sm:   0 2px 8px rgba(80,40,10,.12);
-  --sh:      0 4px 16px rgba(80,40,10,.16);
-  --r:14px; --r-sm:8px;
+  --sh-sm:   0 2px 8px rgba(120,60,30,.10);
+  --sh:      0 4px 16px rgba(120,60,30,.14);
+  --r:14px; --r-sm:8px; --r-card:20px; --r-pill:24px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
 html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;font-size:15px;min-height:100vh;overflow-x:clip;max-width:100vw;overscroll-behavior-x:none;touch-action:pan-y;}
@@ -132,7 +140,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
 @keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── CARDS ── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-card);
   box-shadow:var(--sh-sm);margin-bottom:12px;overflow:hidden;}
 .ch{padding:11px 15px 9px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:9px;}
@@ -225,7 +233,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
 .dot.p{background:var(--prim);}
 .dot.a{background:var(--acc);}
 .ing-val{font-size:18px;font-weight:700;color:var(--txt);}
-.ing-val.big{font-size:21px;color:var(--prim-dk);}
+.ing-val.big{font-size:22px;color:var(--acc);font-weight:800;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:-.3px;}
 .ing-unit{font-size:11px;font-weight:500;color:var(--muted);}
 
 /* ── SUMMARY STRIP ── */
@@ -269,10 +277,10 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
   text-transform:uppercase;letter-spacing:.4px;}
 
 /* ── BUTTONS ── */
-.btn{padding:11px 18px;border-radius:var(--r-sm);border:none;font-family:'Nunito',sans-serif;
+.btn{padding:12px 18px;border-radius:var(--r-pill);border:none;font-family:'Nunito',sans-serif;
   font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;
   display:block;width:100%;}
-.btn-p{background:var(--prim);color:#fff;}
+.btn-p{background:var(--prim);color:var(--on-prim);}
 .btn-p:hover{background:var(--prim-dk);}
 .btn-s{background:var(--card);color:var(--prim);border:2px solid var(--prim);}
 .btn-s:hover{background:var(--acc-bg);}
@@ -297,11 +305,14 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
    MODE FOURNIL — Dark Theme
 ════════════════════════════════════════ */
 body.dark {
-  --bg:#1A120A; --bg2:#221A0E; --card:#2C1E12;
-  --prim:#D09848; --prim-lt:#E8B870; --prim-dk:#F0CC90;
-  --acc:#6A4820; --acc-bg:#321C0A;
-  --txt:#F0E8D8; --txt-m:#D8BC98; --muted:#A07868;
-  --border:#4A3020; --ok:#4E886A; --warn:#C87A28; --danger:#B04040;
+  --bg:#241710; --bg2:#34221A; --card:#2E1D15;
+  --surface-2:#3C271D; --icon-bubble:#4A2E22;
+  --prim:#D86B45; --prim-lt:#E8946B; --prim-dk:#B85A38;
+  --acc:#E8946B; --acc-bg:#3C271D;
+  --txt:#F3E3D5; --txt-m:#C9A98C; --muted:#C28A63;
+  --icon:#B5895F; --border:#4A3326; --rule:#3E2A1F;
+  --sage:#4C5A32; --sage-on:#D7E3BC; --on-prim:#241009;
+  --ok:#7E9359; --warn:#C87A28; --danger:#B04040;
   --sh-sm:0 2px 8px rgba(0,0,0,.45); --sh:0 4px 16px rgba(0,0,0,.55);
 }
 body.dark .app-header-wrapper{background:#1a0a00;}
@@ -774,9 +785,37 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 .lv-slider-row label{font-size:12px;font-weight:700;min-width:90px;color:var(--txt);}
 .lv-slider-row input[type=range]{flex:1;accent-color:var(--prim);height:4px;cursor:pointer;}
 .lv-slider-pct{font-size:13px;font-weight:800;min-width:36px;text-align:right;color:var(--prim);}
+
+/* ── Terracotta v1.1 : chiffres tabulaires, icônes SVG, encart résultat ── */
+.ing-val{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+.ic{width:18px;height:18px;flex:none;display:inline-block;vertical-align:middle;}
+.nav-btn .ni .ic,.nav-btn .ni svg{width:20px;height:20px;vertical-align:middle;}
+.bubble{width:32px;height:32px;border-radius:50%;background:var(--icon-bubble);display:inline-flex;align-items:center;justify-content:center;flex:none;}
+.bubble .ic{color:var(--prim);}
+.result{margin-top:12px;background:var(--surface-2);border-radius:14px;padding:11px 16px;display:flex;align-items:baseline;justify-content:space-between;}
+.result .cap{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.result .big{font-size:36px;line-height:1;color:var(--acc);font-weight:800;font-family:'Nunito',sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:-.5px;}
+.result .unit{font-size:16px;color:var(--muted);margin-left:3px;font-weight:600;}
+.result-sub{margin-top:8px;text-align:right;font-size:12px;color:var(--muted);}
 </style>
 </head>
 <body>
+<!-- Sprite d'icônes SVG — direction Terracotta (currentColor, OK hors-ligne) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ic-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14"/><path d="M7.5 20 9 11h6l1.5 9"/><path d="M12 11V8"/><circle cx="12" cy="6.4" r="1.6"/></symbol>
+<symbol id="ic-grain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V6"/><path d="m12 7 2.6-2.1M12 11l2.6-2.1M12 15l2.6-2.1M12 7 9.4 4.9M12 11 9.4 8.9M12 15l-2.6-2.1"/></symbol>
+<symbol id="ic-droplet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5s5 5.4 5 9a5 5 0 0 1-10 0c0-3.6 5-9 5-9Z"/></symbol>
+<symbol id="ic-salt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 9h7l.8 11H7.7L8.5 9Z"/><path d="M9 9 9.4 6.4h5.2L15 9"/><path d="M11 12.5h.01M13 12.5h.01M12 14.5h.01"/></symbol>
+<symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></symbol>
+<symbol id="ic-flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2.2 3 4 4.3 4 7a4 4 0 0 1-8 0c0-1.1.4-2 1-2.6C10.5 6.4 11.6 5 12 3Z"/></symbol>
+<symbol id="ic-coin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/><path d="M9 11h4M9 13h3.5"/></symbol>
+<symbol id="ic-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="ic-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h11l3 3v11H5Z"/><path d="M8 5v5h7V5M8 19v-5h8v5"/></symbol>
+<symbol id="ic-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z"/></symbol>
+<symbol id="ic-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M8 4v4M16 4v4"/></symbol>
+<symbol id="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></symbol>
+<symbol id="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 13.5A6 6 0 0 1 10 6a6 6 0 1 0 7.5 7.5Z"/></symbol>
+</defs></svg>
 <div class="app">
 
 <!-- ═══════════════ HEADER ═══════════════ -->
@@ -784,15 +823,15 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 <header class="app-header">
   <div class="app-header-top" style="position:relative;">
     <h1>🌾   Ô Pain De Ce Jour   🌾</h1>
-    <p id="app-version-line">Mon carnet de boulang'eric · V20 - Mai 2026</p>
+    <p id="app-version-line">Mon carnet de boulang'eric · V21 - Juin 2026</p>
     <button id="theme-btn" title="Mode Fournil / Jour">🌙</button>
   </div>
   <!-- ═══════════════ NAV ═══════════════ -->
   <nav class="nav">
-    <button class="nav-btn active" data-tab="recette"><span class="ni">🍞</span>Recette</button>
-    <button class="nav-btn" data-tab="planning"><span class="ni">⏱</span>Planning</button>
-    <button class="nav-btn" data-tab="couts"><span class="ni">💰</span>Coûts</button>
-    <button class="nav-btn" data-tab="recettes"><span class="ni">📁</span>Archives</button>
+    <button class="nav-btn active" data-tab="recette"><span class="ni"><svg class="ic"><use href="#ic-grain"/></svg></span>Recette</button>
+    <button class="nav-btn" data-tab="planning"><span class="ni"><svg class="ic"><use href="#ic-clock"/></svg></span>Planning</button>
+    <button class="nav-btn" data-tab="couts"><span class="ni"><svg class="ic"><use href="#ic-coin"/></svg></span>Coûts</button>
+    <button class="nav-btn" data-tab="recettes"><span class="ni"><svg class="ic"><use href="#ic-folder"/></svg></span>Archives</button>
     <button class="nav-btn" data-tab="levain"><span class="ni" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;">
     <rect x="6" y="3" width="12" height="3" rx="1.5" fill="currentColor" opacity=".5"/>
     <path d="M5 7h14l-1 13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 7z" fill="currentColor" opacity=".85"/>
@@ -3034,7 +3073,7 @@ const CLOUD_FILENAME = 'opdcj-data.json';
 // Gist public contenant le token actuel — fetchable sans auth
 const BOOTSTRAP_GIST_RAW = 'https://gist.githubusercontent.com/Riviera-ops/89ba19ca81c5a794c141ba4ab2bdbe30/raw/opdcj-config.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V20';
+const APP_VERSION = 'V21';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -9173,7 +9212,7 @@ function levainSave() {
 window.addEventListener('DOMContentLoaded',()=>{
   // Affiche la version dans le bandeau
   const vl = document.getElementById('app-version-line');
-  if(vl) vl.textContent = `Mon carnet de boulang'eric · V20 - Mai 2026`;
+  if(vl) vl.textContent = `Mon carnet de boulang'eric · ${APP_VERSION} - Juin 2026`;
 
   // ── Header fixe : calcul dynamique de l'offset ──
   function adjustHeaderOffset(){
