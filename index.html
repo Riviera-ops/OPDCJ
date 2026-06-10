@@ -357,27 +357,29 @@ body.dark .nav-btn.active{background:rgba(255,255,255,.12);color:var(--prim-dk);
 /* ── COLLAPSIBLE CARDS (générique) ── */
 .ch.collapsible{cursor:pointer;user-select:none;transition:background .15s;}
 .ch.collapsible:hover{background:var(--bg);}
-.ch.c-closed{border-bottom:none;}
-.coll-chev{font-size:11px;color:var(--muted);transition:transform .2s;
-  flex-shrink:0;opacity:.5;margin-left:auto;}
-.ch.c-closed .coll-chev{transform:rotate(-90deg);}
-/* tag dans un ch collapsible : pas de margin-left auto (le chevron le prend) */
+/* Card repliée : fond légèrement teinté pour bien la matérialiser */
+.ch.c-closed{border-bottom:none;background:var(--bg2);}
+.ch.c-closed:hover{background:var(--bg);}
+/* Chevron dans une pastille ronde : affordance d'ouverture/fermeture claire */
+.coll-chev{flex-shrink:0;
+  width:22px;height:22px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--prim);background:var(--acc-bg);
+  border:1px solid var(--border);
+  transition:transform .2s,background .15s;}
+.ch.c-closed .coll-chev{transform:rotate(-90deg);background:var(--card);}
+/* Positionnement : chevron toujours à droite ; collé au tag s'il y en a un */
+.ch.collapsible .coll-chev{margin-left:auto;}
 .ch.collapsible .tag{margin-left:auto;}
-.ch.collapsible .coll-chev{margin-left:6px;}
+.ch.collapsible .tag ~ .coll-chev{margin-left:6px;}
+/* idem pour le badge composition farine (pas une .tag) */
+.ch .fl-badge{margin-left:auto;}
+.ch.collapsible .fl-badge ~ .coll-chev{margin-left:6px;}
 
 /* ── FLOUR COMPOSITION ── */
-.fl-section{background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px;}
-.fl-header{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;
-  user-select:none;background:var(--card);border-bottom:1px solid var(--border);}
-.fl-header span.fl-title{font-size:12px;font-weight:800;color:var(--prim-dk);
-  text-transform:uppercase;letter-spacing:.5px;flex:1;}
 .fl-badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;
   background:var(--ok);color:#fff;transition:background .2s;}
 .fl-badge.warn{background:var(--warn);}
-.fl-chevron{font-size:10px;color:var(--muted);transition:transform .2s;}
-.fl-chevron.open{transform:rotate(180deg);}
-.fl-body{padding:8px 12px 10px;}
 .fl-divider{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
   color:var(--muted);padding:8px 0 4px;border-top:1px solid var(--border);margin-top:4px;}
 .fl-row{display:flex;align-items:center;gap:7px;padding:4px 0;}
@@ -538,11 +540,6 @@ body.dark .tl-cold-badge{color:#7EC8F0;}
 .pz-flour-row .fl-u{font-size:12px;font-weight:700;color:var(--muted);}
 
 /* ── V16-LotB — Numéros d'étape dans les titres ── */
-.step-num{display:inline-flex;align-items:center;justify-content:center;
-  width:22px;height:22px;border-radius:50%;
-  background:var(--prim);color:#fff;font-size:11px;font-weight:800;
-  margin-right:6px;font-family:'Nunito',sans-serif;}
-body.dark .step-num{background:var(--prim-lt);color:#1a0d05;}
 
 /* ── V16-LotB — Champs froid masqués si fermentation Direct ── */
 body:not(.pz-long) .pz-cold-only{display:none;}
@@ -937,14 +934,14 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
     </div>
 
-    <!-- Composition farine — collapsible -->
-    <div class="fl-section">
-      <div class="fl-header" id="fl-toggle">
-        <span class="fl-title">🌾 Composition farine</span>
+    <!-- Composition farine — card standard collapsible (harmonisée) -->
+    <div class="card">
+      <div class="ch collapsible">
+        <div class="ico">🌾</div>
+        <h3>Composition farine</h3>
         <span id="fl-badge" class="fl-badge">T65 100 %</span>
-        <span class="fl-chevron" id="fl-chev">▼</span>
       </div>
-      <div id="fl-body" class="fl-body hidden">
+      <div id="fl-body" class="cb">
 
         <!-- FARINES — total doit = 100 % -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1031,7 +1028,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <div class="card pz-shared-flour-card">
     <div class="ch collapsible">
       <div class="ico">🌾</div>
-      <h3><span class="step-num">1</span> Farine</h3>
+      <h3>Farine</h3>
       <span class="tag" id="pz-fl-tag">W 320</span>
     </div>
     <div class="cb">
@@ -1081,7 +1078,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     <div class="card">
       <div class="ch collapsible">
         <div class="ico">⏱️</div>
-        <h3><span class="step-num">2</span> Fermentation</h3>
+        <h3>Fermentation</h3>
         <span class="tag" id="pz-prot-tag">—</span>
       </div>
       <div class="cb">
@@ -1193,7 +1190,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     <div class="card pz-pool-step hidden" id="pz-pool-step-card">
       <div class="ch collapsible">
         <div class="ico" id="pz-step3-ico">💧</div>
-        <h3><span class="step-num">3</span> <span id="pz-step3-title">Poolish</span></h3>
+        <h3><span id="pz-step3-title">Poolish</span></h3>
         <span class="tag" id="pz-pool-tag">—</span>
       </div>
       <div class="cb">
@@ -1328,7 +1325,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     <div class="card">
       <div class="ch collapsible">
         <div class="ico">🍕</div>
-        <h3><span class="step-num">4</span> Pâton & quantité</h3>
+        <h3>Pâton &amp; quantité</h3>
         <span class="tag" id="pz-qty-tag">—</span>
       </div>
       <div class="cb">
@@ -2640,7 +2637,7 @@ function initTheme(){
 // ─────────────────────────────────────────────
 // COLLAPSIBLES — générique, zéro régression
 // Ajouter class="collapsible" à un .ch pour activer
-// Ajouter data-start="closed" pour démarrer replié
+// Replié par défaut ; ajouter data-start="open" pour démarrer déplié
 // ─────────────────────────────────────────────
 function initCollapsibles(){
   document.querySelectorAll('.ch.collapsible').forEach(head=>{
@@ -2652,8 +2649,8 @@ function initCollapsibles(){
     chev.className='coll-chev'; chev.textContent='▾';
     head.appendChild(chev);
 
-    // État initial
-    if(head.dataset.start==='closed'){
+    // État initial : tout replié par défaut (sauf data-start="open")
+    if(head.dataset.start!=='open'){
       head.classList.add('c-closed');
       body.style.display='none';
     }
@@ -4595,18 +4592,6 @@ function init(){
   initTheme();
   initCollapsibles();
   initPlanning(); // V15 : initialiser le planning avancé
-
-  // Composition farine — toggle collapsible
-  const flToggle=$('fl-toggle');
-  const flBody=$('fl-body');
-  const flChev=$('fl-chev');
-  if(flToggle&&flBody){
-    flToggle.addEventListener('click',()=>{
-      const open=!flBody.classList.contains('hidden');
-      flBody.classList.toggle('hidden',open);
-      if(flChev) flChev.classList.toggle('open',!open);
-    });
-  }
 
   // Composition farine — listeners checkboxes et inputs
   const flInputs=document.querySelectorAll('.fl-pct,[id^="fc-"]');
