@@ -2,20 +2,21 @@
   "name": "Ô Pain De Ce Jour",
   "short_name": "Ô Pain",
   "description": "Mon carnet de boulangerie",
-  "start_url": "/",
+  "start_url": "/opdcj-/",
+  "scope": "/opdcj-/",
   "display": "standalone",
   "background_color": "#F4E3D5",
   "theme_color": "#C4633F",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/opdcj-/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/opdcj-/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

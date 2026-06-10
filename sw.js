@@ -1,5 +1,11 @@
 const CACHE = 'opdcj-v21';
-const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
+const SHELL = [
+  '/opdcj-/',
+  '/opdcj-/index.html',
+  '/opdcj-/manifest.json',
+  '/opdcj-/icon-192.png',
+  '/opdcj-/icon-512.png'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(
