@@ -2640,7 +2640,7 @@ function initTheme(){
 // ─────────────────────────────────────────────
 // COLLAPSIBLES — générique, zéro régression
 // Ajouter class="collapsible" à un .ch pour activer
-// Ajouter data-start="closed" pour démarrer replié
+// Replié par défaut ; ajouter data-start="open" pour démarrer déplié
 // ─────────────────────────────────────────────
 function initCollapsibles(){
   document.querySelectorAll('.ch.collapsible').forEach(head=>{
@@ -2652,8 +2652,8 @@ function initCollapsibles(){
     chev.className='coll-chev'; chev.textContent='▾';
     head.appendChild(chev);
 
-    // État initial
-    if(head.dataset.start==='closed'){
+    // État initial : tout replié par défaut (sauf data-start="open")
+    if(head.dataset.start!=='open'){
       head.classList.add('c-closed');
       body.style.display='none';
     }
@@ -4251,6 +4251,22 @@ function updatePizzaFlowUI(){
 
   // Mettre à jour S.surBiga pour les calculs
   S.surBiga = surBiga;
+
+  // Renumérote les étapes visibles (évite le trou 1·2·4 quand l'étape Poolish/Biga est masquée)
+  renumberPizzaSteps();
+}
+
+// Renumérote séquentiellement les badges .step-num des cards d'étape visibles.
+// Farine (card partagée) = 1, puis Fermentation / Poolish-Biga (si visible) / Pâton.
+function renumberPizzaSteps(){
+  let n = 1;
+  const flour = document.querySelector('.pz-shared-flour-card .step-num');
+  if(flour) flour.textContent = n++;
+  document.querySelectorAll('#pane-pizza .step-num').forEach(el=>{
+    const card = el.closest('.card');
+    if(card && card.classList.contains('hidden')) return; // étape masquée → ignorée
+    el.textContent = n++;
+  });
 }
 
 // V17-C1 — Item 4 : Style pizza actif (auto-fill hydratation + huile)
