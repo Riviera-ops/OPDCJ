@@ -356,7 +356,8 @@ body.dark .nav-btn.active{background:rgba(255,255,255,.12);color:var(--prim-dk);
 
 /* ── COLLAPSIBLE CARDS (générique) ── */
 .ch.collapsible{cursor:pointer;user-select:none;transition:background .15s;}
-.ch.collapsible:hover{background:var(--bg);}
+.ch.collapsible:hover{background:var(--surface-2);}
+.ch.c-closed h3{font-weight:800;}
 /* Card repliée : fond légèrement teinté pour bien la matérialiser */
 .ch.c-closed{border-bottom:none;background:var(--bg2);}
 .ch.c-closed:hover{background:var(--bg);}
@@ -1642,7 +1643,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
        RÉSULTATS PESÉE
   ═════════════════════════════════════ -->
   <div class="card">
-    <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-scale"/></svg></div><h3>Pesée du lot</h3></div>
+    <div class="ch collapsible" data-start="open"><div class="ico"><svg class="ic"><use href="#ic-scale"/></svg></div><h3>Pesée du lot</h3></div>
     <div class="cb">
       <div class="sum-strip">
         <div class="sum-box"><div class="sl">Pièces</div><div class="sv" id="r-qty">–</div></div>
