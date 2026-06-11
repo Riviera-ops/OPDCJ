@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.21</title>
+<title>Ô Pain De Ce Jour V21.22</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -630,6 +630,15 @@ body.mode-focaccia .bread-extras-card{display:none;}
 .fcm-readout .fcm-flag{font-size:10px;color:var(--prim);font-weight:700;letter-spacing:.5px;}
 .fcm-readout.fcm-warn{background:#FFE9D6;color:#8C3A12;}
 body.dark .fcm-readout.fcm-warn{background:#5A2410;color:#FFD0A8;}
+
+/* ── V21.22 — Pilote de fermentation (Module 4.2) ── */
+.ferm-pilot-card .ferm-substrate{
+  margin-top:10px;padding:10px 12px;border-radius:var(--r-sm);
+  background:var(--bg2,var(--bg));border:1px solid var(--border);
+}
+.ferm-pilot-card .ferm-substrate .slbl{margin-top:0;color:var(--prim);}
+.ferm-pilot-card .ferm-strategy-seg .rseg-btn,
+.ferm-pilot-card #ferm-profile-seg .rseg-btn{font-size:12px;}
 
 /* ── V17-H1 — Card farine partagée pizza + focaccia ── */
 .pz-shared-flour-card{display:none;}
@@ -1505,6 +1514,103 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         </div>
         <input type="hidden" id="brif-mix" value="">
       </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       V21.22 — PILOTE DE FERMENTATION (Module 4.2)
+       Card unifiée toutes familles : stratégie XOR + profil maturation
+       + sous-paramètres conditionnels. État JSON dans hidden ferment-state.
+       Pas encore branché au moteur (cf. commit 3/4 V21.23).
+  ═════════════════════════════════════ -->
+  <div class="card ferm-pilot-card">
+    <div class="ch collapsible">
+      <div class="ico"><svg class="ic"><use href="#ic-clock"/></svg></div>
+      <h3>Pilote de fermentation</h3>
+      <span class="tag" id="ferm-tag">Directe · Tout TA</span>
+    </div>
+    <div class="cb">
+      <!-- Stratégie XOR -->
+      <div class="slbl" style="margin-top:0;">Stratégie</div>
+      <div class="radio-seg ferm-strategy-seg" id="ferm-strategy-seg" style="flex-wrap:wrap;">
+        <label class="rseg-btn active" data-val="directe"><input type="radio" name="ferm-strategy" value="directe" checked>Directe</label>
+        <label class="rseg-btn" data-val="poolish"><input type="radio" name="ferm-strategy" value="poolish">Poolish</label>
+        <label class="rseg-btn" data-val="biga"><input type="radio" name="ferm-strategy" value="biga">Biga</label>
+        <label class="rseg-btn" data-val="pf"><input type="radio" name="ferm-strategy" value="pf">Pâte ferm.</label>
+        <label class="rseg-btn" data-val="levain"><input type="radio" name="ferm-strategy" value="levain">Levain</label>
+      </div>
+
+      <!-- Profil maturation -->
+      <div class="slbl mt8">Profil maturation</div>
+      <div class="radio-seg" id="ferm-profile-seg" style="flex-wrap:wrap;">
+        <label class="rseg-btn active" data-val="allTA"><input type="radio" name="ferm-profile" value="allTA" checked>Tout TA</label>
+        <label class="rseg-btn" data-val="taColdDelay"><input type="radio" name="ferm-profile" value="taColdDelay">TA + Froid retardé</label>
+        <label class="rseg-btn" data-val="coldLong"><input type="radio" name="ferm-profile" value="coldLong">Froid long</label>
+      </div>
+
+      <!-- Durées + T° -->
+      <div class="g3 mt8">
+        <div class="fg" id="ferm-h-ta-wrap">
+          <label>Durée TA (h)</label>
+          <input type="number" inputmode="decimal" id="ferm-h-ta" value="4" min="0" max="48" step="0.5">
+        </div>
+        <div class="fg" id="ferm-h-cold-wrap" style="display:none;">
+          <label>Durée froid (h)</label>
+          <input type="number" inputmode="decimal" id="ferm-h-cold" value="24" min="0" max="96" step="1">
+        </div>
+        <div class="fg" id="ferm-t-cold-wrap" style="display:none;">
+          <label>T° froid (°C)</label>
+          <input type="number" inputmode="decimal" id="ferm-t-cold" value="4" min="2" max="18" step="1">
+        </div>
+      </div>
+
+      <!-- Sous-paramètres : un seul visible selon stratégie -->
+      <div class="ferm-substrate" id="ferm-sub-poolish" style="display:none;">
+        <div class="slbl mt8">Poolish</div>
+        <div class="g3">
+          <div class="fg"><label>% farine</label><input type="number" inputmode="decimal" id="ferm-pool-pct" value="30" min="10" max="50" step="5"></div>
+          <div class="fg"><label>T° ferm. (°C)</label><input type="number" inputmode="decimal" id="ferm-pool-temp" value="22" min="15" max="30" step="1"></div>
+          <div class="fg"><label>Type levure</label>
+            <select id="ferm-pool-type">
+              <option value="fraiche">Fraîche</option>
+              <option value="instant">Sèche inst.</option>
+              <option value="active">Sèche active</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="ferm-substrate" id="ferm-sub-biga" style="display:none;">
+        <div class="slbl mt8">Biga (Giorilli)</div>
+        <div class="g3">
+          <div class="fg"><label>% farine</label><input type="number" inputmode="decimal" id="ferm-biga-prop" value="50" min="20" max="100" step="5"></div>
+          <div class="fg"><label>Hydratation (%)</label><input type="number" inputmode="decimal" id="ferm-biga-hydrat" value="45" min="40" max="50" step="1"><div class="hint">Giorilli 44-45 %</div></div>
+          <div class="fg"><label>T° ferm. (°C)</label><input type="number" inputmode="decimal" id="ferm-biga-temp" value="18" min="14" max="22" step="1"></div>
+          <div class="fg"><label>Appoint pétrissée (%)</label><input type="number" inputmode="decimal" id="ferm-biga-appoint" value="0" min="0" max="2" step="0.1"></div>
+        </div>
+      </div>
+
+      <div class="ferm-substrate" id="ferm-sub-pf" style="display:none;">
+        <div class="slbl mt8">Pâte fermentée</div>
+        <div class="g3">
+          <div class="fg"><label>% farine totale</label><input type="number" inputmode="decimal" id="ferm-pf-pct" value="20" min="5" max="50" step="5"><div class="hint">Réf. 10-25 %</div></div>
+        </div>
+      </div>
+
+      <div class="ferm-substrate" id="ferm-sub-levain" style="display:none;">
+        <div class="slbl mt8">Levain</div>
+        <div class="g3">
+          <div class="fg"><label>% farine totale</label><input type="number" inputmode="decimal" id="ferm-levain-pct" value="20" min="5" max="50" step="5"></div>
+          <div class="fg"><label>Hydratation levain (%)</label><input type="number" inputmode="decimal" id="ferm-levain-hydrat" value="100" min="50" max="200" step="5"><div class="hint">Liquide ~100 %, dur ~50 %</div></div>
+        </div>
+      </div>
+
+      <div class="hint mt8" style="font-size:11px;">
+        ⓘ Cette card est en cours de branchement (commit 3/4). Les paramètres ne sont pas encore lus par le moteur de calcul ; utilisez les contrôles legacy de chaque famille pour l'instant.
+      </div>
+
+      <!-- Persistance JSON via getFormData/setFormData -->
+      <input type="hidden" id="ferment-state" value="">
     </div>
   </div>
 
@@ -3057,6 +3163,172 @@ function migrateLegacyPainFlourMix(data){
   return JSON.stringify(picks);
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// V21.22 — PILOTE DE FERMENTATION (Module 4.2 commit 2/4)
+// État JSON unifié, UI réactive. Branchement métier en V21.23.
+// ═══════════════════════════════════════════════════════════════════
+const FERM_STRATEGIES = ['directe','poolish','biga','pf','levain'];
+const FERM_PROFILES   = ['allTA','taColdDelay','coldLong'];
+const FERM_STRATEGY_LABELS = {
+  directe:'Directe', poolish:'Poolish', biga:'Biga', pf:'Pâte ferm.', levain:'Levain'
+};
+const FERM_PROFILE_LABELS = {
+  allTA:'Tout TA', taColdDelay:'TA+Froid', coldLong:'Froid long'
+};
+
+const FERM_DEFAULT_STATE = {
+  strategy: 'directe',
+  profile:  'allTA',
+  hTA:    4,
+  hCold: 24,
+  tCold:  4,
+  poolish: { pct:30, temp:22, type:'fraiche' },
+  biga:    { prop:50, hydrat:45, temp:18, appoint:0 },
+  pf:      { pct:20 },
+  levain:  { pct:20, hydrat:100 },
+};
+
+function fermentReadState(){
+  const hid = $('ferment-state');
+  if(!hid || !hid.value) return null;
+  try { return JSON.parse(hid.value); } catch(e){ return null; }
+}
+
+function fermentWriteState(state){
+  const hid = $('ferment-state');
+  if(hid) hid.value = JSON.stringify(state || {});
+}
+
+function fermentGetState(){
+  const s = fermentReadState();
+  if(s && s.strategy) return s;
+  return JSON.parse(JSON.stringify(FERM_DEFAULT_STATE));
+}
+
+// Render — sync UI ↔ état JSON
+function fermentRender(){
+  const state = fermentGetState();
+
+  // Stratégie : segments + radios
+  document.querySelectorAll('#ferm-strategy-seg .rseg-btn').forEach(b => {
+    const active = b.dataset.val === state.strategy;
+    b.classList.toggle('active', active);
+    const inp = b.querySelector('input');
+    if(inp) inp.checked = active;
+  });
+  // Profil : segments + radios
+  document.querySelectorAll('#ferm-profile-seg .rseg-btn').forEach(b => {
+    const active = b.dataset.val === state.profile;
+    b.classList.toggle('active', active);
+    const inp = b.querySelector('input');
+    if(inp) inp.checked = active;
+  });
+
+  // Champs durées + T°
+  if($('ferm-h-ta'))   $('ferm-h-ta').value   = state.hTA;
+  if($('ferm-h-cold')) $('ferm-h-cold').value = state.hCold;
+  if($('ferm-t-cold')) $('ferm-t-cold').value = state.tCold;
+
+  // Visibilité durée/T° selon profil
+  const hTAWrap   = $('ferm-h-ta-wrap');
+  const hColdWrap = $('ferm-h-cold-wrap');
+  const tColdWrap = $('ferm-t-cold-wrap');
+  if(state.profile === 'allTA'){
+    if(hTAWrap)   hTAWrap.style.display   = '';
+    if(hColdWrap) hColdWrap.style.display = 'none';
+    if(tColdWrap) tColdWrap.style.display = 'none';
+  } else if(state.profile === 'taColdDelay'){
+    if(hTAWrap)   hTAWrap.style.display   = '';
+    if(hColdWrap) hColdWrap.style.display = '';
+    if(tColdWrap) tColdWrap.style.display = '';
+  } else { // coldLong
+    if(hTAWrap)   hTAWrap.style.display   = 'none';
+    if(hColdWrap) hColdWrap.style.display = '';
+    if(tColdWrap) tColdWrap.style.display = '';
+  }
+
+  // Sous-paramètres visibles selon stratégie
+  ['poolish','biga','pf','levain'].forEach(s => {
+    const panel = $('ferm-sub-' + s);
+    if(panel) panel.style.display = (state.strategy === s) ? '' : 'none';
+  });
+
+  // Sous-paramètres : valeurs
+  if($('ferm-pool-pct'))     $('ferm-pool-pct').value     = state.poolish.pct;
+  if($('ferm-pool-temp'))    $('ferm-pool-temp').value    = state.poolish.temp;
+  if($('ferm-pool-type'))    $('ferm-pool-type').value    = state.poolish.type;
+  if($('ferm-biga-prop'))    $('ferm-biga-prop').value    = state.biga.prop;
+  if($('ferm-biga-hydrat'))  $('ferm-biga-hydrat').value  = state.biga.hydrat;
+  if($('ferm-biga-temp'))    $('ferm-biga-temp').value    = state.biga.temp;
+  if($('ferm-biga-appoint')) $('ferm-biga-appoint').value = state.biga.appoint;
+  if($('ferm-pf-pct'))       $('ferm-pf-pct').value       = state.pf.pct;
+  if($('ferm-levain-pct'))   $('ferm-levain-pct').value   = state.levain.pct;
+  if($('ferm-levain-hydrat'))$('ferm-levain-hydrat').value= state.levain.hydrat;
+
+  // Tag header
+  const tag = $('ferm-tag');
+  if(tag){
+    tag.textContent = `${FERM_STRATEGY_LABELS[state.strategy]} · ${FERM_PROFILE_LABELS[state.profile]}`;
+  }
+}
+
+// Mise à jour atomique d'un champ état + re-render
+function fermentUpdateField(path, value){
+  const state = fermentGetState();
+  // path : 'strategy' | 'profile' | 'hTA' | 'hCold' | 'tCold' | 'poolish.pct' | etc.
+  const parts = path.split('.');
+  let obj = state;
+  for(let i = 0; i < parts.length - 1; i++){
+    if(!obj[parts[i]]) obj[parts[i]] = {};
+    obj = obj[parts[i]];
+  }
+  obj[parts[parts.length - 1]] = value;
+  fermentWriteState(state);
+  fermentRender();
+}
+
+function initFermentPilotUI(){
+  // Stratégie radios → state
+  document.querySelectorAll('#ferm-strategy-seg .rseg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      fermentUpdateField('strategy', b.dataset.val);
+    });
+  });
+  // Profil radios → state
+  document.querySelectorAll('#ferm-profile-seg .rseg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      fermentUpdateField('profile', b.dataset.val);
+    });
+  });
+  // Durées + T°
+  const numericBindings = {
+    'ferm-h-ta':   'hTA',
+    'ferm-h-cold': 'hCold',
+    'ferm-t-cold': 'tCold',
+    'ferm-pool-pct':     'poolish.pct',
+    'ferm-pool-temp':    'poolish.temp',
+    'ferm-biga-prop':    'biga.prop',
+    'ferm-biga-hydrat':  'biga.hydrat',
+    'ferm-biga-temp':    'biga.temp',
+    'ferm-biga-appoint': 'biga.appoint',
+    'ferm-pf-pct':       'pf.pct',
+    'ferm-levain-pct':   'levain.pct',
+    'ferm-levain-hydrat':'levain.hydrat',
+  };
+  Object.entries(numericBindings).forEach(([id, path]) => {
+    const el = $(id);
+    if(el) el.addEventListener('input', () => {
+      fermentUpdateField(path, parseFloat(el.value) || 0);
+    });
+  });
+  // Type levure poolish (string)
+  const poolType = $('ferm-pool-type');
+  if(poolType) poolType.addEventListener('change', () => {
+    fermentUpdateField('poolish.type', poolType.value);
+  });
+  fermentRender();
+}
+
 // Met à jour les badges et enable/disable des inputs
 function updateFlourUI(){
   // Enable/disable pct based on checkbox
@@ -3487,7 +3759,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.21';
+const APP_VERSION = 'V21.22';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5195,6 +5467,9 @@ function init(){
 
   // V21.15/V21.16 — Init composeurs farines toutes familles (Module 4.1.b)
   if(typeof composerRenderAll === 'function') composerRenderAll();
+
+  // V21.22 — Init Pilote de fermentation (Module 4.2 commit 2/4)
+  if(typeof initFermentPilotUI === 'function') initFermentPilotUI();
 }
 
 // ─────────────────────────────────────────────
@@ -7893,6 +8168,8 @@ function setFormData(data){
   }
   // V21.15/V21.16 — Re-rendre tous les composeurs farines
   if(typeof composerRenderAll === 'function') composerRenderAll();
+  // V21.22 — Re-rendre Pilote de fermentation (Module 4.2 commit 2/4)
+  if(typeof fermentRender === 'function') fermentRender();
   // Re-rendre les toppings après que le mode ait été (re)défini
   renderPizzaToppings();
   // V17-D2 : marquer la baseline pour détection "modifié"
