@@ -416,6 +416,7 @@ body > .app { padding-top: var(--header-offset, 130px); }
   .app-header-top{padding:12px 12px 8px;}
   body > .app { padding-top: var(--header-offset, 112px); }
   .cb{padding:11px 13px;}
+  #theme-btn:focus{outline:none;box-shadow:none;}
   /* Fix mobile S23 : ing-row dans l'onglet Coûts */
   #costs-list .ing-row{flex-wrap:wrap;gap:2px;}
   #costs-list .ing-name{min-width:0;flex:1 1 55%;font-size:12px;}
@@ -1599,6 +1600,13 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div class="g3">
         <div class="fg"><label>T° Farine (°C)</label><input type="number" inputmode="decimal" id="tb-f" value="20"></div>
         <div class="fg"><label>T° Fournil (°C)</label><input type="number" inputmode="decimal" id="tb-fo" value="22"></div>
+        <div class="fg">
+          <label>Température de base — TB (°C)</label>
+          <input type="number" inputmode="decimal" id="tb-base" value="66" min="52" max="80" step="1">
+          <div class="hint">TB intègre votre T° pâte cible et la friction de votre pétrin.
+            Ajustez-la une fois en début de saison selon vos conditions de fournil.
+            Valeur usuelle : 62–68 °C pain, 60–65 °C pizza.</div>
+        </div>
         <div class="fg" id="tb-pool-wrap" style="display:none;">
           <label>T° Poolish (°C)</label>
           <input type="number" inputmode="decimal" id="tb-pool" value="25">
@@ -4591,6 +4599,18 @@ function init(){
     const el=$(id); if(el){ el.addEventListener('input',computeAll); el.addEventListener('change',computeAll); }
   });
 
+  // TB par famille — initialisation au démarrage + persistance
+  const TB_DEFAULTS = {pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60};
+  const tbEl = $('tb-base');
+  if(tbEl){
+    let saved; try{saved=parseInt(localStorage.getItem('opdcj_tb_'+MODE),10);}catch(e){}
+    tbEl.value = (saved>=52 && saved<=80) ? saved : (TB_DEFAULTS[MODE]||66);
+    tbEl.addEventListener('input',()=>{
+      try{localStorage.setItem('opdcj_tb_'+MODE, tbEl.value);}catch(e){}
+      computeWaterTemp();
+    });
+  }
+
   initTheme();
   initCollapsibles();
   initPlanning(); // V15 : initialiser le planning avancé
@@ -4822,6 +4842,13 @@ function updateToppingsCardTitle(){
 // ─────────────────────────────────────────────
 function switchMode(mode){
   MODE=mode;
+  // Charger la TB sauvegardée (ou défaut) pour la nouvelle famille
+  const _TB_DEF = {pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60};
+  const _tbEl = $('tb-base');
+  if(_tbEl){
+    let _sv; try{_sv=parseInt(localStorage.getItem('opdcj_tb_'+mode),10);}catch(e){}
+    _tbEl.value = (_sv>=52 && _sv<=80) ? _sv : (_TB_DEF[mode]||66);
+  }
   document.querySelectorAll('.pb').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('vis'));
   const key=mode==='petit-pain'?'pane-petit-pain':`pane-${mode}`;
@@ -5804,10 +5831,11 @@ function computeCosts(){
 }
 
 // ─────────────────────────────────────────────
-// COMPUTE WATER TEMPS — Technomitron TB references
-// TB Poolish = 70  : T°eau poolish   = 70 - T°farine - T°fournil
-// TB Pétrisée = 56 : T°eau pétrisée  = 56 - [(T°farine + T°poolish)/2] - T°fournil
-// TB Direct = 54   : T°eau directe   = 54 - T°farine - T°fournil
+// COMPUTE WATER TEMPS
+// Formule TB : T°eau = TB − T°fournil − T°farine
+// TB intègre T°pâte cible + friction pétrin en une valeur étalonnée par famille.
+// Anciennes constantes 3T conservées ci-dessous pour référence uniquement :
+//   TB Poolish = 70 · TB Pétrisée = 56 · TB Direct PA = 63 · TB Pizza 3T = 69
 // ─────────────────────────────────────────────
 function computeWaterTemp(){
   const tf     = toNum($('tb-f')?.value,  20);
@@ -5819,55 +5847,29 @@ function computeWaterTemp(){
   const poolWrap=$('tb-pool-wrap');
   if(poolWrap) poolWrap.style.display=S.surPool?'':'none';
 
-  // V17-Dfix3 — Formule officielle des 3T pour la pizza (sources convergentes :
-  //   Pizza-Schule, Pizza Stories 5 Stagioni, Pizzavore, Stadler Made, AVPN) :
-  //   T°eau = (T°pâte_cible × 3) − T°fournil − T°farine − Friction_pétrin
-  // Cible pâte 23°C par défaut → TB = 69
-  // Friction selon type de pétrin (ajustable par l'utilisateur si "custom") :
-  //   Manuel/Doux       : 0°C  (pétrissage main, peu d'échauffement)
-  //   Spirale lent      : 4°C  (consensus 5 Stagioni : 3-5°C)
-  //   Spirale pro/rapide: 9°C  (sources : 9°C cité par Pizza-Schule)
-  const isPizza = MODE==='pizza';
+  // TB saisie par l'utilisateur (avec défaut par famille)
+  const _TB_DEFAULTS = {pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60};
+  const tbUser = toNum($('tb-base')?.value, _TB_DEFAULTS[MODE]||66);
+
+  // Champs friction pizza — toujours utiles pour le tableau pédagogique
+  const isPizza = (MODE==='pizza' || MODE==='focaccia');
   const pizzaPetr = $('pz-petr-type')?.value || 'spiral-slow';
-  const PIZZA_FRICTION_PRESETS = {
-    'hand':        0,
-    'spiral-slow': 4,
-    'spiral-pro':  9,
-  };
-  // Auto-fill du champ friction quand un preset est sélectionné (sauf "custom")
+  const PIZZA_FRICTION_PRESETS = {'hand':0,'spiral-slow':4,'spiral-pro':9};
   const frictionEl = $('pz-friction');
-  if(isPizza && frictionEl && pizzaPetr !== 'custom' && PIZZA_FRICTION_PRESETS[pizzaPetr] !== undefined){
-    const expectedFriction = PIZZA_FRICTION_PRESETS[pizzaPetr];
-    // Ne réécrire que si la valeur courante diffère, pour ne pas perturber la frappe
-    if(parseFloat(frictionEl.value) !== expectedFriction){
-      frictionEl.value = expectedFriction;
-    }
+  if(MODE==='pizza' && frictionEl && pizzaPetr !== 'custom' && PIZZA_FRICTION_PRESETS[pizzaPetr] !== undefined){
+    if(parseFloat(frictionEl.value) !== PIZZA_FRICTION_PRESETS[pizzaPetr])
+      frictionEl.value = PIZZA_FRICTION_PRESETS[pizzaPetr];
   }
-  // Lire la friction effective (manuelle ou preset)
-  const friction = isPizza ? toNum(frictionEl?.value, 4) : 0;
+  const friction = (MODE==='pizza') ? toNum(frictionEl?.value, 4) : 0;
 
-  // T° pâte cible pizza : 23°C (fourchette idéale 22-26°C)
-  const T_PATE_CIBLE_PIZZA = 23;
-  const TB_PIZZA = T_PATE_CIBLE_PIZZA * 3; // = 69
-
-  // TB pain (existant, inchangé)
+  // Pétrissage pain (pour tableau de référence uniquement)
   const petrV=$('plan-petrissage')?.value||'pa';
-  const TB_PAIN_DIRECT = {pvl:69, pa:63, pi:55}[petrV] || 63;
-  const TB_PAIN_POOL_TOTAL  = 70;
-  const TB_PAIN_POOL_RESTE  = 56;
 
   // Mettre à jour le tag dans le titre
   const tag=$('tb-tag');
   if(tag){
-    if(isPizza){
-      const petrLabel={hand:'Manuel',['spiral-slow']:'Spirale lent',['spiral-pro']:'Spirale pro',custom:'Perso.'}[pizzaPetr]||'Spirale lent';
-      if(S.surPool) tag.textContent=`Pizza · Poolish · ${petrLabel}`;
-      else tag.textContent=`Pizza · ${petrLabel} (fr ${friction}°C)`;
-    } else {
-      const petrLabel={pvl:'PVL',pa:'PA',pi:'PI'}[petrV]||'PA';
-      if(S.surPool) tag.textContent='Sur Poolish';
-      else tag.textContent=`Direct · ${petrLabel}`;
-    }
+    if(S.surPool) tag.textContent=`TB ${tbUser} · Poolish`;
+    else tag.textContent=`TB ${tbUser} · Direct`;
   }
 
   const colorVal=(t)=>{
@@ -5885,51 +5887,45 @@ function computeWaterTemp(){
   const resEl=$('tb-results');
   if(!resEl) return;
 
-  let waterTemps = []; // [{t, label, qEau}]
-  if(isPizza){
-    // Pizza : formule des 3T avec friction
-    if(S.surPool){
-      // Poolish + pâte finale : on calcule deux eaux
-      // Pour le poolish, friction négligeable (pas de pétrissage à proprement parler)
-      // Pour la pâte finale, on utilise la friction du pétrin
-      const twPool = TB_PIZZA - tf - tfo;  // poolish : pas de friction comptée
-      const twPetr = TB_PIZZA - ((tf + tpl)/2) - tfo - friction;
-      resEl.innerHTML =
-        boxHTML(twPool,'Eau Poolish',`3T · cible 23°C · sans friction`) +
-        boxHTML(twPetr,'Eau Pétrisée',`3T · cible 23°C · friction ${friction}°C`);
-      waterTemps = [{t:twPool,label:'poolish',q:S.poolW},{t:twPetr,label:'pétrisée',q:S.restW}];
-    } else {
-      // Pâte directe : formule complète
-      const twDirect = TB_PIZZA - tf - tfo - friction;
-      resEl.innerHTML = boxHTML(twDirect,'Eau de coulage',
-        `3T · cible 23°C · friction ${friction}°C`);
-      waterTemps = [{t:twDirect,label:'coulage',q:S.eau}];
-    }
-  } else {
-    // Pain : ancien fonctionnement TB direct
-    // F — note when dry yeast selected (+2°C recommended for slower hydration)
+  // Formule unifiée TB pour toutes les familles
+  let waterTemps = [];
+  if(MODE==='pain' || MODE==='focaccia' || MODE==='petit-pain' || MODE==='brioche'){
     const painLevType = $('pain-lev-type')?.value || 'fraiche';
     const dryYeastNote = (painLevType === 'instant' || painLevType === 'active')
       ? ' · levure sèche : +2°C conseillé' : '';
     if(S.surPool){
-      const twPool = TB_PAIN_POOL_TOTAL - tf - tfo;
-      const twPetr = TB_PAIN_POOL_RESTE - ((tf + tpl)/2) - tfo;
+      const twPool = tbUser - tf - tfo;
+      const twPetr = tbUser - ((tf + tpl)/2) - tfo;
       resEl.innerHTML =
-        boxHTML(twPool,'Eau Poolish',`TB = ${TB_PAIN_POOL_TOTAL}${dryYeastNote}`) +
-        boxHTML(twPetr,'Eau Pétrisée',`TB = ${TB_PAIN_POOL_RESTE}${dryYeastNote}`);
+        boxHTML(twPool,'Eau Poolish',`TB = ${tbUser}${dryYeastNote}`) +
+        boxHTML(twPetr,'Eau Pétrisée',`TB = ${tbUser}${dryYeastNote}`);
       waterTemps = [{t:twPool,label:'poolish',q:S.poolW},{t:twPetr,label:'pétrisée',q:S.restW}];
     } else {
-      const twDirect = TB_PAIN_DIRECT - tf - tfo;
-      resEl.innerHTML = boxHTML(twDirect,'Eau de coulage',`TB = ${TB_PAIN_DIRECT}${dryYeastNote}`);
+      const twDirect = tbUser - tf - tfo;
+      resEl.innerHTML = boxHTML(twDirect,'Eau de coulage',`TB = ${tbUser}${dryYeastNote}`);
+      waterTemps = [{t:twDirect,label:'coulage',q:S.eau}];
+    }
+  } else {
+    // Pizza
+    if(S.surPool){
+      const twPool = tbUser - tf - tfo;
+      const twPetr = tbUser - ((tf + tpl)/2) - tfo;
+      resEl.innerHTML =
+        boxHTML(twPool,'Eau Poolish',`TB = ${tbUser} · sans friction`) +
+        boxHTML(twPetr,'Eau Pétrisée',`TB = ${tbUser}`);
+      waterTemps = [{t:twPool,label:'poolish',q:S.poolW},{t:twPetr,label:'pétrisée',q:S.restW}];
+    } else {
+      const twDirect = tbUser - tf - tfo;
+      resEl.innerHTML = boxHTML(twDirect,'Eau de coulage',`TB = ${tbUser}`);
       waterTemps = [{t:twDirect,label:'coulage',q:S.eau}];
     }
   }
 
-  // ── V15 : Info TB pétrissage (mode direct uniquement) ──
+  // ── Info TB pétrissage ──
   const tbPetrInfo=$('tb-petr-info');
   if(tbPetrInfo){
-    if(isPizza){
-      // V17-Dfix3 — Tableau pédagogique : friction par type de pétrin
+    if(MODE==='pizza'){
+      // Tableau pédagogique friction — référence 3T (TB dans champ dédié)
       const rows=[
         {key:'hand',        label:'Manuel',       fr:0, active:pizzaPetr==='hand'},
         {key:'spiral-slow', label:'Spirale lent', fr:4, active:pizzaPetr==='spiral-slow'},
@@ -5937,40 +5933,38 @@ function computeWaterTemp(){
       ];
       tbPetrInfo.className='alert a-info mt8';
       tbPetrInfo.classList.remove('hidden');
-      // Ligne avec valeurs préview pour la T° actuelle
       const previewLine = pizzaPetr==='custom'
         ? `<div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.4;">
             <b>Personnalisé :</b> mesure ta propre friction (T° pâte fin pétrissage − T° après mélange initial).
           </div>`
         : `<div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.4;">
-            Plus le pétrissage est rapide, plus la friction chauffe la pâte → eau plus froide nécessaire.
-            Tu peux mesurer ta propre friction et passer en mode "Personnalisé".
+            Référence 3T · friction absorbée dans TB. Ajuste TB si tu changes de pétrin.
           </div>`;
-      tbPetrInfo.innerHTML=`<strong>Friction selon le pétrin (formule 3T)</strong>
+      tbPetrInfo.innerHTML=`<strong>Friction de référence (formule 3T)</strong>
         <div style="display:flex;gap:8px;margin-top:7px;flex-wrap:wrap;">
           ${rows.map(r=>{
-            const eauPreview = TB_PIZZA - tf - tfo - r.fr;
+            const eauPreview = tbUser - tf - tfo - r.fr;
             return `<div style="flex:1;min-width:90px;text-align:center;padding:7px 6px;
               border-radius:7px;border:2px solid ${r.active?'var(--prim)':'var(--border)'};
               background:${r.active?'var(--prim)':'var(--bg)'};
               color:${r.active?'#fff':'var(--txt-m)'};font-size:12px;">
               <div style="font-weight:800;">${r.label}</div>
               <div style="font-size:14px;font-weight:700;margin-top:3px;">+${r.fr}°C</div>
-              <div style="font-size:10px;opacity:.8;">eau ≈ ${rnd(eauPreview)}°C</div>
+              <div style="font-size:10px;opacity:.8;">3T ≈ ${rnd(eauPreview)}°C</div>
             </div>`;
           }).join('')}
         </div>
         ${previewLine}`;
-    } else if(!S.surPool){
-      // Mode pain direct : afficher le tableau TB selon pétrissage
+    } else if(MODE==='pain' && !S.surPool){
+      // Tableau référence TB selon pétrissage pain
       const rows=[
-        {key:'pvl',label:'PVL — Lent',   tb:69, active:petrV==='pvl'},
+        {key:'pvl',label:'PVL — Lent',    tb:69, active:petrV==='pvl'},
         {key:'pa', label:'PA — Amélioré', tb:63, active:petrV==='pa'},
         {key:'pi', label:'PI — Intensifié',tb:55, active:petrV==='pi'},
       ];
       tbPetrInfo.className='alert a-info mt8';
       tbPetrInfo.classList.remove('hidden');
-      tbPetrInfo.innerHTML=`<strong>TB selon pétrissage (mode direct)</strong>
+      tbPetrInfo.innerHTML=`<strong>TB de référence selon pétrissage — votre saisie prime</strong>
         <div style="display:flex;gap:8px;margin-top:7px;flex-wrap:wrap;">
           ${rows.map(r=>`
             <div style="flex:1;min-width:90px;text-align:center;padding:7px 6px;
@@ -5979,18 +5973,11 @@ function computeWaterTemp(){
               color:${r.active?'#fff':'var(--txt-m)'};font-size:12px;">
               <div style="font-weight:800;">${r.label}</div>
               <div style="font-size:18px;font-weight:700;margin-top:3px;">TB ${r.tb}</div>
-              <div style="font-size:10px;opacity:.8;">T°eau = ${r.tb} − T°f − T°fo</div>
+              <div style="font-size:10px;opacity:.8;">réf. Technomitron</div>
             </div>`).join('')}
         </div>`;
     } else {
-      // En mode poolish pain : les TB sont fixes (70/56)
-      tbPetrInfo.className='alert a-info mt8';
-      tbPetrInfo.classList.remove('hidden');
-      tbPetrInfo.innerHTML=`<strong>Mode Poolish — TB fixes</strong>
-        <div style="font-size:12px;margin-top:5px;color:var(--txt-m);">
-          TB 70 (eau poolish) · TB 56 (eau pétrisée) — indépendants du type de pétrissage.<br>
-          <span style="font-size:11px;color:var(--muted);">Décocher « Sur Poolish » pour activer la TB variable selon PVL/PA/PI.</span>
-        </div>`;
+      tbPetrInfo.className='hidden';
     }
   }
   // Formule : Q_glace = Q_eau × (T°réseau − T°voulue) / (80 + T°réseau)
