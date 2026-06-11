@@ -40,9 +40,9 @@
   --prim-dk: #A24E2F;
   --acc:     #C4633F;
   --acc-bg:  #FBE3D5;
-  --txt:     #5A2E1B;
-  --txt-m:   #7A4E36;
-  --muted:   #A55E3C;
+  --txt:     #3A1A08;
+  --txt-m:   #5A3018;
+  --muted:   #6E3C20;
   --icon:    #C99B7A;
   --border:  #F0D8C8;
   --rule:    #F6E6DA;
@@ -160,7 +160,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
   display:flex;align-items:center;gap:9px;}
 .ch .ico{width:28px;height:28px;background:var(--acc-bg);border:1px solid var(--border);
   border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-.ch h3{font-family:'Playfair Display',serif;font-size:14px;color:var(--prim-dk);}
+.ch h3{font-family:'Playfair Display',serif;font-size:14px;color:var(--txt);}
 .ch .tag{margin-left:auto;font-size:10px;font-weight:700;color:var(--muted);
   background:var(--bg2);padding:3px 7px;border-radius:20px;}
 .cb{padding:13px 15px;}
@@ -7344,54 +7344,56 @@ function markRecipeBaseline(){
   _recBaselineRID = RID;
 }
 
-// Met à jour le sélecteur compact (liste des recettes du mode courant)
+// Met à jour le sélecteur compact (toutes familles, mode courant en premier)
 async function renderQuickSelector(){
   const sel = $('rec-quick-select');
   const ico = $('rec-quick-icon');
   const nameEl = $('rec-quick-name');
   if(!sel || !ico) return;
 
-  // Icône selon mode
   ico.innerHTML = '<svg class="ic"><use href="#ic-bread"/></svg>';
 
-  // Liste des recettes de la famille active
   const all = await dbAll();
-  const fam = all.filter(r => r.mode === MODE);
-  fam.sort((a,b) => {
-    const aIsDef = DEFAULT_RECIPES[a.mode]===a.id ? 1 : 0;
-    const bIsDef = DEFAULT_RECIPES[b.mode]===b.id ? 1 : 0;
-    if(aIsDef !== bIsDef) return bIsDef - aIsDef;
+
+  // Ordre : famille active en premier, puis les autres
+  const ORDER = ['pain','pizza','focaccia','petit-pain','brioche'];
+  const families = [MODE, ...ORDER.filter(m => m !== MODE)];
+
+  const sortRecs = arr => arr.sort((a,b) => {
+    const aD = DEFAULT_RECIPES[a.mode]===a.id ? 1 : 0;
+    const bD = DEFAULT_RECIPES[b.mode]===b.id ? 1 : 0;
+    if(aD !== bD) return bD - aD;
     return (b.updatedAt||0) - (a.updatedAt||0);
   });
 
   let html = `<option value=""> Choisir une recette </option>`;
-  for(const r of fam){
-    const isDef = DEFAULT_RECIPES[r.mode] === r.id;
-    const sel_attr = (RID === r.id) ? ' selected' : '';
-    const star = isDef ? ' ⭐' : '';
-    html += `<option value="${r.id}"${sel_attr}>${(r.title||'Sans nom')}${star}</option>`;
+  for(const fam of families){
+    const recs = sortRecs(all.filter(r => r.mode === fam));
+    if(!recs.length) continue;
+    const famLabel = MODES[fam]?.label || fam;
+    html += `<optgroup label="${famLabel}">`;
+    for(const r of recs){
+      const star = DEFAULT_RECIPES[r.mode] === r.id ? ' ⭐' : '';
+      html += `<option value="${r.id}">${(r.title||'Sans nom')}${star}</option>`;
+    }
+    html += `</optgroup>`;
   }
   sel.innerHTML = html;
-  // Le sélecteur reste vide (= placeholder) parce qu'on a déplacé l'identification
-  // dans le titre. L'utilisateur l'utilise uniquement pour CHANGER de recette.
   sel.value = '';
 
-  // V18-2 — rec-quick-name est maintenant un input : utiliser .value
   if(nameEl){
     if(RID){
-      const cur = fam.find(r => r.id === RID);
+      const cur = all.find(r => r.id === RID);
       const isDef = cur && DEFAULT_RECIPES[cur.mode] === cur.id;
       nameEl.value = (cur?.title || 'Recette sans nom') + (isDef ? ' ⭐' : '');
     } else {
       nameEl.value = '';
       nameEl.placeholder = 'Nom de la recette…';
     }
-    // Sync bidirectionnelle avec rec-name (onglet Recettes)
     const recName = $('rec-name');
     if(recName) recName.value = nameEl.value;
   }
 
-  // Status
   updateQuickStatus();
 }
 
@@ -7414,24 +7416,21 @@ function updateQuickStatus(){
   }
 }
 
-// Listener sur le sélecteur compact : charge la recette
+// Listener sur le sélecteur compact : charge la recette (toutes familles)
 async function onQuickSelectorChange(){
   const sel = $('rec-quick-select');
   if(!sel) return;
   const id = sel.value;
-  if(!id){
-    // V17-Dfix2 : valeur vide = juste le placeholder, on ne fait rien
-    return;
-  }
-  // Charger la recette via la fonction existante
-  if(RID === id){ sel.value = ''; return; } // déjà chargée, reset placeholder
+  if(!id) return;
+  if(RID === id){ sel.value = ''; return; }
   if(RID && isCurrentRecipeModified() && !confirm('Modifications non sauvegardées. Charger l\'autre recette quand même ?')){
     sel.value = ''; return;
   }
+  // Changer de famille si la recette appartient à un autre mode
+  const r = await dbGet(id);
+  if(r && r.mode && r.mode !== MODE) switchMode(r.mode);
   await window.loadR(id);
-  // Reset le sélecteur sur le placeholder pour permettre une nouvelle sélection
   sel.value = '';
-  // window.loadR est asynchrone, le baseline sera marqué par setFormData
 }
 
 // Save rapide depuis le sélecteur
