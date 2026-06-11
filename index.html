@@ -713,24 +713,15 @@ body.dark .rec-filter-btn.active{color:#1a0d05;background:var(--prim-lt);border-
 .subheader-rec .rec-quick-select{padding:3px 7px;font-size:11px;}
 .subheader-rec .rec-quick-status{display:none;} /* masqué en mode fixe */
 
-/* Bouton "Choisir une recette" — pill arrondi avec icône 🧺 */
+/* Bouton "Choisir une recette" — pill arrondi */
 .subheader-rec .rec-select-wrap{
   position:relative;
   flex-shrink:0;
   display:inline-flex;
   align-items:center;
 }
-.subheader-rec .rec-select-wrap::before{
-  content:'🧺';
-  position:absolute;
-  left:9px;
-  font-size:12px;
-  pointer-events:none;
-  z-index:1;
-  line-height:1;
-}
 .subheader-rec .rec-select-wrap select{
-  padding:5px 28px 5px 28px;
+  padding:5px 28px 5px 10px;
   border:2px solid var(--prim);
   border-radius:20px;
   background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23b06020' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 9px center;
@@ -830,7 +821,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 <header class="app-header">
   <div class="app-header-top" style="position:relative;">
     <h1>Ô Pain De Ce Jour</h1>
-    <p id="app-version-line">Mon carnet de boulang'eric · V21 - Juin 2026</p>
+    <p id="app-version-line">Mon carnet de boulang'eric · V21.5 - Juin 2026</p>
     <button id="theme-btn" title="Mode Fournil / Jour"><svg class="ic"><use href="#ic-moon"/></svg></button>
   </div>
   <!-- ═══════════════ NAV ═══════════════ -->
@@ -3080,7 +3071,7 @@ const CLOUD_FILENAME = 'opdcj-data.json';
 // Gist public contenant le token actuel — fetchable sans auth
 const BOOTSTRAP_GIST_RAW = 'https://gist.githubusercontent.com/Riviera-ops/89ba19ca81c5a794c141ba4ab2bdbe30/raw/opdcj-config.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21';
+const APP_VERSION = 'V21.5';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -9216,7 +9207,7 @@ function levainSave() {
 window.addEventListener('DOMContentLoaded',()=>{
   // Affiche la version dans le bandeau
   const vl = document.getElementById('app-version-line');
-  if(vl) vl.textContent = `Mon carnet de boulang'eric · ${APP_VERSION} - Juin 2026`;
+  if(vl) vl.textContent = `Mon carnet de boulang'eric · ${APP_VERSION} — Juin 2026`;
 
   // ── Header fixe : calcul dynamique de l'offset ──
   function adjustHeaderOffset(){
