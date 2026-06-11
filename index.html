@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.5</title>
+<title>Ô Pain De Ce Jour V21.12</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1975,7 +1975,8 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── CARD 1 : Nouveau levain ── -->
   <div class="card">
     <div class="ch">
-      <span style="font-size:15px;font-weight:800;">🫙 Nouveau levain — Démarrage</span>
+      <div class="ico"><svg class="ic"><use href="#ic-leaf"/></svg></div>
+      <span style="font-size:15px;font-weight:800;">Nouveau levain — Démarrage</span>
     </div>
     <div class="cb">
 
@@ -2056,7 +2057,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── CARD 2 : Journal J1→J7 ── -->
   <div class="card" id="lv-card-journal">
     <div class="ch">
-      <div class="ico">📓</div>
+      <div class="ico"><svg class="ic"><use href="#ic-list"/></svg></div>
       <span style="font-size:15px;font-weight:800;">Journal J1→J7</span>
       <span id="lv-journal-tag" class="tag" style="margin-left:auto;">—</span>
     </div>
@@ -3091,7 +3092,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.5';
+const APP_VERSION = 'V21.12';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5966,7 +5967,6 @@ function computeWaterTemp(){
               color:${r.active?'#fff':'var(--txt-m)'};font-size:12px;">
               <div style="font-weight:800;">${r.label}</div>
               <div style="font-size:18px;font-weight:700;margin-top:3px;">TB ${r.tb}</div>
-              <div style="font-size:10px;opacity:.8;">réf. Technomitron</div>
             </div>`).join('')}
         </div>`;
     } else {
@@ -8638,7 +8638,7 @@ function levainRenderJournal() {
         <div style="margin-top:10px;margin-bottom:6px;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;">Indicateurs de maturité</div>
         ${indicsHtml}
         <div style="margin-top:12px;">
-          <label style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;">📝 Mes observations</label>
+          <label style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;">Mes observations</label>
           <textarea id="lv-obs-${key}" rows="3"
             style="width:100%;margin-top:4px;padding:8px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;font-size:13px;resize:vertical;box-sizing:border-box;"
             placeholder="Ex : activité visible dès 18h, odeur vineuse, doublé de volume…"
