@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.23</title>
+<title>Ô Pain De Ce Jour V21.24</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1589,7 +1589,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
 
       <div class="hint mt8" style="font-size:11px;">
-        ⓘ Cette card est en cours de branchement (commit 3/4). Les paramètres ne sont pas encore lus par le moteur de calcul ; utilisez les contrôles legacy de chaque famille pour l'instant.
+        ⓘ Les paramètres ci-dessus pilotent le moteur de calcul. Les anciens contrôles de chaque famille (toggle Sur Poolish, durée TA, etc.) restent visibles pour vérification — ils seront retirés en V21.25.
       </div>
 
       <!-- Persistance JSON via getFormData/setFormData -->
@@ -3285,7 +3285,7 @@ function fermentRender(){
   }
 }
 
-// Mise à jour atomique d'un champ état + re-render
+// Mise à jour atomique d'un champ état + re-render + sync legacy + recompute
 function fermentUpdateField(path, value){
   const state = fermentGetState();
   // path : 'strategy' | 'profile' | 'hTA' | 'hCold' | 'tCold' | 'poolish.pct' | etc.
@@ -3298,9 +3298,99 @@ function fermentUpdateField(path, value){
   obj[parts[parts.length - 1]] = value;
   fermentWriteState(state);
   fermentRender();
+  // V21.24 — Branchement métier : sync vers legacy + recompute
+  fermentSyncToLegacy();
+  if(typeof computeAll === 'function') computeAll();
+}
+
+// V21.24 — Pousse l'état Pilote vers les champs legacy.
+// computeAll continue de lire les champs legacy (refactor moteur en V21.25).
+function fermentSyncToLegacy(){
+  const state = fermentGetState();
+  if(!state) return;
+  const isPoolish = state.strategy === 'poolish';
+  const isBiga    = state.strategy === 'biga';
+
+  // Toggles surpool par famille
+  ['pain','foc','pp','bri','pizza'].forEach(pfx => {
+    const t = $(pfx + '-surpool');
+    if(t) t.checked = isPoolish;
+  });
+  // Pizza-specific surbiga
+  const bigaTog = $('pizza-surbiga');
+  if(bigaTog) bigaTog.checked = isBiga;
+
+  // S model (utilisé par compute*)
+  if(typeof S !== 'undefined'){ S.surPool = isPoolish; S.surBiga = isBiga; }
+
+  // Durée totale (TA + froid) injectée comme "durée poolish/biga" (legacy unifié)
+  const totalH = state.hTA + state.hCold;
+
+  // Pool params : shared pool-* + pizza-specific pz-pool-*
+  const p = state.poolish || {};
+  const setIf = (id, v) => { const el = $(id); if(el) el.value = v; };
+  setIf('pool-pct',     p.pct);
+  setIf('pool-duree',   totalH);
+  setIf('pool-temp',    p.temp);
+  setIf('pool-type',    p.type);
+  setIf('pz-pool-pct',  p.pct);
+  setIf('pz-pool-duree',totalH);
+  setIf('pz-pool-temp', p.temp);
+  setIf('pz-pool-type', p.type);
+
+  // Biga (pizza only)
+  const b = state.biga || {};
+  setIf('pz-biga-prop',    b.prop);
+  setIf('pz-biga-hydrat',  b.hydrat);
+  setIf('pz-biga-duree',   totalH);
+  setIf('pz-biga-temp',    b.temp);
+  setIf('pz-biga-appoint', b.appoint);
+
+  // Pizza longue fermentation
+  const longTog = $('pz-long');
+  if(longTog) longTog.checked = (state.profile !== 'allTA');
+  setIf('pz-h-ta',   state.hTA);
+  setIf('pz-h-cold', state.hCold);
+  setIf('pz-t-cold', state.tCold);
+}
+
+// V21.24 — Migre les champs legacy d'une recette → état Pilote.
+// Appelé au load si data['ferment-state'] est absent.
+function fermentMigrateFromLegacy(data){
+  if(data['ferment-state']) return null;
+  const state = JSON.parse(JSON.stringify(FERM_DEFAULT_STATE));
+
+  // Strategy : priorité biga > poolish > directe
+  if(data['pizza-surbiga'] === true || data['pizza-surbiga'] === 'true') state.strategy = 'biga';
+  else if(['pizza-surpool','pain-surpool','foc-surpool','pp-surpool','bri-surpool']
+          .some(k => data[k] === true || data[k] === 'true')) state.strategy = 'poolish';
+  else state.strategy = 'directe';
+
+  // Profil : pz-long → taColdDelay
+  if(data['pz-long'] === true || data['pz-long'] === 'true') state.profile = 'taColdDelay';
+
+  // Durées + T° (pizza-specific)
+  if(data['pz-h-ta']   !== undefined) state.hTA   = parseFloat(data['pz-h-ta'])   || 4;
+  if(data['pz-h-cold'] !== undefined) state.hCold = parseFloat(data['pz-h-cold']) || 24;
+  if(data['pz-t-cold'] !== undefined) state.tCold = parseFloat(data['pz-t-cold']) || 4;
+
+  // Poolish : préférer pool-* (partagé), fallback pz-pool-*
+  state.poolish.pct  = parseFloat(data['pool-pct']  || data['pz-pool-pct'])  || 30;
+  state.poolish.temp = parseFloat(data['pool-temp'] || data['pz-pool-temp']) || 22;
+  state.poolish.type = data['pool-type'] || data['pz-pool-type'] || 'fraiche';
+
+  // Biga (pizza only)
+  state.biga.prop    = parseFloat(data['pz-biga-prop'])    || 50;
+  state.biga.hydrat  = parseFloat(data['pz-biga-hydrat'])  || 45;
+  state.biga.temp    = parseFloat(data['pz-biga-temp'])    || 18;
+  state.biga.appoint = parseFloat(data['pz-biga-appoint']) || 0;
+
+  return state;
 }
 
 function initFermentPilotUI(){
+  // V21.24 — Au démarrage : pousse l'état Pilote (défaut ou recette) vers legacy
+  if(typeof fermentSyncToLegacy === 'function') fermentSyncToLegacy();
   // Stratégie radios → state
   document.querySelectorAll('#ferm-strategy-seg .rseg-btn').forEach(b => {
     b.addEventListener('click', () => {
@@ -3772,7 +3862,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.23';
+const APP_VERSION = 'V21.24';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -8252,7 +8342,16 @@ function setFormData(data){
   // V21.15/V21.16 — Re-rendre tous les composeurs farines
   if(typeof composerRenderAll === 'function') composerRenderAll();
   // V21.22 — Re-rendre Pilote de fermentation (Module 4.2 commit 2/4)
+  // V21.24 — Migration legacy → ferment-state si absent (recettes V21.23 et antérieures)
+  if(typeof fermentMigrateFromLegacy === 'function' && typeof fermentWriteState === 'function'){
+    const migrated = fermentMigrateFromLegacy(data);
+    if(migrated){
+      fermentWriteState(migrated);
+    }
+  }
   if(typeof fermentRender === 'function') fermentRender();
+  // V21.24 — Sync final vers legacy + recompute (couvre les recettes pré-V21.24)
+  if(typeof fermentSyncToLegacy === 'function') fermentSyncToLegacy();
   // Re-rendre les toppings après que le mode ait été (re)défini
   renderPizzaToppings();
   // V17-D2 : marquer la baseline pour détection "modifié"
