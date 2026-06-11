@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.22</title>
+<title>Ô Pain De Ce Jour V21.23</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1347,30 +1347,13 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
       <div class="cb">
         <div class="g2">
-          <div class="fg"><label>Quantité</label>
-            <select id="pizza-qty">
-              <option value="1">1 pizza</option>
-              <option value="2">2 pizzas</option>
-              <option value="3" selected>3 pizzas</option>
-              <option value="4">4 pizzas</option>
-              <option value="5">5 pizzas</option>
-              <option value="6">6 pizzas</option>
-              <option value="7">7 pizzas</option>
-              <option value="8">8 pizzas</option>
-              <option value="9">9 pizzas</option>
-              <option value="10">10 pizzas</option>
-            </select>
+          <div class="fg"><label>Quantité (pâtons)</label>
+            <input type="number" inputmode="numeric" id="pizza-qty" value="3" min="1" max="100" step="1">
+            <div class="hint">Saisie libre (Napo 3-6 standard)</div>
           </div>
           <div class="fg"><label>Poids pâton (g)</label>
-            <select id="pizza-weight">
-              <option value="250">250 g (Romana fine)</option>
-              <option value="270">270 g</option>
-              <option value="290">290 g</option>
-              <option value="300" selected>300 g (Napolitaine)</option>
-              <option value="310">310 g</option>
-              <option value="330">330 g (Canotto)</option>
-              <option value="350">350 g (large)</option>
-            </select>
+            <input type="number" inputmode="decimal" id="pizza-weight" value="300" min="100" max="500" step="10">
+            <div class="hint">Napo 300 g · Romana 250 g · Canotto 330 g</div>
           </div>
           <div class="fg"><label>Hydratation (%)</label><select id="pizza-hydrat"></select></div>
           <div class="fg"><label>Style</label>
@@ -2862,6 +2845,7 @@ const PF_LABELS = { pf:'Pâte fermentée', ll:'Levain liquide', lf:'Levain ferme
 const FLOUR_LIB_KEY = 'opdcj_flour_library';
 
 const FLOUR_LIBRARY_DEFAULT = [
+  {id:'flr-t45',          appellation:'T45 Pâtissière',         espece:'ble-tendre', cendres:0.45, prot:10.0, W:180, PL:0.45, absorp:0.58, prix:1.40, complete:false, isCustom:false},
   {id:'flr-t65',          appellation:'T65 Tradition',          espece:'ble-tendre', cendres:0.65, prot:11.0, W:220, PL:0.50, absorp:0.62, prix:1.20, complete:false, isCustom:false},
   {id:'flr-t80',          appellation:'T80 Bise',               espece:'ble-tendre', cendres:0.80, prot:11.0, W:200, PL:0.55, absorp:0.65, prix:1.30, complete:false, isCustom:false},
   {id:'flr-t110',         appellation:'T110 Semi-complète',     espece:'ble-tendre', cendres:1.10, prot:10.5, W:180, PL:0.60, absorp:0.68, prix:1.40, complete:false, isCustom:false},
@@ -2887,7 +2871,20 @@ function loadFlourLibrary(){
     if(!raw) return FLOUR_LIBRARY_DEFAULT.map(f => ({...f}));
     const data = JSON.parse(raw);
     if(!Array.isArray(data) || data.length === 0) return FLOUR_LIBRARY_DEFAULT.map(f => ({...f}));
-    return data;
+    // V21.23 — Fusion défauts manquants (ex. T45 ajoutée après V21.14)
+    const existingIds = new Set(data.map(f => f && f.id));
+    const merged = data.slice();
+    let added = false;
+    for(const def of FLOUR_LIBRARY_DEFAULT){
+      if(!existingIds.has(def.id)){
+        merged.push({...def});
+        added = true;
+      }
+    }
+    if(added){
+      try { localStorage.setItem(FLOUR_LIB_KEY, JSON.stringify(merged)); } catch(e){}
+    }
+    return merged;
   } catch(e) { return FLOUR_LIBRARY_DEFAULT.map(f => ({...f})); }
 }
 
@@ -3042,6 +3039,22 @@ function composerRender(slot){
   const rowsHost = cont.querySelector('.fcm-rows');
   const readout  = cont.querySelector('.fcm-readout');
   if(!rowsHost || !readout) return;
+
+  // V21.23 — Assure la présence du bouton "+ Nouvelle farine" et de son host
+  const btnRow = cont.querySelector('.btn-row');
+  if(btnRow && !cont.querySelector('.fcm-create-btn')){
+    const createBtn = document.createElement('button');
+    createBtn.type = 'button';
+    createBtn.className = 'btn btn-s btn-sm fcm-create-btn';
+    createBtn.textContent = '+ Nouvelle farine perso';
+    createBtn.onclick = () => composerShowCreateFlour(slot);
+    btnRow.appendChild(createBtn);
+  }
+  if(!cont.querySelector('.fcm-create-host')){
+    const host = document.createElement('div');
+    host.className = 'fcm-create-host';
+    cont.appendChild(host);
+  }
 
   const opts = lib.map(f => {
     const sub = ESPECE_LABELS[f.espece]||f.espece;
@@ -3759,7 +3772,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.22';
+const APP_VERSION = 'V21.23';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -6272,7 +6285,77 @@ function commitAddFlour(){
   addFlour(rec);
   $('flour-lib-add-form-host').innerHTML = '';
   renderFlourLibrary();
+  // V21.23 — Refresh tous les composeurs pour exposer la nouvelle farine
+  if(typeof composerRenderAll === 'function') composerRenderAll();
   toast(`✅ « ${name} » ajoutée`);
+}
+
+// V21.23 — Créer une farine perso directement depuis le composeur d'une recette.
+// Affiche un mini-form dans la card composeur ; à la création, la nouvelle farine
+// est ajoutée à la bibliothèque ET auto-sélectionnée dans le composeur courant.
+function composerShowCreateFlour(slot){
+  const cont = $(_fcmContainerId(slot));
+  if(!cont) return;
+  const host = cont.querySelector('.fcm-create-host');
+  if(!host) return;
+  if(host.querySelector('.fcm-create-form')){ host.innerHTML = ''; return; }
+  host.innerHTML = `
+    <div class="fcm-create-form" style="margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg2,var(--bg));">
+      <div class="slbl" style="margin-top:0;">Nouvelle farine perso</div>
+      <div class="g3" style="margin-top:6px;">
+        <div class="fg"><label>Appellation</label><input type="text" id="fcm-new-name-${slot}" placeholder="Ex: T65 BIO Moulin XYZ" maxlength="60" autocomplete="off"></div>
+        <div class="fg">
+          <label>Espèce</label>
+          <select id="fcm-new-espece-${slot}">
+            ${Object.entries(ESPECE_LABELS).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+          </select>
+        </div>
+        <div class="fg"><label>Prix (€/kg)</label><input type="number" step="0.10" min="0" id="fcm-new-prix-${slot}" value="1.50"></div>
+      </div>
+      <div class="g3" style="margin-top:6px;">
+        <div class="fg"><label>W</label><input type="number" step="10" min="0" max="500" id="fcm-new-w-${slot}" value="220"></div>
+        <div class="fg"><label>Protéines (%)</label><input type="number" step="0.5" min="0" max="20" id="fcm-new-prot-${slot}" value="11"></div>
+        <div class="fg"><label>Absorption</label><input type="number" step="0.01" min="0.4" max="1" id="fcm-new-absorp-${slot}" value="0.65"></div>
+      </div>
+      <div class="btn-row mt8">
+        <button class="btn btn-p btn-sm" onclick="composerCommitCreateFlour('${slot}')">Créer &amp; utiliser</button>
+        <button class="btn btn-s btn-sm" onclick="document.getElementById('${_fcmContainerId(slot)}').querySelector('.fcm-create-host').innerHTML='';">Annuler</button>
+      </div>
+    </div>
+  `;
+}
+
+function composerCommitCreateFlour(slot){
+  const name = $(`fcm-new-name-${slot}`)?.value?.trim();
+  if(!name){ toast('⚠️ Appellation requise'); return; }
+  const rec = {
+    appellation: name,
+    espece: $(`fcm-new-espece-${slot}`)?.value || 'ble-tendre',
+    cendres: 0.65,
+    prot: parseFloat($(`fcm-new-prot-${slot}`)?.value) || 11,
+    W: parseInt($(`fcm-new-w-${slot}`)?.value) || 220,
+    PL: 0.50,
+    absorp: parseFloat($(`fcm-new-absorp-${slot}`)?.value) || 0.65,
+    prix: parseFloat($(`fcm-new-prix-${slot}`)?.value) || 1.50,
+    complete: false,
+  };
+  const newFlour = addFlour(rec);
+  // Ajoute aussi une rangée pré-sélectionnée dans le composeur courant
+  const picks = _readFcmState(slot) || _fcmDefaultFor(slot);
+  if(picks.length < FCM_MAX_ROWS){
+    picks.push({id: newFlour.id, pct: 0});
+    _writeFcmState(slot, picks);
+  }
+  // Vide le host puis re-render tout
+  const cont = $(_fcmContainerId(slot));
+  if(cont){
+    const host = cont.querySelector('.fcm-create-host');
+    if(host) host.innerHTML = '';
+  }
+  if(typeof composerRenderAll === 'function') composerRenderAll();
+  if(typeof renderFlourLibrary === 'function') renderFlourLibrary();
+  if(typeof computeAll === 'function') computeAll();
+  toast(`✅ « ${name} » ajoutée à la bibliothèque`);
 }
 
 function initFlourLibraryUI(){
