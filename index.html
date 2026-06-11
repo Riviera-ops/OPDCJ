@@ -3074,15 +3074,14 @@ function getAllToppings(){
 // V17-LOT E — STOCKAGE CLOUD via GITHUB GIST
 // ═════════════════════════════════════════════════════════════════
 // Architecture :
-//  - Token Personal Access Token (scope 'gist' uniquement) saisi par l'utilisateur
-//  - Stocké en localStorage (chaque appareil saisit son token une fois)
-//  - Un seul Gist privé contient toutes les recettes + défauts + prix custom
-//  - Mode Hybride : écritures locales prioritaires, sync explicite ou auto
-//  - Stratégie de fusion : last-write-wins par updatedAt (Q1 = a)
+//  - Token GitHub géré côté serveur (Cloudflare Worker — opdcj-proxy.pietri-eric.workers.dev)
+//  - Un seul Gist privé (DEFAULT_GIST_ID) commun à tous les appareils
+//  - Mode Hybride : sync auto au démarrage (pull+push) + push après chaque sauvegarde
+//  - Stratégie de fusion : last-write-wins par updatedAt
 // ═════════════════════════════════════════════════════════════════
 
 const CLOUD_KEYS = {
-  TOKEN:       'opdcj_cloud_token',     // PAT GitHub
+  TOKEN:       'opdcj_cloud_token',     // placeholder (token réel côté Worker)
   GIST_ID:     'opdcj_cloud_gist_id',   // ID du gist (créé à 1ère sync)
   MODE:        'opdcj_cloud_mode',      // 'local' | 'cloud' | 'hybrid' (défaut: local)
   AUTO_SYNC:   'opdcj_cloud_autosync',  // 'true' | 'false'
@@ -3091,8 +3090,6 @@ const CLOUD_KEYS = {
 
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
-// Gist public contenant le token actuel — fetchable sans auth
-const BOOTSTRAP_GIST_RAW = 'https://gist.githubusercontent.com/Riviera-ops/89ba19ca81c5a794c141ba4ab2bdbe30/raw/opdcj-config.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
 const APP_VERSION = 'V21.5';
 // V18 — Purge des recettes héritées au premier lancement V18
@@ -3128,12 +3125,6 @@ let CLOUD = {
   status: 'idle',      // 'idle' | 'syncing' | 'ok' | 'modified' | 'error'
   lastError: null,
 };
-
-async function bootstrapCloudToken(){
-  // Token désormais géré côté serveur (Cloudflare Worker).
-  // Cette fonction est conservée pour compatibilité mais ne fait rien.
-  // Le token n'est plus jamais stocké ni transmis côté client.
-}
 
 // Gist commun à tous les appareils — référentiel unique V20
 const DEFAULT_GIST_ID = 'e01dbc503fe70840840d954434385e71';
@@ -4407,9 +4398,7 @@ function updateCloudUI(){
   // Bloc config visible si mode != local
   const cfgBlock = $('cloud-cfg-block');
   if(cfgBlock) cfgBlock.style.display = (CLOUD.mode === 'local') ? 'none' : '';
-  // Token / gist id
-  const tokenEl = $('cloud-token');
-  if(tokenEl && CLOUD.token) tokenEl.value = CLOUD.token;
+  // Gist id
   const gistIdEl = $('cloud-gist-id');
   if(gistIdEl && CLOUD.gistId) gistIdEl.value = CLOUD.gistId;
   // Autosync
@@ -4454,11 +4443,6 @@ async function onCloudModeChange(){
   CLOUD.mode = newMode;
   saveCloudConfig();
   updateCloudUI();
-}
-
-function onCloudTokenInput(){
-  CLOUD.token = $('cloud-token').value.trim() || null;
-  saveCloudConfig();
 }
 
 function onCloudGistIdInput(){
@@ -4530,7 +4514,6 @@ async function onCloudSyncNow(){
 function onCloudClear(){
   if(!confirm('Effacer la configuration cloud (token + Gist ID) ? Les recettes locales restent intactes.')) return;
   clearCloudConfig();
-  if($('cloud-token')) $('cloud-token').value = '';
   if($('cloud-gist-id')) $('cloud-gist-id').value = '';
   if($('cloud-autosync')) $('cloud-autosync').checked = false;
   updateCloudUI();
@@ -4541,31 +4524,27 @@ function initCloudUI(){
   loadCloudConfig();
   updateCloudUI();
   $('cloud-mode')?.addEventListener('change', onCloudModeChange);
-  $('cloud-token')?.addEventListener('input', onCloudTokenInput);
   $('cloud-gist-id')?.addEventListener('input', onCloudGistIdInput);
   $('cloud-autosync')?.addEventListener('change', onCloudAutoSyncChange);
   $('cloud-test')?.addEventListener('click', onCloudTest);
   $('cloud-sync-now')?.addEventListener('click', onCloudSyncNow);
   $('cloud-clear')?.addEventListener('click', onCloudClear);
 
-  // Bootstrap token si absent, puis autoSync
-  bootstrapCloudToken().then(()=>{
-    updateCloudUI();
-    if(CLOUD.autoSync && CLOUD.token && CLOUD.gistId && CLOUD.mode !== 'local'){
-      setTimeout(async ()=>{
-        try {
-          await cloudPull();
-          if(typeof renderRecList === 'function') await renderRecList();
-          if(typeof renderQuickSelector === 'function') await renderQuickSelector();
-          toast('✅ Sync automatique OK');
-          updateCloudStatusTag();
-        } catch(e){
-          console.warn('Auto-sync échec:', e.message);
-          updateCloudStatusTag();
-        }
-      }, 1500);
-    }
-  });
+  // Auto-sync au démarrage : pull + push (garantit que les recettes locales remontent aussi)
+  if(CLOUD.autoSync && CLOUD.token && CLOUD.gistId && CLOUD.mode !== 'local'){
+    setTimeout(async ()=>{
+      try {
+        await cloudSync();
+        if(typeof renderRecList === 'function') await renderRecList();
+        if(typeof renderQuickSelector === 'function') await renderQuickSelector();
+        toast('✅ Sync automatique OK');
+        updateCloudStatusTag();
+      } catch(e){
+        console.warn('Auto-sync échec:', e.message);
+        updateCloudStatusTag();
+      }
+    }, 1500);
+  }
 }
 
 
@@ -7873,11 +7852,13 @@ async function saveRec(){
   const title=$('rec-name')?.value?.trim()||'Recette sans nom';
   const r={id:RID||Date.now().toString(),title,mode:MODE,data:getFormData(),createdAt:Date.now()};
   await dbPut(r); RID=r.id; toast('✅ Recette sauvegardée !');
-  // V17-D1 : refresh la liste si on est sur l'onglet recettes
   await renderRecList();
-  // V17-D2 : baseline + refresh quick selector
   markRecipeBaseline();
   await renderQuickSelector();
+  // Push cloud silencieux après chaque sauvegarde (fire-and-forget)
+  if(CLOUD.mode !== 'local' && CLOUD.token && CLOUD.gistId && navigator.onLine){
+    cloudPush().then(()=>updateCloudStatusTag()).catch(e=>console.warn('[saveRec] push:', e.message));
+  }
 }
 
 function newRec(){ RID=null; if($('rec-name'))$('rec-name').value=''; toast('Nouvelle recette'); }
