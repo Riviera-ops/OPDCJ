@@ -815,6 +815,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 <symbol id="ic-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M8 4v4M16 4v4"/></symbol>
 <symbol id="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></symbol>
 <symbol id="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 13.5A6 6 0 0 1 10 6a6 6 0 1 0 7.5 7.5Z"/></symbol>
+<symbol id="ic-bread" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10a4 4 0 0 1 4-4h6a4 4 0 0 1 0 8H5V10Z"/><path d="M5 14v4h14v-4"/></symbol>
+<symbol id="ic-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13c0-4 4-9 8-11 4 2 8 7 8 11a7 7 0 0 1-7 7Z"/><path d="M12 2v10"/></symbol>
+<symbol id="ic-thermometer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.5V6a2 2 0 0 0-4 0v8.5a4 4 0 1 0 4 0Z"/></symbol>
+<symbol id="ic-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h10M9 12h10M9 18h10M5 6h.01M5 12h.01M5 18h.01"/></symbol>
+<symbol id="ic-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V10l4-4 4 4 4-6v16"/></symbol>
 </defs></svg>
 <div class="app">
 
@@ -908,7 +913,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── PAIN ── -->
   <div id="pane-pain" class="pane vis">
     <div class="card">
-      <div class="ch collapsible"><div class="ico">🍞</div><h3>Pain</h3><span class="tag">Réf. poids cuit</span></div>
+      <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-bread"/></svg></div><h3>Pain</h3><span class="tag">Réf. poids cuit</span></div>
       <div class="cb">
         <div class="g2">
           <div class="fg"><label>Quantité</label><input type="number" inputmode="decimal" id="pain-qty" value="1" min="1"></div>
@@ -1030,7 +1035,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   ═════════════════════════════════════════ -->
   <div class="card pz-shared-flour-card">
     <div class="ch collapsible">
-      <div class="ico">🌾</div>
+      <div class="ico"><svg class="ic"><use href="#ic-grain"/></svg></div>
       <h3><span class="step-num">1</span> Farine</h3>
       <span class="tag" id="pz-fl-tag">W 320</span>
     </div>
@@ -1080,7 +1085,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div class="card">
       <div class="ch collapsible">
-        <div class="ico">⏱️</div>
+        <div class="ico"><svg class="ic"><use href="#ic-clock"/></svg></div>
         <h3><span class="step-num">2</span> Fermentation</h3>
         <span class="tag" id="pz-prot-tag">—</span>
       </div>
@@ -1327,7 +1332,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div class="card">
       <div class="ch collapsible">
-        <div class="ico">🍕</div>
+        <div class="ico"><svg class="ic"><use href="#ic-scale"/></svg></div>
         <h3><span class="step-num">4</span> Pâton & quantité</h3>
         <span class="tag" id="pz-qty-tag">—</span>
       </div>
@@ -1376,7 +1381,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   </div>
   <div id="pane-petit-pain" class="pane">
     <div class="card">
-      <div class="ch collapsible"><div class="ico">🥐</div><h3>Petit Pain / Viennoiserie</h3><span class="tag">Réf. poids cuit</span></div>
+      <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-bread"/></svg></div><h3>Petit Pain / Viennoiserie</h3><span class="tag">Réf. poids cuit</span></div>
       <div class="cb">
         <div class="g2">
           <div class="fg"><label>Quantité</label><input type="number" inputmode="decimal" id="pp-qty" value="6" min="1"></div>
@@ -1402,7 +1407,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── FOCACCIA ── -->
   <div id="pane-focaccia" class="pane">
     <div class="card">
-      <div class="ch collapsible"><div class="ico">🥯</div><h3>Focaccia</h3><span class="tag">Réf. pâton cru</span></div>
+      <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-bread"/></svg></div><h3>Focaccia</h3><span class="tag">Réf. pâton cru</span></div>
       <div class="cb">
         <div class="g2">
           <div class="fg"><label>Quantité</label><input type="number" inputmode="decimal" id="foc-qty" value="2" min="1"></div>
@@ -1443,7 +1448,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── BRIOCHE ── -->
   <div id="pane-brioche" class="pane">
     <div class="card">
-      <div class="ch collapsible"><div class="ico">🧁</div><h3>Brioche</h3><span class="tag">Réf. poids cuit</span></div>
+      <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-bread"/></svg></div><h3>Brioche</h3><span class="tag">Réf. poids cuit</span></div>
       <div class="cb">
         <div class="g2">
           <div class="fg"><label>Quantité</label><input type="number" inputmode="decimal" id="bri-qty" value="2" min="1"></div>
@@ -1473,7 +1478,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
        Les quantités en % de la farine totale → converties en g par JS
   ═════════════════════════════════════ -->
   <div class="card" id="extras-card">
-    <div class="ch collapsible" data-start="closed"><div class="ico">🌱</div><h3>Ingrédients spéciaux</h3><span class="tag">Optionnel</span></div>
+    <div class="ch collapsible" data-start="closed"><div class="ico"><svg class="ic"><use href="#ic-leaf"/></svg></div><h3>Ingrédients spéciaux</h3><span class="tag">Optionnel</span></div>
     <div class="cb">
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">
         Saisir en <b>% de la farine totale</b> (ou laisser 0). Les coûts sont calculés automatiquement dans l'onglet Coûts.
@@ -1592,7 +1597,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   ═════════════════════════════════════ -->
   <div class="card">
     <div class="ch collapsible" data-start="closed">
-      <div class="ico">🌡️</div>
+      <div class="ico"><svg class="ic"><use href="#ic-thermometer"/></svg></div>
       <h3>Températures de coulage</h3>
       <span class="tag" id="tb-tag">Direct</span>
     </div>
@@ -1640,7 +1645,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
        RÉSULTATS PESÉE
   ═════════════════════════════════════ -->
   <div class="card">
-    <div class="ch collapsible"><div class="ico">⚖️</div><h3>Pesée du lot</h3></div>
+    <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-scale"/></svg></div><h3>Pesée du lot</h3></div>
     <div class="cb">
       <div class="sum-strip">
         <div class="sum-box"><div class="sl">Pièces</div><div class="sv" id="r-qty">–</div></div>
@@ -1662,7 +1667,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 
   <!-- ── Paramètres principaux ── -->
   <div class="card">
-    <div class="ch collapsible"><div class="ico">🕐</div><h3>Paramètres</h3></div>
+    <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-clock"/></svg></div><h3>Paramètres</h3></div>
     <div class="cb">
 
       <!-- Date + Heure de sortie du four -->
@@ -1725,7 +1730,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── Phases de fabrication (rendu JS) ── -->
   <div class="card">
     <div class="ch collapsible">
-      <div class="ico">📋</div>
+      <div class="ico"><svg class="ic"><use href="#ic-list"/></svg></div>
       <h3>Phases de fabrication</h3>
       <span class="tag" id="plan-phases-tag">—</span>
     </div>
@@ -1734,7 +1739,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 
   <!-- ── Planning de production (timeline) ── -->
   <div class="card">
-    <div class="ch collapsible"><div class="ico">📅</div><h3>Planning de production</h3></div>
+    <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-calendar"/></svg></div><h3>Planning de production</h3></div>
     <div class="cb">
       <div id="timeline"><!-- JS --></div>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
@@ -1773,7 +1778,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 <div id="tab-couts" class="tab">
 
   <div class="card">
-    <div class="ch collapsible"><div class="ico">💶</div><h3>Prix matières premières</h3></div>
+    <div class="ch collapsible"><div class="ico"><svg class="ic"><use href="#ic-coin"/></svg></div><h3>Prix matières premières</h3></div>
     <div class="cb">
 
       <!-- ── Base ── -->
@@ -1850,7 +1855,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 
   <!-- V17-C3 — Card récap coût total -->
   <div class="card pz-cost-summary-card">
-    <div class="ch"><div class="ico">📊</div><h3>Coût total</h3></div>
+    <div class="ch"><div class="ico"><svg class="ic"><use href="#ic-chart"/></svg></div><h3>Coût total</h3></div>
     <div class="cb" style="padding:10px 13px;">
       <div id="pz-cost-summary"><!-- JS --></div>
     </div>
@@ -5151,7 +5156,10 @@ function renderIngredients(){
             Farine ${fmtG(S.farine)} · Eau ${fmtG(S.eau)} · Levure ${fmtG((S.bigaY||0)+(S.bigaResteY||0),2)} (biga ${fmtG(S.bigaY||0,2)} + appoint ${fmtG(S.bigaResteY||0,2)}) · Sel ${fmtG(S.sel)}
           </div>
         </div>
-        <div class="ing-val big">${fmtG(S.total)}</div>
+      </div>
+      <div class="result">
+        <span class="cap">TOTAL PÂTE</span>
+        <span><span class="big">${fmtG(S.total)}</span><span class="unit">g</span></span>
       </div>`;
     return;
   }
@@ -5226,9 +5234,9 @@ function renderIngredients(){
         </div>
         <div class="ing-val">${fmtG(i.val,i.dec||0)}</div>
       </div>`).join('')+`
-      <div class="ing-row total">
-        <div class="ing-name"><strong>TOTAL PÂTE</strong></div>
-        <div class="ing-val big">${fmtG(computedTot)}</div>
+      <div class="result">
+        <span class="cap">TOTAL PÂTE</span>
+        <span><span class="big">${fmtG(computedTot)}</span><span class="unit">g</span></span>
       </div>`;
     return;
   }
@@ -5320,7 +5328,10 @@ function renderIngredients(){
           Farine ${fmtG(S.farine)} · Eau ${fmtG(S.eau)} · Levure ${fmtG(S.levure,2)} · Sel ${fmtG(S.sel)}
         </div>
       </div>
-      <div class="ing-val big">${fmtG(S.total)}</div>
+    </div>
+    <div class="result">
+      <span class="cap">TOTAL PÂTE</span>
+      <span><span class="big">${fmtG(S.total)}</span><span class="unit">g</span></span>
     </div>`;
 }
 
