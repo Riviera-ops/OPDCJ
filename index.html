@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.12</title>
+<title>Ô Pain De Ce Jour V21.13</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1805,7 +1805,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <div class="fg"><label>Levure sèche (€/kg)</label><input type="number" inputmode="decimal" id="p-levure-seche" step="0.01" value="40.00" oninput="computeAll()"><div class="hint">~35-50 €/kg</div></div>
       </div>
       <!-- ── Corps gras & enrichissements ── -->
-      <div class="slbl" style="margin-top:10px;">🧈 Corps gras &amp; enrichissements</div>
+      <div class="slbl" style="margin-top:10px;">Corps gras &amp; enrichissements</div>
       <div class="g3">
         <div class="fg"><label>Beurre (€/kg)</label><input type="number" inputmode="decimal" id="p-beurre" step="0.01" value="8.00" oninput="computeAll()"><div class="hint">~7-10 €/kg</div></div>
         <div class="fg"><label>Sucre blanc (€/kg)</label><input type="number" inputmode="decimal" id="p-sucre" step="0.01" value="1.50" oninput="computeAll()"><div class="hint">~1.20-1.80 €/kg</div></div>
@@ -3092,7 +3092,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.12';
+const APP_VERSION = 'V21.13';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -3479,9 +3479,9 @@ function _renderPizzaToppingsImpl(list){
     list.innerHTML = `<div style="padding:14px;background:var(--bg);border:1px dashed var(--border);border-radius:8px;text-align:center;font-size:12.5px;color:var(--muted);line-height:1.5;">
       Aucun ingrédient.<br>
       Clique sur <strong>↺ Valeurs par défaut</strong> ci-dessous pour restaurer les 25 ingrédients standards,<br>
-      ou utilise le bouton <strong>➕</strong> pour ajouter un ingrédient personnalisé.
+      ou utilise le bouton <strong>+</strong> pour ajouter un ingrédient personnalisé.
     </div>
-    <div class="pz-top-cat"><span>Garniture</span><button class="pz-top-cat-add" data-cat="Garniture" title="Ajouter un ingrédient">➕</button></div>`;
+    <div class="pz-top-cat"><span>Garniture</span><button class="pz-top-cat-add" data-cat="Garniture" title="Ajouter un ingrédient">+</button></div>`;
     // Listener sur le bouton ➕
     list.querySelectorAll('.pz-top-cat-add').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -3497,7 +3497,7 @@ function _renderPizzaToppingsImpl(list){
     const items = allToppings.filter(t=>t.cat===cat);
     // V17-G2 : titre catégorie + mini bouton ➕ pré-sélectionnant la catégorie
     // Toujours afficher le titre + bouton ➕, même si la catégorie est vide
-    html += `<div class="pz-top-cat"><span>${cat}</span><button class="pz-top-cat-add" data-cat="${cat}" title="Ajouter un ingrédient dans « ${cat} »">➕</button></div>`;
+    html += `<div class="pz-top-cat"><span>${cat}</span><button class="pz-top-cat-add" data-cat="${cat}" title="Ajouter un ingrédient dans « ${cat} »">+</button></div>`;
     for(const top of items){
       const st = S.toppings[top.id];
       if(!st) continue; // sécurité : ne devrait pas arriver après initPizzaToppingsState
@@ -3642,8 +3642,11 @@ function computePizzaCostSummary(){
     ${(S.huile||0)>0?`<div class="pz-cost-line"><span class="pcl">  ↳ Huile ${rnd(S.huile||0)}g</span><span class="pcv">${euro(cHuile)}</span></div>`:''}
     <div class="pz-cost-line" style="margin-top:6px;"><span class="pcl">Garniture (${qty} ${unitLblPl}, ${toppingsActifs.length} ingr.)</span><span class="pcv">${euro(costToppingsTot)}</span></div>
     <div class="pz-cost-line"><span class="pcl">  ↳ par ${unitLbl}</span><span class="pcv">${euro(costToppingsPerUnit)}</span></div>
-    <div class="pz-cost-line total"><span class="pcl">Total matière</span><span class="pcv">${euro(total)}</span></div>
-    <div class="pz-cost-line" style="font-size:12px;color:var(--muted);"><span class="pcl">Coût matière par ${unitLbl}</span><span class="pcv">${euro(totalParUnit)}</span></div>
+    <div class="result" style="margin-top:10px;">
+      <span class="cap">TOTAL MATIÈRE</span>
+      <span class="big">${euro(total)}</span>
+    </div>
+    <div class="result-sub">par ${unitLbl} ${euro(totalParUnit)}</div>
   `;
 
   // Tag récap dans le titre de la card garniture
@@ -3779,7 +3782,7 @@ function showCustomToppingForm(preselectCat){
   const catOptions = PIZZA_TOPPING_CATS.map(c => `<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('');
   host.innerHTML = `
     <div class="pz-add-form" id="pz-add-form">
-      <div class="pz-add-title">➕ Nouvel ingrédient</div>
+      <div class="pz-add-title">+ Nouvel ingrédient</div>
       <div class="pz-add-row">
         <input type="text" class="pz-add-name" id="pz-add-name" placeholder="Nom (ex: Truffe noire râpée)" maxlength="60" autocomplete="off">
         <select class="pz-add-cat" id="pz-add-cat">${catOptions}</select>
@@ -5446,7 +5449,7 @@ function renderBreadExtras(){
   let html = '';
   for(const cat of BREAD_EXTRA_CATS){
     const items = allItems.filter(t=>t.cat===cat);
-    html += `<div class="bex-cat"><span>${cat}</span><button class="bex-add-btn" data-cat="${escapeHTML(cat)}" title="Ajouter un ingrédient">➕</button></div>`;
+    html += `<div class="bex-cat"><span>${cat}</span><button class="bex-add-btn" data-cat="${escapeHTML(cat)}" title="Ajouter un ingrédient">+</button></div>`;
     for(const item of items){
       const st = S.breadExtras[item.id];
       if(!st) continue;
@@ -5550,7 +5553,7 @@ function showBexAddForm(preselectCat){
   const catOptions = BREAD_EXTRA_CATS.map(c=>`<option value="${escapeHTML(c)}"${c===cat?' selected':''}>${escapeHTML(c)}</option>`).join('');
   host.innerHTML = `
     <div class="pz-add-form" id="bex-add-form">
-      <div class="pz-add-title">➕ Nouvel ingrédient</div>
+      <div class="pz-add-title">+ Nouvel ingrédient</div>
       <div class="pz-add-row">
         <input type="text" class="pz-add-name" id="bex-add-name" placeholder="Nom (ex: Graines de chanvre)" maxlength="60" autocomplete="off">
         <select class="pz-add-cat" id="bex-add-cat">${catOptions}</select>
@@ -5812,14 +5815,11 @@ function computeCosts(){
   }
 
   out += `
-    <div class="ing-row total">
-      <div class="ing-name" style="min-width:0;flex:1;"><strong>TOTAL LOT</strong></div>
-      <div style="font-size:20px;font-weight:700;color:var(--prim-dk);flex-shrink:0;">${euro(tot)}</div>
+    <div class="result">
+      <span class="cap">TOTAL LOT</span>
+      <span class="big">${euro(tot)}</span>
     </div>
-    <div class="ing-row">
-      <div class="ing-name" style="min-width:0;flex:1;"><div class="dot p"></div>Coût unitaire</div>
-      <div style="font-size:18px;font-weight:700;color:var(--prim);flex-shrink:0;">${euro(unit)}</div>
-    </div>`;
+    <div class="result-sub">Coût unitaire ${euro(unit)}</div>`;
 
   cl.innerHTML = out;
 }
