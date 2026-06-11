@@ -1,16 +1,16 @@
-const CACHE = 'opdcj-v21.19';
+const CACHE = 'opdcj-v21.20';
 const SHELL = [
-  '/opdcj-/',
-  '/opdcj-/index.html',
-  '/opdcj-/manifest.json',
-  '/opdcj-/icon-192.png',
-  '/opdcj-/icon-512.png',
-  '/opdcj-/fonts/playfair-600.woff2',
-  '/opdcj-/fonts/playfair-700.woff2',
-  '/opdcj-/fonts/nunito-400.woff2',
-  '/opdcj-/fonts/nunito-500.woff2',
-  '/opdcj-/fonts/nunito-600.woff2',
-  '/opdcj-/fonts/nunito-700.woff2'
+  '/OPDCJ/',
+  '/OPDCJ/index.html',
+  '/OPDCJ/manifest.json',
+  '/OPDCJ/icon-192.png',
+  '/OPDCJ/icon-512.png',
+  '/OPDCJ/fonts/playfair-600.woff2',
+  '/OPDCJ/fonts/playfair-700.woff2',
+  '/OPDCJ/fonts/nunito-400.woff2',
+  '/OPDCJ/fonts/nunito-500.woff2',
+  '/OPDCJ/fonts/nunito-600.woff2',
+  '/OPDCJ/fonts/nunito-700.woff2'
 ];
 
 self.addEventListener('install', e => {

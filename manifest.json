@@ -2,34 +2,34 @@
   "name": "Ô Pain De Ce Jour",
   "short_name": "Ô Pain",
   "description": "Mon carnet de boulangerie",
-  "id": "/opdcj-/",
-  "start_url": "/opdcj-/",
-  "scope": "/opdcj-/",
+  "id": "/OPDCJ/",
+  "start_url": "/OPDCJ/",
+  "scope": "/OPDCJ/",
   "display": "standalone",
   "background_color": "#F4E3D5",
   "theme_color": "#C4633F",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/opdcj-/icon-192.png",
+      "src": "/OPDCJ/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/opdcj-/icon-192.png",
+      "src": "/OPDCJ/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/opdcj-/icon-512.png",
+      "src": "/OPDCJ/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/opdcj-/icon-512.png",
+      "src": "/OPDCJ/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -37,13 +37,13 @@
   ],
   "screenshots": [
     {
-      "src": "/opdcj-/screenshot-mobile.png",
+      "src": "/OPDCJ/screenshot-mobile.png",
       "sizes": "780x1688",
       "type": "image/png",
       "label": "Ô Pain De Ce Jour — écran Recette"
     },
     {
-      "src": "/opdcj-/screenshot-desktop.png",
+      "src": "/OPDCJ/screenshot-desktop.png",
       "sizes": "2560x1600",
       "type": "image/png",
       "form_factor": "wide",
