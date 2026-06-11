@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.18</title>
+<title>Ô Pain De Ce Jour V21.19</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -2362,13 +2362,47 @@ function fillSel(el,min,max,step,def){
 // ─────────────────────────────────────────────
 const YTBL = { 2:20, 3:15, 4:15, 5:10, 7:7, 10:5, 12:4, 16:2, 18:1, 20:0.8, 24:0.5 };
 
+// ═══════════════════════════════════════════════════════════════════
+// V21.19 — HELPERS FERMENTATION (Module 4.2 — refactor invisible)
+// Centralisation de l'interpolation, Q10, et T° équivalente.
+// ═══════════════════════════════════════════════════════════════════
+
+// Interpolation linéaire ou log-linéaire sur une table {hours: g/kg}.
+// opts.log=true → log-linéaire (décroissance exponentielle, pour pré-ferments).
+function interpYeastTable(table, h, opts){
+  const keys = Object.keys(table).map(Number).sort((a,b) => a-b);
+  if(table[h] !== undefined) return table[h]; // exact (falsy-safe)
+  if(h <= keys[0])              return table[keys[0]];
+  if(h >= keys[keys.length-1])  return table[keys[keys.length-1]];
+  const lo = keys.filter(k => k <= h).pop();
+  const hi = keys.find(k => k >= h);
+  if(opts && opts.log){
+    const yLo = Math.log(table[lo]);
+    const yHi = Math.log(table[hi]);
+    return Math.exp(yLo + (yHi - yLo) * (h - lo) / (hi - lo));
+  }
+  return table[lo] + (table[hi] - table[lo]) * (h - lo) / (hi - lo);
+}
+
+// Correction Q10 ≈ 2 : g/kg de base ramené à une T° différente de la référence.
+// T° plus élevée → fermentation plus rapide → moins de levure (factor > 1, on divise).
+function applyQ10Correction(baseGperKg, T, refT){
+  refT = (refT === undefined) ? 18 : refT;
+  const factor = Math.pow(2, (T - refT) / 10);
+  return baseGperKg / factor;
+}
+
+// Heures équivalentes à une T° de référence (loi d'Arrhenius approx Q10≈2).
+// Sert au calcul levure pizza pétrisée (long fermentation froid + TA).
+function computeHeqQ10(hTA, hCold, tCold, tTA){
+  tTA = (tTA === undefined) ? 22 : tTA;
+  const Q10 = 2;
+  const factor = Math.pow(Q10, (tTA - tCold) / 10);
+  return hTA + hCold / Math.max(1, factor);
+}
+
 function yeastInterp(h){
-  const keys=Object.keys(YTBL).map(Number).sort((a,b)=>a-b);
-  if(YTBL[h]!==undefined) return YTBL[h]; // exact match (falsy-safe)
-  if(h<=keys[0])          return YTBL[keys[0]];
-  if(h>=keys[keys.length-1]) return YTBL[keys[keys.length-1]];
-  const lo=keys.filter(k=>k<=h).pop(), hi=keys.find(k=>k>=h);
-  return YTBL[lo]+(YTBL[hi]-YTBL[lo])*(h-lo)/(hi-lo);
+  return interpYeastTable(YTBL, h); // pain : linéaire
 }
 
 // ═════════════════════════════════════════════
@@ -2417,21 +2451,12 @@ const PIZZA_YTBL = {
 };
 
 function pizzaYeastInterp(hEq){
-  const keys=Object.keys(PIZZA_YTBL).map(Number).sort((a,b)=>a-b);
-  if(PIZZA_YTBL[hEq]!==undefined) return PIZZA_YTBL[hEq];
-  if(hEq<=keys[0])              return PIZZA_YTBL[keys[0]];
-  if(hEq>=keys[keys.length-1])  return PIZZA_YTBL[keys[keys.length-1]];
-  const lo=keys.filter(k=>k<=hEq).pop(), hi=keys.find(k=>k>=hEq);
-  // Interpolation log-linéaire (la levure décroît exponentiellement avec le temps)
-  const yLo=Math.log(PIZZA_YTBL[lo]), yHi=Math.log(PIZZA_YTBL[hi]);
-  return Math.exp(yLo+(yHi-yLo)*(hEq-lo)/(hi-lo));
+  return interpYeastTable(PIZZA_YTBL, hEq, {log:true}); // pizza pétrisée : log-linéaire
 }
 
-// Calcule les heures équivalentes à 22°C selon Q10≈2 (loi d'Arrhenius approx.)
+// V21.19 — Alias backward-compat de computeHeqQ10
 function pizzaHeqCompute(hTA, hCold, tCold, tTA){
-  const Q10 = 2;
-  const factor = Math.pow(Q10, (tTA - tCold)/10);
-  return hTA + hCold / Math.max(1, factor);
+  return computeHeqQ10(hTA, hCold, tCold, tTA);
 }
 
 // V17-C2 — Item 2 : Table levure POOLISH pizza dédiée
@@ -2455,14 +2480,7 @@ const PIZZA_POOL_YTBL = {
 
 // Interpolation log-linéaire sur la table poolish pizza
 function pizzaPoolYeastInterp(h){
-  const keys=Object.keys(PIZZA_POOL_YTBL).map(Number).sort((a,b)=>a-b);
-  if(PIZZA_POOL_YTBL[h]!==undefined) return PIZZA_POOL_YTBL[h];
-  if(h<=keys[0])              return PIZZA_POOL_YTBL[keys[0]];
-  if(h>=keys[keys.length-1])  return PIZZA_POOL_YTBL[keys[keys.length-1]];
-  const lo=keys.filter(k=>k<=h).pop(), hi=keys.find(k=>k>=h);
-  // Décroissance exponentielle : interpolation log-linéaire
-  const yLo=Math.log(PIZZA_POOL_YTBL[lo]), yHi=Math.log(PIZZA_POOL_YTBL[hi]);
-  return Math.exp(yLo+(yHi-yLo)*(h-lo)/(hi-lo));
+  return interpYeastTable(PIZZA_POOL_YTBL, h, {log:true});
 }
 
 // ─────────────────────────────────────────────
@@ -2483,29 +2501,10 @@ const PIZZA_BIGA_YTBL = {
   48:  0.6,  // Extrême long
 };
 
-// Interpolation log-linéaire sur la table biga pizza (même pattern que poolish)
+// Biga pizza — table log-linéaire + correction Q10 (réf 18°C)
 function pizzaBigaYeastInterp(duree, tempBiga) {
-  const keys = Object.keys(PIZZA_BIGA_YTBL).map(Number).sort((a,b) => a-b);
-  let baseGperKg;
-  if (PIZZA_BIGA_YTBL[duree] !== undefined) {
-    baseGperKg = PIZZA_BIGA_YTBL[duree];
-  } else if (duree <= keys[0]) {
-    baseGperKg = PIZZA_BIGA_YTBL[keys[0]];
-  } else if (duree >= keys[keys.length-1]) {
-    baseGperKg = PIZZA_BIGA_YTBL[keys[keys.length-1]];
-  } else {
-    const lo = keys.filter(k => k <= duree).pop();
-    const hi = keys.find(k => k >= duree);
-    const yLo = Math.log(PIZZA_BIGA_YTBL[lo]);
-    const yHi = Math.log(PIZZA_BIGA_YTBL[hi]);
-    baseGperKg = Math.exp(yLo + (yHi - yLo) * (duree - lo) / (hi - lo));
-  }
-  // Correction Q10 = 2, référence 18°C
-  // T° monte → fermentation plus rapide → moins de levure nécessaire
-  // facteur > 1 si T° > 18°C (on divise → moins de levure)
-  // facteur < 1 si T° < 18°C (on divise → plus de levure)
-  const q10Factor = Math.pow(2, (tempBiga - 18) / 10);
-  return baseGperKg / q10Factor;
+  const baseGperKg = interpYeastTable(PIZZA_BIGA_YTBL, duree, {log:true});
+  return applyQ10Correction(baseGperKg, tempBiga, 18);
 }
 
 // Calcule le split biga / pétrisée pour la pizza
@@ -3485,7 +3484,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.18';
+const APP_VERSION = 'V21.19';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
