@@ -1,10 +1,16 @@
-const CACHE = 'opdcj-v21.8';
+const CACHE = 'opdcj-v21.9';
 const SHELL = [
   '/opdcj-/',
   '/opdcj-/index.html',
   '/opdcj-/manifest.json',
   '/opdcj-/icon-192.png',
-  '/opdcj-/icon-512.png'
+  '/opdcj-/icon-512.png',
+  '/opdcj-/fonts/playfair-600.woff2',
+  '/opdcj-/fonts/playfair-700.woff2',
+  '/opdcj-/fonts/nunito-400.woff2',
+  '/opdcj-/fonts/nunito-500.woff2',
+  '/opdcj-/fonts/nunito-600.woff2',
+  '/opdcj-/fonts/nunito-700.woff2'
 ];
 
 self.addEventListener('install', e => {
@@ -16,7 +22,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE && k !== 'opdcj-fonts').map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     ).then(() => clients.claim())
   );
 });
@@ -24,23 +30,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Google Fonts — stale-while-revalidate (sert le cache, rafraîchit en fond)
-  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-    e.respondWith(
-      caches.open('opdcj-fonts').then(cache =>
-        cache.match(e.request).then(cached => {
-          const fresh = fetch(e.request).then(res => {
-            if (res.ok) cache.put(e.request, res.clone());
-            return res;
-          });
-          return cached || fresh;
-        })
-      )
-    );
-    return;
-  }
-
-  // App shell (même origine) — cache-first, mise en cache à la volée
+  // App shell + polices (même origine) — cache-first, mise en cache à la volée
   if (url.origin === self.location.origin) {
     e.respondWith(
       caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
