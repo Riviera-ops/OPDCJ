@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.14</title>
+<title>Ô Pain De Ce Jour V21.15</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -599,6 +599,30 @@ body.mode-focaccia .bread-extras-card{display:none;}
 .flr-stats .flr-prix{font-weight:700;color:var(--prim);font-variant-numeric:tabular-nums;}
 .flr-row-edit{padding:4px 6px 10px;background:var(--bg2,var(--bg));border-top:1px dashed var(--border);}
 
+/* ── V21.15 — Composeur de farines (Module 4.1.b) ── */
+.fcm{display:flex;flex-direction:column;gap:6px;}
+.fcm-rows{display:flex;flex-direction:column;gap:6px;}
+.fcm-row{display:flex;align-items:center;gap:6px;}
+.fcm-row .fcm-flour{flex:1;min-width:0;padding:7px 9px;border:1px solid var(--border);
+  background:var(--bg);color:var(--txt);border-radius:var(--r-sm);font-size:13px;font-weight:600;}
+.fcm-row .fcm-pct{width:68px;padding:7px 9px;border:1px solid var(--border);
+  background:var(--bg);color:var(--txt);border-radius:var(--r-sm);font-size:14px;font-weight:700;
+  text-align:right;font-variant-numeric:tabular-nums;}
+.fcm-row .fcm-pct-u{font-size:11px;color:var(--muted);font-weight:700;}
+.fcm-row .fcm-remove{width:30px;height:30px;flex-shrink:0;font-size:14px;font-weight:700;
+  color:var(--muted);background:transparent;border:1px solid var(--border);
+  border-radius:50%;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;}
+.fcm-row .fcm-remove:hover{color:#fff;background:var(--err,#c03000);border-color:var(--err,#c03000);}
+.fcm-row .fcm-remove:disabled{opacity:.3;cursor:not-allowed;}
+.fcm-readout{display:flex;flex-wrap:wrap;gap:10px 14px;padding:10px 14px;margin-top:6px;
+  background:var(--surface-2);border-radius:var(--r-sm);font-size:11px;color:var(--muted);
+  align-items:baseline;}
+.fcm-readout span{display:inline-flex;gap:4px;align-items:baseline;letter-spacing:.3px;text-transform:uppercase;font-weight:600;}
+.fcm-readout strong{font-size:16px;color:var(--acc);font-weight:800;font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;}
+.fcm-readout .fcm-flag{font-size:10px;color:var(--prim);font-weight:700;letter-spacing:.5px;}
+.fcm-readout.fcm-warn{background:#FFE9D6;color:#8C3A12;}
+body.dark .fcm-readout.fcm-warn{background:#5A2410;color:#FFD0A8;}
+
 /* ── V17-H1 — Card farine partagée pizza + focaccia ── */
 .pz-shared-flour-card{display:none;}
 body.mode-pizza .pz-shared-flour-card,
@@ -1062,31 +1086,16 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <span class="tag" id="pz-fl-tag">W 320</span>
     </div>
     <div class="cb">
-      <div class="g2">
-        <div class="fg gfull">
-          <label>Farine</label>
-          <select id="pzf-preset-1" class="pzf-preset"></select>
-          <div class="hint" id="pzf-fl-info">Saccorosso · W 320 · 13 % protéines</div>
+      <!-- V21.15 — Composeur de farines (Module 4.1.b) -->
+      <div id="fcm-pz" class="fcm">
+        <div class="fcm-rows"><!-- rendu JS --></div>
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="btn btn-s btn-sm" onclick="composerAddRow('pz')">+ Ajouter farine</button>
         </div>
-        <div class="fg"><label>W (force)</label><input type="number" inputmode="decimal" id="pzf-w-1" value="320"></div>
-        <div class="fg"><label>Protéines (%)</label><input type="number" inputmode="decimal" id="pzf-prot-1" value="13.0" step="0.1"></div>
+        <div class="fcm-readout"><!-- rendu JS --></div>
       </div>
-      <!-- Champs cachés pour compat avec la mécanique multi-farines existante -->
-      <input type="hidden" id="pzf-c-1" value="on">
-      <input type="hidden" id="pzf-pct-1" value="100">
-      <input type="hidden" id="pzf-pl-1" value="0.55">
-      <input type="hidden" id="pzf-c-2" value="">
-      <input type="hidden" id="pzf-c-3" value="">
-      <input type="hidden" id="pzf-pct-2" value="0">
-      <input type="hidden" id="pzf-pct-3" value="0">
-      <input type="hidden" id="pzf-preset-2" value="custom">
-      <input type="hidden" id="pzf-preset-3" value="custom">
-      <input type="hidden" id="pzf-w-2" value="260">
-      <input type="hidden" id="pzf-w-3" value="380">
-      <input type="hidden" id="pzf-prot-2" value="12.0">
-      <input type="hidden" id="pzf-prot-3" value="14.5">
-      <input type="hidden" id="pzf-pl-2" value="0.55">
-      <input type="hidden" id="pzf-pl-3" value="0.55">
+      <!-- Persistance JSON via getFormData/setFormData -->
+      <input type="hidden" id="pzf-mix" value="">
       <div id="pzf-total-warn" class="hidden mt8"></div>
     </div>
   </div>
@@ -2841,6 +2850,172 @@ function composeFlours(picks){
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// V21.15 — COMPOSEUR DE FARINES (Module 4.1.b)
+// UI réutilisable : N rangées (sélecteur + % + remove) + readout pondéré.
+// Persistance via hidden input id="${slot}f-mix" (JSON).
+// Slot actuel : 'pz' (pizza/focaccia). À étendre à pain/pp/foc/bri en V21.16.
+// ═══════════════════════════════════════════════════════════════════
+const FCM_MAX_ROWS = 5;
+const FCM_DEFAULT_MIX = [{id:'flr-saccorosso', pct:100}];
+
+function _fcmHiddenId(slot){ return slot + 'f-mix'; }
+function _fcmContainerId(slot){ return 'fcm-' + slot; }
+
+function _readFcmState(slot){
+  const hid = $(_fcmHiddenId(slot));
+  if(!hid) return null;
+  try {
+    const raw = hid.value || '';
+    if(!raw) return null;
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : null;
+  } catch(e) { return null; }
+}
+
+function _writeFcmState(slot, picks){
+  const hid = $(_fcmHiddenId(slot));
+  if(hid) hid.value = JSON.stringify(picks || []);
+}
+
+function getFlourMix(slot){
+  return _readFcmState(slot) || FCM_DEFAULT_MIX.map(p => ({...p}));
+}
+
+function composerRender(slot){
+  const cont = $(_fcmContainerId(slot));
+  if(!cont) return;
+  let picks = _readFcmState(slot);
+  if(!picks || picks.length === 0){
+    picks = FCM_DEFAULT_MIX.map(p => ({...p}));
+    _writeFcmState(slot, picks);
+  }
+  const lib = loadFlourLibrary();
+  const rowsHost = cont.querySelector('.fcm-rows');
+  const readout  = cont.querySelector('.fcm-readout');
+  if(!rowsHost || !readout) return;
+
+  const opts = lib.map(f => {
+    const sub = ESPECE_LABELS[f.espece]||f.espece;
+    return `<option value="${f.id}">${escapeHTML(f.appellation)} — ${escapeHTML(sub)} · W${rnd(f.W)||'?'}</option>`;
+  }).join('');
+
+  rowsHost.innerHTML = picks.map((p, idx) => `
+    <div class="fcm-row" data-idx="${idx}">
+      <select class="fcm-flour" onchange="composerOnSelect('${slot}', ${idx}, this)">${opts}</select>
+      <input type="number" class="fcm-pct" value="${+p.pct||0}" step="5" min="0" max="100"
+             oninput="composerOnPct('${slot}', ${idx}, this)">
+      <span class="fcm-pct-u">%</span>
+      <button type="button" class="fcm-remove" title="Retirer"
+              ${picks.length<=1?'disabled':''}
+              onclick="composerRemoveRow('${slot}', ${idx})">×</button>
+    </div>
+  `).join('');
+
+  // Set the selected values (innerHTML resets selections)
+  picks.forEach((p, idx) => {
+    const sel = rowsHost.querySelector(`[data-idx="${idx}"] .fcm-flour`);
+    if(sel) sel.value = p.id;
+  });
+
+  // Readout
+  const out = composeFlours(picks);
+  if(!out){
+    readout.className = 'fcm-readout';
+    readout.innerHTML = '<span style="color:var(--muted);">Aucune farine active</span>';
+  } else {
+    const totPct = out.totPct;
+    const warn = Math.abs(totPct - 100) > 0.5;
+    const flagBits = [];
+    if(out.pctBleDur   > 0) flagBits.push(`${rnd(out.pctBleDur)}% blé dur`);
+    if(out.pctSeigle   > 0) flagBits.push(`${rnd(out.pctSeigle)}% seigle`);
+    if(out.pctComplete > 0) flagBits.push(`${rnd(out.pctComplete)}% complète`);
+    const flags = flagBits.length ? `<span class="fcm-flag">${flagBits.join(' · ')}</span>` : '';
+    readout.className = warn ? 'fcm-readout fcm-warn' : 'fcm-readout';
+    readout.innerHTML = `
+      <span>W <strong>${rnd(out.Wmoy)}</strong></span>
+      <span>Prot <strong>${out.protM.toFixed(1)}%</strong></span>
+      <span>P/L <strong>${out.PLm.toFixed(2)}</strong></span>
+      <span>Total <strong>${rnd(totPct)}%</strong>${warn?' <em style="color:#c03000;font-style:normal;">⚠</em>':''}</span>
+      ${flags}
+    `;
+  }
+
+  // Update legacy tag (pizza shared card) — keep compatibility with UI badge
+  if(slot === 'pz'){
+    const tag = $('pz-fl-tag');
+    if(tag && out) tag.textContent = `W ${rnd(out.Wmoy)}`;
+  }
+}
+
+function composerOnSelect(slot, idx, el){
+  const picks = _readFcmState(slot) || FCM_DEFAULT_MIX.map(p=>({...p}));
+  if(!picks[idx]) return;
+  picks[idx].id = el.value;
+  _writeFcmState(slot, picks);
+  composerRender(slot);
+  if(typeof computeAll === 'function') computeAll();
+}
+
+function composerOnPct(slot, idx, el){
+  const picks = _readFcmState(slot) || FCM_DEFAULT_MIX.map(p=>({...p}));
+  if(!picks[idx]) return;
+  picks[idx].pct = parseFloat(el.value) || 0;
+  _writeFcmState(slot, picks);
+  // Re-render only the readout (avoid losing focus on the input)
+  const cont = $(_fcmContainerId(slot));
+  if(cont){
+    const readout = cont.querySelector('.fcm-readout');
+    const out = composeFlours(picks);
+    if(out && readout){
+      const totPct = out.totPct;
+      const warn = Math.abs(totPct - 100) > 0.5;
+      const flagBits = [];
+      if(out.pctBleDur   > 0) flagBits.push(`${rnd(out.pctBleDur)}% blé dur`);
+      if(out.pctSeigle   > 0) flagBits.push(`${rnd(out.pctSeigle)}% seigle`);
+      if(out.pctComplete > 0) flagBits.push(`${rnd(out.pctComplete)}% complète`);
+      const flags = flagBits.length ? `<span class="fcm-flag">${flagBits.join(' · ')}</span>` : '';
+      readout.className = warn ? 'fcm-readout fcm-warn' : 'fcm-readout';
+      readout.innerHTML = `
+        <span>W <strong>${rnd(out.Wmoy)}</strong></span>
+        <span>Prot <strong>${out.protM.toFixed(1)}%</strong></span>
+        <span>P/L <strong>${out.PLm.toFixed(2)}</strong></span>
+        <span>Total <strong>${rnd(totPct)}%</strong>${warn?' <em style="color:#c03000;font-style:normal;">⚠</em>':''}</span>
+        ${flags}
+      `;
+      if(slot === 'pz'){
+        const tag = $('pz-fl-tag');
+        if(tag) tag.textContent = `W ${rnd(out.Wmoy)}`;
+      }
+    }
+  }
+  if(typeof computeAll === 'function') computeAll();
+}
+
+function composerAddRow(slot){
+  const picks = _readFcmState(slot) || FCM_DEFAULT_MIX.map(p=>({...p}));
+  if(picks.length >= FCM_MAX_ROWS){
+    if(typeof toast === 'function') toast(`⚠️ Maximum ${FCM_MAX_ROWS} farines par mélange`);
+    return;
+  }
+  // Default to T65 if not already present, else first lib entry
+  const lib = loadFlourLibrary();
+  const usedIds = new Set(picks.map(p => p.id));
+  const newFlour = lib.find(f => !usedIds.has(f.id)) || lib[0];
+  picks.push({id: newFlour.id, pct: 0});
+  _writeFcmState(slot, picks);
+  composerRender(slot);
+}
+
+function composerRemoveRow(slot, idx){
+  const picks = _readFcmState(slot) || FCM_DEFAULT_MIX.map(p=>({...p}));
+  if(picks.length <= 1) return;
+  picks.splice(idx, 1);
+  _writeFcmState(slot, picks);
+  composerRender(slot);
+  if(typeof computeAll === 'function') computeAll();
+}
+
 // Met à jour les badges et enable/disable des inputs
 function updateFlourUI(){
   // Enable/disable pct based on checkbox
@@ -2962,7 +3137,30 @@ function computePizzaFlourTot(){
 
 // Calcule W moyen pondéré, protéines pondérées, P/L pondéré
 // Renvoie aussi la liste des farines en grammes (réparties sur totalFarine)
+// V21.15 — Lit en priorité S.flourMix via hidden pzf-mix (composeur 4.1.b).
+// Fallback legacy pour anciennes recettes sans flourMix.
 function computePizzaFlourMix(totalFarine){
+  // ─── V21.15 : nouveau composeur ───────────────────────
+  const picks = _readFcmState('pz');
+  if(picks && picks.length){
+    const out = composeFlours(picks);
+    if(out && out.items.length){
+      const totPct = out.totPct || 100;
+      const slots = out.items.map((it, idx) => ({
+        i: idx + 1,
+        pct: it.pct,
+        label: it.appellation,
+        W: it.W,
+        prot: it.prot,
+        PL: it.PL,
+        grams: Math.round(totalFarine * it.pct / totPct),
+      }));
+      return {slots, Wmoy: out.Wmoy, protM: out.protM, PLm: out.PLm, totPct,
+              pctBleDur: out.pctBleDur, pctSeigle: out.pctSeigle, pctComplete: out.pctComplete,
+              absorpMoy: out.absorpMoy, cendresM: out.cendresM};
+    }
+  }
+  // ─── Fallback legacy (V17-C3) ─────────────────────────
   const slots=[];
   for(let i=1;i<=3;i++){
     if(!isPizzaSlotEnabled(i)) continue;
@@ -2979,7 +3177,6 @@ function computePizzaFlourMix(totalFarine){
     });
   }
   if(!slots.length){
-    // Aucune farine active → fallback sur Saccorosso 100% (cohérent avec le défaut V17-C3)
     const def = PIZZA_FLOUR_PRESETS['caputo-sacc'];
     slots.push({i:1,pct:100,label:def.label,W:def.W,prot:def.prot,PL:0.55});
   }
@@ -3233,7 +3430,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.14';
+const APP_VERSION = 'V21.15';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -4938,6 +5135,9 @@ function init(){
 
   // V21.14 — Init UI bibliothèque farines (Module 4.1.a)
   if(typeof initFlourLibraryUI === 'function') initFlourLibraryUI();
+
+  // V21.15 — Init composeur pizza/focaccia (Module 4.1.b)
+  if(typeof composerRender === 'function') composerRender('pz');
 }
 
 // ─────────────────────────────────────────────
@@ -7625,6 +7825,13 @@ function setFormData(data){
     initPizzaToppingsState();
   }
 
+  // V21.15 — Migration composeur farines : recette sans flourMix (legacy) → blank,
+  // composerRender va seeder le défaut Saccorosso.
+  if(!Object.prototype.hasOwnProperty.call(data, 'pzf-mix')){
+    const _mixHid = $('pzf-mix');
+    if(_mixHid) _mixHid.value = '';
+  }
+
   // Re-rendre les phases (les valeurs des inputs seront restaurées par la boucle ci-dessus)
   // mais on doit attendre que switchMode ait fini
   if(data._mode) switchMode(data._mode);
@@ -7632,6 +7839,8 @@ function setFormData(data){
     renderPlanPhases();
     computeAll();
   }
+  // V21.15 — Re-rendre le composeur farines après restauration des valeurs
+  if(typeof composerRender === 'function') composerRender('pz');
   // Re-rendre les toppings après que le mode ait été (re)défini
   renderPizzaToppings();
   // V17-D2 : marquer la baseline pour détection "modifié"
@@ -8053,8 +8262,11 @@ function buildPrintableRecipe(r){
     const isLong = $('pz-long')?.checked || false;
     const hCold = isLong ? toNum($('pz-h-cold')?.value, 24) : 0;
     const tCold = toNum($('pz-t-cold')?.value, 4);
-    const flW   = toNum($('pzf-w-1')?.value, 320);
-    const flLabel = $('pzf-preset-1')?.selectedOptions?.[0]?.text || 'Personnalisée';
+    // V21.15 — Lit le composeur de farines pour le PDF
+    const _mixPzPicks = _readFcmState('pz') || [{id:'flr-saccorosso',pct:100}];
+    const _mixPzOut = composeFlours(_mixPzPicks);
+    const flW = _mixPzOut ? rnd(_mixPzOut.Wmoy) : 320;
+    const flLabel = _mixPzOut ? _mixPzOut.items.map(it => `${it.appellation} ${rnd(it.pct)}%`).join(' + ') : 'Personnalisée';
     protoSection = `
       <h3>Protocole de fermentation</h3>
       <ul>
@@ -8069,8 +8281,11 @@ function buildPrintableRecipe(r){
   } else if(r.mode === 'focaccia'){
     // V17-H3 — Protocole focaccia : farine + hydratation + cuisson plaque
     // V17-H4c — + dimensions plaque + hauteur estimée (crue → cuite)
-    const flW    = toNum($('pzf-w-1')?.value, 250);
-    const flLabel= $('pzf-preset-1')?.selectedOptions?.[0]?.text || 'Personnalisée';
+    // V21.15 — Lit le composeur de farines pour le PDF (focaccia partage le composeur pizza)
+    const _mixFocPicks = _readFcmState('pz') || [{id:'flr-saccorosso',pct:100}];
+    const _mixFocOut = composeFlours(_mixFocPicks);
+    const flW = _mixFocOut ? rnd(_mixFocOut.Wmoy) : 250;
+    const flLabel = _mixFocOut ? _mixFocOut.items.map(it => `${it.appellation} ${rnd(it.pct)}%`).join(' + ') : 'Personnalisée';
     const ep     = toNum($('foc-cuisson-ep')?.value, 22);
     const tCu    = toNum($('foc-cuisson-min')?.value, 18);
     const tFour  = toNum($('foc-cuisson-t')?.value, 230);
