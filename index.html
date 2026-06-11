@@ -818,6 +818,10 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 <symbol id="ic-thermometer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.5V6a2 2 0 0 0-4 0v8.5a4 4 0 1 0 4 0Z"/></symbol>
 <symbol id="ic-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h10M9 12h10M9 18h10M5 6h.01M5 12h.01M5 18h.01"/></symbol>
 <symbol id="ic-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V10l4-4 4 4 4-6v16"/></symbol>
+<symbol id="ic-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16a4 4 0 0 1 0-8h.5A6 6 0 0 1 17.5 9.5a4.5 4.5 0 1 1 0 9H3z"/></symbol>
+<symbol id="ic-tomato" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7V4"/><path d="M9.5 4.5C9 3 10.5 2 12 2s3 1 2.5 2.5"/></symbol>
+<symbol id="ic-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><line x1="12" y1="19" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></symbol>
+<symbol id="ic-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.2"/><path d="M20 12a8 8 0 0 1-14 5.2"/><polyline points="20 4 20 9 15 9"/><polyline points="4 20 4 15 9 15"/></symbol>
 </defs></svg>
 <div class="app">
 
@@ -825,9 +829,9 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 <div class="app-header-wrapper" id="app-header-wrapper">
 <header class="app-header">
   <div class="app-header-top" style="position:relative;">
-    <h1>🌾   Ô Pain De Ce Jour   🌾</h1>
+    <h1>Ô Pain De Ce Jour</h1>
     <p id="app-version-line">Mon carnet de boulang'eric · V21 - Juin 2026</p>
-    <button id="theme-btn" title="Mode Fournil / Jour">🌙</button>
+    <button id="theme-btn" title="Mode Fournil / Jour"><svg class="ic"><use href="#ic-moon"/></svg></button>
   </div>
   <!-- ═══════════════ NAV ═══════════════ -->
   <nav class="nav">
@@ -850,19 +854,19 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <div class="subheader-inner">
     <!-- Ligne 1 : sélecteur produit -->
     <div class="subheader-prod">
-      <button class="pb active" data-mode="pain">🍞 Pain</button>
-      <button class="pb" data-mode="pizza">🍕 Pizza</button>
-      <button class="pb" data-mode="focaccia">🥯 Focaccia</button>
-      <button class="pb" data-mode="petit-pain">🥐 Petit Pain</button>
-      <button class="pb" data-mode="brioche">🧁 Brioche</button>
+      <button class="pb active" data-mode="pain">Pain</button>
+      <button class="pb" data-mode="pizza">Pizza</button>
+      <button class="pb" data-mode="focaccia">Focaccia</button>
+      <button class="pb" data-mode="petit-pain">Petit Pain</button>
+      <button class="pb" data-mode="brioche">Brioche</button>
     </div>
     <!-- Ligne 2 : nom de recette compact -->
     <div class="subheader-rec">
-      <span class="rec-quick-icon" id="rec-quick-icon-fixed">🍞</span>
+      <span class="rec-quick-icon" id="rec-quick-icon-fixed"><svg class="ic"><use href="#ic-bread"/></svg></span>
       <input type="text" id="rec-quick-name-fixed" class="rec-quick-name-input"
-        placeholder="✨ Nom…" autocomplete="off" style="flex:1;min-width:0;max-width:none;width:0;">
-      <button class="rec-quick-mini-btn" id="rec-quick-save-fixed" title="Sauvegarder">💾</button>
-      <button class="rec-quick-mini-btn" id="rec-quick-new-fixed" title="Nouvelle recette">✨</button>
+        placeholder="Nom…" autocomplete="off" style="flex:1;min-width:0;max-width:none;width:0;">
+      <button class="rec-quick-mini-btn" id="rec-quick-save-fixed" title="Sauvegarder"><svg class="ic"><use href="#ic-save"/></svg></button>
+      <button class="rec-quick-mini-btn" id="rec-quick-new-fixed" title="Nouvelle recette">+</button>
       <div class="rec-select-wrap">
         <select id="rec-quick-select-fixed" class="rec-quick-select"></select>
       </div>
@@ -880,11 +884,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     <div class="cb">
       <div class="slbl" style="margin-top:0;">Type de produit</div>
       <div class="prod-seg">
-        <button class="pb active" data-mode="pain">🍞 Pain</button>
-        <button class="pb" data-mode="pizza">🍕 Pizza</button>
-        <button class="pb" data-mode="focaccia">🥯 Focaccia</button>
-        <button class="pb" data-mode="petit-pain">🥐 Petit Pain</button>
-        <button class="pb" data-mode="brioche">🧁 Brioche</button>
+        <button class="pb active" data-mode="pain">Pain</button>
+        <button class="pb" data-mode="pizza">Pizza</button>
+        <button class="pb" data-mode="focaccia">Focaccia</button>
+        <button class="pb" data-mode="petit-pain">Petit Pain</button>
+        <button class="pb" data-mode="brioche">Brioche</button>
       </div>
     </div>
   </div>
@@ -894,11 +898,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     <div class="cb" style="padding:10px 13px;">
       <!-- Ligne 1 : nom de la recette en cours (éditable directement) -->
       <div class="rec-quick-title-row">
-        <span class="rec-quick-icon" id="rec-quick-icon">🍞</span>
+        <span class="rec-quick-icon" id="rec-quick-icon"><svg class="ic"><use href="#ic-bread"/></svg></span>
         <input type="text" id="rec-quick-name" class="rec-quick-name-input"
-          placeholder="✨ Nom de la recette…" autocomplete="off">
-        <button class="rec-quick-mini-btn" id="rec-quick-save" title="Sauvegarder modifications">💾</button>
-        <button class="rec-quick-mini-btn" id="rec-quick-new" title="Nouvelle recette">✨</button>
+          placeholder="Nom de la recette…" autocomplete="off">
+        <button class="rec-quick-mini-btn" id="rec-quick-save" title="Sauvegarder modifications"><svg class="ic"><use href="#ic-save"/></svg></button>
+        <button class="rec-quick-mini-btn" id="rec-quick-new" title="Nouvelle recette">+</button>
       </div>
       <!-- Ligne 2 : sélecteur d'autres recettes -->
       <div class="rec-quick-row">
@@ -926,14 +930,14 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <div style="margin-top:10px;">
           <div class="slbl" style="margin-bottom:6px;">Type de pétrissage</div>
           <div class="radio-seg" id="pain-card-petr-seg">
-            <label class="rseg-btn" data-val="pvl"><input type="radio" name="pain-card-petr" value="pvl">🐢 PVL</label>
-            <label class="rseg-btn active" data-val="pa"><input type="radio" name="pain-card-petr" value="pa" checked>⚙️ PA</label>
-            <label class="rseg-btn" data-val="pi"><input type="radio" name="pain-card-petr" value="pi">⚡ PI</label>
+            <label class="rseg-btn" data-val="pvl"><input type="radio" name="pain-card-petr" value="pvl">PVL</label>
+            <label class="rseg-btn active" data-val="pa"><input type="radio" name="pain-card-petr" value="pa" checked>PA</label>
+            <label class="rseg-btn" data-val="pi"><input type="radio" name="pain-card-petr" value="pi">PI</label>
           </div>
         </div>
         <div class="mt8">
           <label class="trow" id="pain-pool-row">
-            <div><div class="tl">💧 Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
+            <div><div class="tl">Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
             <div class="tsw"><input type="checkbox" id="pain-surpool"><div class="tslider"></div></div>
           </label>
         </div>
@@ -943,7 +947,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     <!-- Composition farine — card standard collapsible (harmonisée) -->
     <div class="card">
       <div class="ch collapsible">
-        <div class="ico">🌾</div>
+        <div class="ico"><svg class="ic"><use href="#ic-grain"/></svg></div>
         <h3>Composition farine</h3>
         <span id="fl-badge" class="fl-badge">T65 100 %</span>
       </div>
@@ -1071,7 +1075,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 
     <!-- ═════════════════════════════════════════
          V16-LotB — Pane Pizza réorganisé en flux linéaire :
-         1️⃣ Farine  →  2️⃣ Fermentation  →  3️⃣ Poolish (opt)  →  4️⃣ Quantité
+         Farine → Fermentation → Poolish (opt) → Quantité
          V17-H1 : la card Farine a été sortie de ce pane pour être partagée
                   avec le mode focaccia (cf. .pz-shared-flour-card ci-dessus).
     ═════════════════════════════════════════ -->
@@ -1092,7 +1096,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <!-- Toggle Direct / Longue -->
         <label class="trow">
           <div>
-            <div class="tl">❄️ Fermentation longue (avec froid)</div>
+            <div class="tl">Fermentation longue (avec froid)</div>
             <div class="ts" id="pz-long-hint">Désactivé : tout TA</div>
           </div>
           <div class="tsw"><input type="checkbox" id="pz-long"><div class="tslider"></div></div>
@@ -1151,7 +1155,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <!-- Toggle calcul auto -->
         <label class="trow mt8" style="background:var(--acc-bg);">
           <div>
-            <div class="tl">🧪 Calcul auto de la levure</div>
+            <div class="tl">Calcul auto de la levure</div>
             <div class="ts">Suit le protocole TA + froid + type</div>
           </div>
           <div class="tsw"><input type="checkbox" id="pz-auto-lev" checked><div class="tslider"></div></div>
@@ -1160,7 +1164,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <!-- Toggle Sur Poolish (révèle étape 3) -->
         <label class="trow mt8">
           <div>
-            <div class="tl">💧 Sur Poolish</div>
+            <div class="tl">Sur Poolish</div>
             <div class="ts">Pré-ferment liquide (révèle étape 3 ↓)</div>
           </div>
           <div class="tsw"><input type="checkbox" id="pizza-surpool"><div class="tslider"></div></div>
@@ -1169,7 +1173,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <!-- V17-LotF2 — Toggle Sur Biga (XOR avec Poolish) -->
         <label class="trow mt8">
           <div>
-            <div class="tl">🧱 Sur Biga</div>
+            <div class="tl">Sur Biga</div>
             <div class="ts">Pré-ferment solide Giorilli (révèle étape 3 ↓)</div>
           </div>
           <div class="tsw"><input type="checkbox" id="pizza-surbiga"><div class="tslider"></div></div>
@@ -1195,7 +1199,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <div class="card pz-pool-step hidden" id="pz-pool-step-card">
       <div class="ch collapsible">
-        <div class="ico" id="pz-step3-ico">💧</div>
+        <div class="ico" id="pz-step3-ico"><svg class="ic"><use href="#ic-droplet"/></svg></div>
         <h3><span id="pz-step3-title">Poolish</span></h3>
         <span class="tag" id="pz-pool-tag">—</span>
       </div>
@@ -1310,7 +1314,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           </div>
           <!-- Hint pédagogique pétrissage biga -->
           <div class="alert a-info mt8" style="font-size:12px;line-height:1.5;">
-            🧱 <b>Pétrissage biga : 1-2 min seulement.</b>
+            <b>Pétrissage biga : 1-2 min seulement.</b>
             La texture doit rester <b>grumeleuse</b> (petites boulettes) — ne pas chercher à obtenir une pâte lisse.
             C'est intentionnel et crucial pour le réseau glutineux différé.
           </div>
@@ -1394,7 +1398,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         </div>
         <div class="mt8">
           <label class="trow">
-            <div><div class="tl">💧 Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
+            <div><div class="tl">Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
             <div class="tsw"><input type="checkbox" id="pp-surpool"><div class="tslider"></div></div>
           </label>
         </div>
@@ -1418,7 +1422,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         </div>
         <div class="mt8">
           <label class="trow">
-            <div><div class="tl">💧 Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
+            <div><div class="tl">Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
             <div class="tsw"><input type="checkbox" id="foc-surpool"><div class="tslider"></div></div>
           </label>
         </div>
@@ -1462,7 +1466,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         </div>
         <div class="mt8">
           <label class="trow">
-            <div><div class="tl">💧 Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
+            <div><div class="tl">Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
             <div class="tsw"><input type="checkbox" id="bri-surpool"><div class="tslider"></div></div>
           </label>
         </div>
@@ -1491,7 +1495,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
 
       <!-- Sucrants -->
-      <div class="slbl">🍯 Sucrants & Ferments</div>
+      <div class="slbl">Sucrants & Ferments</div>
       <div class="g3">
         <div class="fg"><label>Miel (%)</label><input type="number" inputmode="decimal" id="ext-miel" value="0" step="0.5" min="0" max="20"><div class="hint">Pain au miel ~3-8%</div></div>
         <div class="fg"><label>Sirop de malt (%)</label><input type="number" inputmode="decimal" id="ext-malt-sirop" value="0" step="0.1" min="0" max="5"><div class="hint">~0.5-2% (coloration)</div></div>
@@ -1499,7 +1503,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
 
       <!-- Graines -->
-      <div class="slbl">🌱 Graines (% farine)</div>
+      <div class="slbl"><svg class="ic"><use href="#ic-leaf"/></svg> Graines (% farine)</div>
       <div class="g3">
         <div class="fg"><label>Sésame (%)</label><input type="number" inputmode="decimal" id="ext-sesame" value="0" step="1" min="0" max="30"></div>
         <div class="fg"><label>Lin (%)</label><input type="number" inputmode="decimal" id="ext-lin" value="0" step="1" min="0" max="20"></div>
@@ -1518,7 +1522,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
 
       <!-- Améliorants -->
-      <div class="slbl">⚗️ Améliorants</div>
+      <div class="slbl">Améliorants</div>
       <div class="g3">
         <div class="fg"><label>Farine de malt (%)</label><input type="number" inputmode="decimal" id="ext-malt" value="0" step="0.1" min="0" max="3"><div class="hint">1-3% / kg farine</div></div>
         <div class="fg"><label>Gluten pur (%)</label><input type="number" inputmode="decimal" id="ext-gluten" value="0" step="0.5" min="0" max="5"><div class="hint">1-3% pour renforcer</div></div>
@@ -1533,7 +1537,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   ═════════════════════════════════════ -->
   <div id="pool-config" class="pool-config hidden">
     <div class="pool-config-head">
-      <span class="pi">💧</span>
+      <span class="pi"><svg class="ic"><use href="#ic-droplet"/></svg></span>
       Configuration de la Poolish
     </div>
     <div class="pool-config-body">
@@ -1618,10 +1622,10 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <div class="fg pz-petr-only">
           <label>Pétrissage pizza</label>
           <select id="pz-petr-type">
-            <option value="hand">✋ Manuel / Doux</option>
-            <option value="spiral-slow" selected>🌀 Spirale lent</option>
-            <option value="spiral-pro">⚡ Spirale rapide / Pro</option>
-            <option value="custom">⚙️ Personnalisé</option>
+            <option value="hand">Manuel / Doux</option>
+            <option value="spiral-slow" selected>Spirale lent</option>
+            <option value="spiral-pro">Spirale rapide / Pro</option>
+            <option value="custom">Personnalisé</option>
           </select>
           <div class="hint">Cible pâte 23-24°C · formule des 3T</div>
         </div>
@@ -1686,16 +1690,16 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div class="slbl" style="margin-top:0;">Agent fermentaire</div>
       <div class="radio-seg" id="plan-agent-seg">
         <label class="rseg-btn active" data-val="levure">
-          <input type="radio" name="plan-agent" value="levure" checked>🧬 Levure directe
+          <input type="radio" name="plan-agent" value="levure" checked>Levure directe
         </label>
         <label class="rseg-btn" data-val="poolish">
-          <input type="radio" name="plan-agent" value="poolish">💧 Poolish
+          <input type="radio" name="plan-agent" value="poolish">Poolish
         </label>
         <label class="rseg-btn" data-val="levain">
-          <input type="radio" name="plan-agent" value="levain">🧪 Levain naturel
+          <input type="radio" name="plan-agent" value="levain">Levain naturel
         </label>
         <label class="rseg-btn" data-val="pf">
-          <input type="radio" name="plan-agent" value="pf">🍞 Pâte fermentée
+          <input type="radio" name="plan-agent" value="pf">Pâte fermentée
         </label>
       </div>
       <!-- Champ caché pour persistance -->
@@ -1706,13 +1710,13 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <div class="slbl" style="margin-top:12px;">Type de pétrissage</div>
         <div class="radio-seg" id="plan-petr-seg">
           <label class="rseg-btn" data-val="pvl">
-            <input type="radio" name="plan-petr" value="pvl">🐢 PVL — Lent
+            <input type="radio" name="plan-petr" value="pvl">PVL — Lent
           </label>
           <label class="rseg-btn active" data-val="pa">
-            <input type="radio" name="plan-petr" value="pa" checked>⚙️ PA — Amélioré
+            <input type="radio" name="plan-petr" value="pa" checked>PA — Amélioré
           </label>
           <label class="rseg-btn" data-val="pi">
-            <input type="radio" name="plan-petr" value="pi">⚡ PI — Intensifié
+            <input type="radio" name="plan-petr" value="pi">PI — Intensifié
           </label>
         </div>
       </div>
@@ -1742,7 +1746,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div id="timeline"><!-- JS --></div>
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
         <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:8px;">
-          📅 Export calendrier (.ics)
+          Export calendrier (.ics)
         </div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">
           Sélectionne les phases à inclure dans le fichier calendrier. Chaque phase génère un événement avec alarme.
@@ -1751,7 +1755,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <!-- rendu par planIcsRenderPhases() après computeTimeline -->
         </div>
         <div style="display:flex;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
-          <button class="btn btn-s" style="font-size:11px;padding:5px 10px;" onclick="planIcsSelectAll(true)">✅ Tout sélectionner</button>
+          <button class="btn btn-s" style="font-size:11px;padding:5px 10px;" onclick="planIcsSelectAll(true)">Tout sélectionner</button>
           <button class="btn btn-s" style="font-size:11px;padding:5px 10px;" onclick="planIcsSelectAll(false)">☐ Tout désélectionner</button>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:4px;">
@@ -1761,7 +1765,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           </div>
         </div>
         <button class="btn btn-p" id="btn-export-cal" style="width:100%;" title="Exporte les phases sélectionnées vers votre calendrier natif (alarmes fiables)">
-          📅 Générer le fichier calendrier (.ics)
+          <svg class="ic"><use href="#ic-calendar"/></svg> Générer le fichier calendrier (.ics)
         </button>
       </div>
     </div>
@@ -1795,7 +1799,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       </div>
 
       <!-- ── Énergie ── -->
-      <div class="slbl" style="margin-top:10px;">⚡ Énergie</div>
+      <div class="slbl" style="margin-top:10px;">Énergie</div>
       <div class="g2">
         <div class="fg"><label>Électricité (€/kWh)</label><input type="number" inputmode="decimal" id="p-kwh" step="0.01" value="0.25"><div class="hint">~0.22-0.28 TTC</div></div>
         <div class="fg"><label>Puissance four (kW)</label><input type="number" inputmode="decimal" id="p-kw" step="0.1" value="2.5"></div>
@@ -1812,7 +1816,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- V17.4 — Card ingrédients extras pain (hors pizza/focaccia) -->
   <div class="card bread-extras-card">
     <div class="ch collapsible">
-      <div class="ico">🌱</div>
+      <div class="ico"><svg class="ic"><use href="#ic-leaf"/></svg></div>
       <h3>Ingrédients extras</h3>
       <span class="tag" id="bex-tag">—</span>
     </div>
@@ -1832,7 +1836,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- V17-C3 — Card garniture pizza (visible uniquement en mode pizza) -->
   <div class="card pz-toppings-card">
     <div class="ch collapsible">
-      <div class="ico">🍅</div>
+      <div class="ico"><svg class="ic"><use href="#ic-tomato"/></svg></div>
       <h3 id="pz-toppings-title">Garniture pizza</h3>
       <span class="tag" id="pz-toppings-tag">—</span>
     </div>
@@ -1845,7 +1849,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div id="pz-add-form-host"><!-- JS injecte le form ici --></div>
       <div class="btn-row mt8">
         <button class="btn btn-s btn-sm" id="pz-toppings-reset">↺ Valeurs par défaut</button>
-        <button class="btn btn-s btn-sm" id="pz-toppings-globalize" title="Sauvegarde les prix/grammages modifiés comme défaut global">💾 Définir comme défaut global</button>
+        <button class="btn btn-s btn-sm" id="pz-toppings-globalize" title="Sauvegarde les prix/grammages modifiés comme défaut global"><svg class="ic"><use href="#ic-save"/></svg> Définir comme défaut global</button>
       </div>
       <div id="pz-toppings-warn" class="hidden mt8" style="font-size:11px;"></div>
     </div>
@@ -1872,12 +1876,12 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <input type="text" id="rec-name" placeholder="Ex : Pain campagne 65 %, lot de 6">
       </div>
       <div class="btn-row">
-        <button class="btn btn-p" id="btn-save">💾 Sauvegarder</button>
-        <button class="btn btn-s" id="btn-new">✨ Nouvelle</button>
+        <button class="btn btn-p" id="btn-save"><svg class="ic"><use href="#ic-save"/></svg> Sauvegarder</button>
+        <button class="btn btn-s" id="btn-new">Nouvelle</button>
       </div>
       <div class="btn-row mt8">
-        <button class="btn btn-s btn-sm" id="btn-export">📤 Exporter JSON</button>
-        <button class="btn btn-s btn-sm" id="btn-import">📂 Importer JSON</button>
+        <button class="btn btn-s btn-sm" id="btn-export">Exporter JSON</button>
+        <button class="btn btn-s btn-sm" id="btn-import"><svg class="ic"><use href="#ic-folder"/></svg> Importer JSON</button>
       </div>
       <input type="file" id="import-file" accept="application/json" style="display:none">
     </div>
@@ -1888,7 +1892,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   ═══════════════════════════════════════════ -->
   <div class="card" id="cloud-card">
     <div class="ch collapsible">
-      <div class="ico">☁️</div>
+      <div class="ico"><svg class="ic"><use href="#ic-cloud"/></svg></div>
       <h3>Stockage cloud (GitHub Gist)</h3>
       <span class="tag" id="cloud-status-tag">⚪ Local</span>
     </div>
@@ -1902,9 +1906,9 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div class="fg">
         <label>Mode de stockage</label>
         <select id="cloud-mode">
-          <option value="local">📱 Local seulement (défaut)</option>
-          <option value="hybrid">☁️ Hybride : local + sync cloud</option>
-          <option value="cloud">🌐 Cloud seul (avancé)</option>
+          <option value="local">Local seulement (défaut)</option>
+          <option value="hybrid">Hybride : local + sync cloud</option>
+          <option value="cloud">Cloud seul (avancé)</option>
         </select>
         <div class="hint" id="cloud-mode-hint">Stockage uniquement sur cet appareil.</div>
       </div>
@@ -1912,29 +1916,29 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <!-- Configuration cloud (visible si mode cloud ou hybrid) -->
       <div class="cloud-cfg-block" id="cloud-cfg-block" style="display:none;">
         <div class="fg mt8" style="background:var(--acc-bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;">
-          <div style="font-size:12px;color:var(--ok);font-weight:600;">🔒 Connexion sécurisée via serveur proxy</div>
+          <div style="font-size:12px;color:var(--ok);font-weight:600;">Connexion sécurisée via serveur proxy</div>
           <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">
             Le token GitHub est stocké de façon sécurisée côté serveur.<br>
             Aucune clé d'accès n'est nécessaire sur cet appareil.
           </div>
         </div>
         <div class="fg mt8">
-          <label>📋 Gist ID (laissez vide pour création auto)</label>
+          <label>Gist ID (laissez vide pour création auto)</label>
           <input type="text" id="cloud-gist-id" placeholder="(créé automatiquement à la 1ère sync)">
           <div class="hint">Coller cet ID sur tes autres appareils pour les relier au même Gist.</div>
         </div>
         <label class="trow mt8">
           <div>
-            <div class="tl">🔄 Sync auto au démarrage</div>
+            <div class="tl">Sync auto au démarrage</div>
             <div class="ts">Pull du cloud à chaque ouverture de l'app</div>
           </div>
           <div class="tsw"><input type="checkbox" id="cloud-autosync"><div class="tslider"></div></div>
         </label>
 
         <div class="btn-row mt8">
-          <button class="btn btn-s btn-sm" id="cloud-test">🔌 Tester</button>
-          <button class="btn btn-p btn-sm" id="cloud-sync-now">🔄 Sync</button>
-          <button class="btn btn-d btn-sm" id="cloud-clear">🗑 Effacer config</button>
+          <button class="btn btn-s btn-sm" id="cloud-test">Tester</button>
+          <button class="btn btn-p btn-sm" id="cloud-sync-now"><svg class="ic"><use href="#ic-cloud"/></svg> Sync</button>
+          <button class="btn btn-d btn-sm" id="cloud-clear">Effacer config</button>
         </div>
 
         <div id="cloud-feedback" class="hidden mt8" style="font-size:11px;"></div>
@@ -1964,15 +1968,15 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <!-- Substrats (multi-sélection + sliders) -->
       <div class="slbl" style="margin-top:0;">Substrat(s) de démarrage <span style="font-weight:400;text-transform:none;font-size:10px;color:var(--muted);">— coche puis ajuste les proportions</span></div>
       <div id="lv-substrat-grid" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-        <button class="rseg-btn" data-val="froment-t80"    onclick="levainToggleSubstrat(this)">🌾 T80</button>
-        <button class="rseg-btn" data-val="froment-t110"   onclick="levainToggleSubstrat(this)">🌾 T110</button>
-        <button class="rseg-btn" data-val="froment-t130"   onclick="levainToggleSubstrat(this)">🌾 T130</button>
-        <button class="rseg-btn" data-val="seigle"         onclick="levainToggleSubstrat(this)">🌑 Seigle</button>
-        <button class="rseg-btn" data-val="miel"           onclick="levainToggleSubstrat(this)">🍯 Miel</button>
-        <button class="rseg-btn" data-val="pomme"          onclick="levainToggleSubstrat(this)">🍎 Pomme</button>
-        <button class="rseg-btn" data-val="raisin"         onclick="levainToggleSubstrat(this)">🍇 Raisin</button>
-        <button class="rseg-btn" data-val="pomme-de-terre" onclick="levainToggleSubstrat(this)">🥔 Pdt</button>
-        <button class="rseg-btn" data-val="froment-t65"    onclick="levainToggleSubstrat(this)">🌾 T65</button>
+        <button class="rseg-btn" data-val="froment-t80"    onclick="levainToggleSubstrat(this)">T80</button>
+        <button class="rseg-btn" data-val="froment-t110"   onclick="levainToggleSubstrat(this)">T110</button>
+        <button class="rseg-btn" data-val="froment-t130"   onclick="levainToggleSubstrat(this)">T130</button>
+        <button class="rseg-btn" data-val="seigle"         onclick="levainToggleSubstrat(this)">Seigle</button>
+        <button class="rseg-btn" data-val="miel"           onclick="levainToggleSubstrat(this)">Miel</button>
+        <button class="rseg-btn" data-val="pomme"          onclick="levainToggleSubstrat(this)">Pomme</button>
+        <button class="rseg-btn" data-val="raisin"         onclick="levainToggleSubstrat(this)">Raisin</button>
+        <button class="rseg-btn" data-val="pomme-de-terre" onclick="levainToggleSubstrat(this)">Pdt</button>
+        <button class="rseg-btn" data-val="froment-t65"    onclick="levainToggleSubstrat(this)">T65</button>
       </div>
 
       <!-- Sliders proportions — générés dynamiquement -->
@@ -1987,8 +1991,8 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <!-- Consistance -->
       <div class="slbl">Consistance</div>
       <div style="display:flex;gap:6px;margin-bottom:4px;" id="lv-consistance-seg">
-        <button class="rseg-btn active" data-val="liquide" onclick="levainSetConsistance(this)">💧 Liquide (100–200%)</button>
-        <button class="rseg-btn" data-val="dur"            onclick="levainSetConsistance(this)">🧱 Dur / Ferme (40–65%)</button>
+        <button class="rseg-btn active" data-val="liquide" onclick="levainSetConsistance(this)">Liquide (100–200%)</button>
+        <button class="rseg-btn" data-val="dur"            onclick="levainSetConsistance(this)">Dur / Ferme (40–65%)</button>
       </div>
       <div id="lv-consistance-note" style="font-size:11px;color:var(--muted);margin-bottom:10px;">
         Acide lactique dominant · goût doux · maturité rapide · indicateur : triple de volume + surface concave
@@ -2021,14 +2025,14 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 
       <!-- Hint eau -->
       <div style="margin-top:12px;padding:9px 12px;background:var(--bg2,var(--bg));border-radius:var(--r-sm);border:1px solid var(--border);font-size:12px;color:var(--muted);">
-        💧 <strong>Eau du robinet</strong> : laisser reposer 30 min à découvert pour déchloriser avant utilisation.
+        <strong>Eau du robinet</strong> : laisser reposer 30 min à découvert pour déchloriser avant utilisation.
       </div>
 
       <!-- Bouton démarrer / reset -->
       <div class="btn-row mt8">
-        <button class="btn btn-p" id="lv-btn-demarrer" onclick="levainDemarrer()">🚀 Démarrer ce levain</button>
+        <button class="btn btn-p" id="lv-btn-demarrer" onclick="levainDemarrer()">Démarrer ce levain</button>
         <button class="btn btn-s" id="lv-btn-reset" onclick="levainReset()">↺ Nouveau levain</button>
-        <button class="btn btn-s" style="color:var(--err,#c03000);border-color:var(--err,#c03000);" onclick="levainEffacer()">🗑 Effacer tout</button>
+        <button class="btn btn-s" style="color:var(--err,#c03000);border-color:var(--err,#c03000);" onclick="levainEffacer()">Effacer tout</button>
       </div>
 
     </div><!-- /cb -->
@@ -2052,7 +2056,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── CARD 3 : Calculateur de rafraîchi ── -->
   <div class="card">
     <div class="ch">
-      <div class="ico">⚖️</div>
+      <div class="ico"><svg class="ic"><use href="#ic-scale"/></svg></div>
       <span style="font-size:15px;font-weight:800;">Calculateur de rafraîchi</span>
       <span class="tag" style="margin-left:auto;">Levain actif</span>
     </div>
@@ -2083,11 +2087,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div class="slbl">Quand veux-tu utiliser ce levain ?</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">L'app calcule le ratio d'ensemencement Calvel correspondant, corrigé pour ta T° fournil.</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="lv-r-delai-seg">
-        <button class="rseg-btn active" data-val="2h"  onclick="levainSelDelai(this)">⚡ 2h</button>
-        <button class="rseg-btn" data-val="5h"         onclick="levainSelDelai(this)">🕐 5h</button>
-        <button class="rseg-btn" data-val="8h"         onclick="levainSelDelai(this)">🕗 8h</button>
-        <button class="rseg-btn" data-val="12h"        onclick="levainSelDelai(this)">🌙 12h</button>
-        <button class="rseg-btn" data-val="custom"     onclick="levainSelDelai(this)">✏️ Ratio libre</button>
+        <button class="rseg-btn active" data-val="2h"  onclick="levainSelDelai(this)">2h</button>
+        <button class="rseg-btn" data-val="5h"         onclick="levainSelDelai(this)">5h</button>
+        <button class="rseg-btn" data-val="8h"         onclick="levainSelDelai(this)">8h</button>
+        <button class="rseg-btn" data-val="12h"        onclick="levainSelDelai(this)">12h</button>
+        <button class="rseg-btn" data-val="custom"     onclick="levainSelDelai(this)">Ratio libre</button>
       </div>
 
       <!-- Ratio libre (masqué par défaut) -->
@@ -2153,7 +2157,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <!-- ── CARD 4 : Export alarmes .ics ── -->
   <div class="card">
     <div class="ch">
-      <div class="ico">📅</div>
+      <div class="ico"><svg class="ic"><use href="#ic-calendar"/></svg></div>
       <span style="font-size:15px;font-weight:800;">Export alarmes calendrier</span>
     </div>
     <div class="cb">
@@ -2161,9 +2165,9 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <!-- Sélecteur de mode -->
       <div class="slbl" style="margin-top:0;">Mode d'export</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="lv-ics-mode-seg">
-        <button class="rseg-btn active" data-val="creation" onclick="levainIcsModeSwitch(this)">🌱 Création J1→J7</button>
-        <button class="rseg-btn" data-val="entretien"       onclick="levainIcsModeSwitch(this)">🔄 Entretien régulier</button>
-        <button class="rseg-btn" data-val="fournee"         onclick="levainIcsModeSwitch(this)">🍞 Avant fournée</button>
+        <button class="rseg-btn active" data-val="creation" onclick="levainIcsModeSwitch(this)">Création J1→J7</button>
+        <button class="rseg-btn" data-val="entretien"       onclick="levainIcsModeSwitch(this)">Entretien régulier</button>
+        <button class="rseg-btn" data-val="fournee"         onclick="levainIcsModeSwitch(this)">Avant fournée</button>
       </div>
 
       <!-- ── MODE CRÉATION ── -->
@@ -2179,7 +2183,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <div class="hint">Heure de l'alarme chaque jour</div>
         </div>
         <button class="btn btn-p" style="width:100%;" onclick="levainIcsExportCreation()">
-          📅 Exporter le programme J1→J7 (.ics)
+          <svg class="ic"><use href="#ic-calendar"/></svg> Exporter le programme J1→J7 (.ics)
         </button>
       </div>
 
@@ -2189,11 +2193,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="lv-ics-ent-seq">
           <label class="rseg-btn active" style="cursor:pointer;">
             <input type="checkbox" checked value="matin" style="display:none;" onchange="this.parentElement.classList.toggle('active',this.checked)">
-            🌅 Rafraîchi matin
+            Rafraîchi matin
           </label>
           <label class="rseg-btn" style="cursor:pointer;">
             <input type="checkbox" value="soir" style="display:none;" onchange="this.parentElement.classList.toggle('active',this.checked)">
-            🌙 Rafraîchi soir
+            Rafraîchi soir
           </label>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
@@ -2213,7 +2217,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <button class="rseg-btn" data-val="30" onclick="levainIcsToggleDuree(this)">30 jours</button>
         </div>
         <button class="btn btn-p" style="width:100%;" onclick="levainIcsExportEntretien()">
-          📅 Exporter les rafraîchis (.ics)
+          <svg class="ic"><use href="#ic-calendar"/></svg> Exporter les rafraîchis (.ics)
         </button>
       </div>
 
@@ -2224,15 +2228,15 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="lv-ics-four-seq">
           <label class="rseg-btn active" style="cursor:pointer;">
             <input type="checkbox" checked value="j1-soir" style="display:none;" onchange="this.parentElement.classList.toggle('active',this.checked)">
-            🌙 Rafraîchi J-1 soir
+            Rafraîchi J-1 soir
           </label>
           <label class="rseg-btn active" style="cursor:pointer;">
             <input type="checkbox" checked value="j0-matin" style="display:none;" onchange="this.parentElement.classList.toggle('active',this.checked)">
-            🌅 Rafraîchi J-0 matin
+            Rafraîchi J-0 matin
           </label>
           <label class="rseg-btn" style="cursor:pointer;">
             <input type="checkbox" value="rappel-petrissage" style="display:none;" onchange="this.parentElement.classList.toggle('active',this.checked)">
-            🥣 Rappel pétrissage
+            Rappel pétrissage
           </label>
         </div>
         <div class="fg" style="margin-bottom:12px;">
@@ -2244,7 +2248,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <!-- rendu JS -->
         </div>
         <button class="btn btn-p" style="width:100%;" onclick="levainIcsExportFournee()">
-          📅 Exporter rafraîchi pré-fournée (.ics)
+          <svg class="ic"><use href="#ic-calendar"/></svg> Exporter rafraîchi pré-fournée (.ics)
         </button>
       </div>
 
@@ -2630,11 +2634,11 @@ function initTheme(){
   const prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
   let saved; try{saved=localStorage.getItem('opdcj_theme');}catch(e){}
   const isDark=saved?saved==='dark':prefersDark;
-  if(isDark){document.body.classList.add('dark');if(btn)btn.textContent='☀️';}
+  if(isDark){document.body.classList.add('dark');if(btn)btn.innerHTML='<svg class="ic"><use href="#ic-sun"/></svg>';}
   if(btn){
     btn.addEventListener('click',()=>{
       const dark=document.body.classList.toggle('dark');
-      btn.textContent=dark?'☀️':'🌙';
+      btn.innerHTML=dark?'<svg class="ic"><use href="#ic-sun"/></svg>':'<svg class="ic"><use href="#ic-moon"/></svg>';
       try{localStorage.setItem('opdcj_theme',dark?'dark':'light');}catch(e){}
     });
   }
@@ -3504,7 +3508,7 @@ function _renderPizzaToppingsImpl(list){
           <div class="pz-top-row-head">
             <input type="checkbox" id="pz-top-c-${top.id}" ${isCk?'checked':''}>
             <span class="pz-top-label" data-edit-id="${top.id}" title="Cliquer pour renommer">${labelText}</span>
-            <button class="pz-top-del" data-del-id="${top.id}" title="Supprimer cet ingrédient">🗑</button>
+            <button class="pz-top-del" data-del-id="${top.id}" title="Supprimer cet ingrédient">×</button>
           </div>
           <div class="pz-top-row-fields">
             <input type="number" inputmode="decimal" class="pz-top-num pz-top-g" id="pz-top-g-${top.id}" value="${gVal}" min="0" step="1">
@@ -3744,7 +3748,7 @@ function globalizePizzaToppingsPrices(){
     }
   }
   if(saveCustomPricesGlobal()){
-    toast('💾 Prix sauvegardés comme défaut global');
+    toast('✅ Prix sauvegardés comme défaut global');
   } else {
     toast('⚠️ Échec sauvegarde');
   }
@@ -3856,7 +3860,7 @@ function deleteCustomTopping(id){
   renderPizzaToppings();
   computePizzaCostSummary();
   if(typeof scheduleQuickStatusUpdate === 'function') scheduleQuickStatusUpdate();
-  toast(`🗑 « ${label} » supprimé`);
+  toast(`« ${label} » supprimé`);
 }
 
 // V17-LOT G2 — fin
@@ -3885,7 +3889,7 @@ function deleteToppingUnified(id){
   renderPizzaToppings();
   computePizzaCostSummary();
   if(typeof scheduleQuickStatusUpdate === 'function') scheduleQuickStatusUpdate();
-  toast(`🗑 « ${label} » masqué`);
+  toast(`« ${label} » masqué`);
 }
 
 // Renommage in-place : transforme le span label en input éditable.
@@ -3971,7 +3975,7 @@ function applyRenameTopping(id, newLabel){
   renderPizzaToppings();
   computePizzaCostSummary();
   if(typeof scheduleQuickStatusUpdate === 'function') scheduleQuickStatusUpdate();
-  toast(`✏️ Renommé en « ${newLabel} »`);
+  toast(`Renommé en « ${newLabel} »`);
 }
 
 // V17-LOT G2.1 — fin
@@ -4049,8 +4053,8 @@ function renderPizzaProtocol(){
     chronoDetail = `
       <div style="border-top:1px dashed var(--border);margin-top:8px;padding-top:6px;font-size:11px;">
         <b>Chronologie complète :</b><br>
-        💧 Poolish : ${hPool}h @${tPool}°C<br>
-        🍕 Pizza : ${prot.hTA}h TA${prot.isLong?` + ${prot.hCold}h @${prot.tCold}°C`:''}<br>
+        Poolish : ${hPool}h @${tPool}°C<br>
+        Pizza : ${prot.hTA}h TA${prot.isLong?` + ${prot.hCold}h @${prot.tCold}°C`:''}<br>
         <b>Total : ${totalChrono}h</b>
       </div>`;
   } else if(prot.surBiga){
@@ -4062,8 +4066,8 @@ function renderPizzaProtocol(){
     chronoDetail = `
       <div style="border-top:1px dashed var(--border);margin-top:8px;padding-top:6px;font-size:11px;">
         <b>Chronologie complète :</b><br>
-        🧱 Biga ${prop}% · ${hydrat}% hydrat : ${hBiga}h @${tBiga}°C<br>
-        🍕 Pizza : ${prot.hTA}h TA${prot.isLong?` + ${prot.hCold}h @${prot.tCold}°C`:''}<br>
+        Biga ${prop}% · ${hydrat}% hydrat : ${hBiga}h @${tBiga}°C<br>
+        Pizza : ${prot.hTA}h TA${prot.isLong?` + ${prot.hCold}h @${prot.tCold}°C`:''}<br>
         <b>Total cumulé : ${totalChrono}h</b>
       </div>`;
   }
@@ -4115,11 +4119,11 @@ function renderPizzaProtocol(){
     if(prot.surBiga){
       const propBiga = toNum($('pz-biga-prop')?.value, 50);
       if(W < 300){
-        bigaWarn = `<br>🧱 <b>Biga active + W ${rnd(W)} insuffisant</b> : la biga nécessite W ≥ 300. ` +
+        bigaWarn = `<br><b>Biga active + W ${rnd(W)} insuffisant</b> : la biga nécessite W ≥ 300. ` +
           (W < 280 ? `<b>Risque élevé</b> de casse gluten à ${hBigaExtra}h. ` : '') +
           `Recommandé : <b>Caputo Saccorosso (W 320)</b>.`;
       } else if(propBiga >= 100 && W < 320){
-        bigaWarn = `<br>🧱 <b>Biga 100% + W ${rnd(W)}</b> : pour une biga totale, viser W ≥ 320 (Saccorosso). ` +
+        bigaWarn = `<br><b>Biga 100% + W ${rnd(W)}</b> : pour une biga totale, viser W ≥ 320 (Saccorosso). ` +
           `Risque de structure fragile à longue fermentation.`;
       }
     }
@@ -4209,8 +4213,8 @@ function updatePizzaFlowUI(){
   const ico   = $('pz-step3-ico');
   const title = $('pz-step3-title');
   if(ico && title){
-    if(surBiga){ ico.textContent = '🧱'; title.textContent = 'Biga'; }
-    else        { ico.textContent = '💧'; title.textContent = 'Poolish'; }
+    if(surBiga){ ico.innerHTML = '<svg class="ic"><use href="#ic-bread"/></svg>'; title.textContent = 'Biga'; }
+    else        { ico.innerHTML = '<svg class="ic"><use href="#ic-droplet"/></svg>'; title.textContent = 'Poolish'; }
   }
 
   // Hint style pour four 300°C (visible si biga active)
@@ -4407,7 +4411,7 @@ function updateCloudStatusTag(){
   if(CLOUD.mode === 'local'){
     tag.textContent = '⚪ Local'; return;
   }
-  if(CLOUD.status === 'syncing'){ tag.textContent = '🔄 Sync...'; return; }
+  if(CLOUD.status === 'syncing'){ tag.textContent = 'Sync...'; return; }
   if(CLOUD.status === 'error')   { tag.textContent = '🔴 Erreur'; return; }
   if(CLOUD.status === 'ok')      {
     if(CLOUD.lastSync){
@@ -4456,7 +4460,7 @@ function onCloudAutoSyncChange(){
 async function onCloudTest(){
   const btn = $('cloud-test');
   if(btn) btn.disabled = true;
-  showCloudFeedback('🔌 Test en cours…', 'info');
+  showCloudFeedback('Test en cours…', 'info');
   try {
     if(!CLOUD.token) throw new Error('Saisis d\'abord ton token GitHub');
     const u = await gistTestToken();
@@ -4472,7 +4476,7 @@ async function onCloudTest(){
 async function onCloudSyncNow(){
   const btn = $('cloud-sync-now');
   if(btn) btn.disabled = true;
-  showCloudFeedback('🔄 Synchronisation en cours…', 'info');
+  showCloudFeedback('Synchronisation en cours…', 'info');
   updateCloudStatusTag();
   try {
     if(!CLOUD.token) throw new Error('Saisis d\'abord ton token GitHub');
@@ -4486,9 +4490,9 @@ async function onCloudSyncNow(){
     if(CLOUD.gistId){
       msg += `<br><span style="font-size:10px;color:var(--muted);">
         Gist ID : <code style="user-select:all;">${CLOUD.gistId}</code>
-        <button onclick="navigator.clipboard.writeText('${CLOUD.gistId}').then(()=>toast('📋 Gist ID copié !'))"
+        <button onclick="navigator.clipboard.writeText('${CLOUD.gistId}').then(()=>toast('✅ Gist ID copié !'))"
           style="margin-left:6px;padding:1px 7px;font-size:10px;border:1px solid var(--border);
-          border-radius:5px;background:var(--bg);cursor:pointer;">📋 Copier</button>
+          border-radius:5px;background:var(--bg);cursor:pointer;">Copier</button>
         <span style="display:block;margin-top:3px;color:var(--warn);">
           ⚠️ Colle cet ID dans les Réglages cloud de tes autres appareils.
         </span>
@@ -4516,7 +4520,7 @@ function onCloudClear(){
   if($('cloud-gist-id')) $('cloud-gist-id').value = '';
   if($('cloud-autosync')) $('cloud-autosync').checked = false;
   updateCloudUI();
-  showCloudFeedback('🗑 Configuration effacée', 'info');
+  showCloudFeedback('Configuration effacée', 'info');
 }
 
 function initCloudUI(){
@@ -4539,7 +4543,7 @@ function initCloudUI(){
           await cloudPull();
           if(typeof renderRecList === 'function') await renderRecList();
           if(typeof renderQuickSelector === 'function') await renderQuickSelector();
-          toast('☁️ Sync automatique OK');
+          toast('✅ Sync automatique OK');
           updateCloudStatusTag();
         } catch(e){
           console.warn('Auto-sync échec:', e.message);
@@ -4985,11 +4989,11 @@ function computePoolish(){
   if(noteT){
     if(tempAmb>26){
       noteT.className='alert a-warn mt8';
-      noteT.textContent=`🌡️ ${tempAmb} °C → levure réduite automatiquement (facteur ×${tFact.toFixed(2)})`;
+      noteT.textContent=`${tempAmb} °C → levure réduite automatiquement (facteur ×${tFact.toFixed(2)})`;
       noteT.classList.remove('hidden');
     } else if(tempAmb<18){
       noteT.className='alert a-info mt8';
-      noteT.textContent=`❄️ ${tempAmb} °C → levure augmentée automatiquement (facteur ×${tFact.toFixed(2)})`;
+      noteT.textContent=`${tempAmb} °C → levure augmentée automatiquement (facteur ×${tFact.toFixed(2)})`;
       noteT.classList.remove('hidden');
     } else { noteT.classList.add('hidden'); }
   }
@@ -5090,7 +5094,7 @@ function renderIngredients(){
       <!-- Groupe BIGA -->
       <div class="ing-group poolish">
         <div class="ing-group-head">
-          <span>🧱 Biga Giorilli ${prop}%</span>
+          <span>Biga Giorilli ${prop}%</span>
           <span style="font-weight:600;font-size:10px;opacity:.85;">${dur}h · ${temp}°C · ${hydrat}% hydrat</span>
         </div>
         <div class="ing-group-body">
@@ -5106,7 +5110,7 @@ function renderIngredients(){
       <!-- Groupe PÉTRISÉE -->
       <div class="ing-group petr">
         <div class="ing-group-head">
-          <span>🥣 Pétrisée (rafraîchissement)</span>
+          <span>Pétrisée (rafraîchissement)</span>
           <span style="font-weight:600;font-size:10px;opacity:.75;">reste ${100-prop}% farine</span>
         </div>
         <div class="ing-group-body">
@@ -5240,7 +5244,7 @@ function renderIngredients(){
     <!-- Groupe POOLISH -->
     <div class="ing-group poolish">
       <div class="ing-group-head">
-        <span>💧 ${poolTypeLabel}</span>
+        <span>${poolTypeLabel}</span>
         <span style="font-weight:600;font-size:10px;opacity:.85;">${dur} h · ${tmp} °C</span>
       </div>
       <div class="ing-group-body">
@@ -5254,7 +5258,7 @@ function renderIngredients(){
     <!-- Groupe PÉTRISÉE -->
     <div class="ing-group petr">
       <div class="ing-group-head">
-        <span>🥣 Pétrisée</span>
+        <span>Pétrisée</span>
         <span style="font-weight:600;font-size:10px;opacity:.75;">reste ${100-pct} % eau</span>
       </div>
       <div class="ing-group-body">
@@ -5330,58 +5334,58 @@ function renderIngredients(){
 // % = pourcentage de la farine totale · p = prix €/kg par défaut
 // ═══════════════════════════════════════════════════════════════════
 const BREAD_EXTRA_CATS = [
-  '🌾 Graines & Céréales',
-  '🧀 Fromages & Laitiers',
-  '🥓 Charcuterie & Salé',
-  '🍯 Sucré & Fruits secs',
-  '🌿 Herbes & Épices',
-  '⚗️ Additifs & Améliorants',
+  'Graines & Céréales',
+  'Fromages & Laitiers',
+  'Charcuterie & Salé',
+  'Sucré & Fruits secs',
+  'Herbes & Épices',
+  'Additifs & Améliorants',
 ];
 
 const BREAD_EXTRAS_DEFAULT = [
   // 🌾 Graines & Céréales
-  { id:'bex-sesame',    label:'Sésame',              cat:'🌾 Graines & Céréales',      pct:5,   p:5.00 },
-  { id:'bex-pavot',     label:'Pavot',               cat:'🌾 Graines & Céréales',      pct:3,   p:6.00 },
-  { id:'bex-tournesol', label:'Tournesol',            cat:'🌾 Graines & Céréales',      pct:8,   p:3.50 },
-  { id:'bex-lin',       label:'Lin',                  cat:'🌾 Graines & Céréales',      pct:5,   p:4.00 },
-  { id:'bex-courge',    label:'Courge (pepitas)',      cat:'🌾 Graines & Céréales',      pct:6,   p:9.00 },
-  { id:'bex-avoine',    label:'Flocons d’avoine',     cat:'🌾 Graines & Céréales',      pct:10,  p:2.50 },
-  { id:'bex-chia',      label:'Graines de chia',      cat:'🌾 Graines & Céréales',      pct:3,   p:8.00 },
-  { id:'bex-millet',    label:'Millet',               cat:'🌾 Graines & Céréales',      pct:8,   p:3.00 },
+  { id:'bex-sesame',    label:'Sésame',              cat:'Graines & Céréales',      pct:5,   p:5.00 },
+  { id:'bex-pavot',     label:'Pavot',               cat:'Graines & Céréales',      pct:3,   p:6.00 },
+  { id:'bex-tournesol', label:'Tournesol',            cat:'Graines & Céréales',      pct:8,   p:3.50 },
+  { id:'bex-lin',       label:'Lin',                  cat:'Graines & Céréales',      pct:5,   p:4.00 },
+  { id:'bex-courge',    label:'Courge (pepitas)',      cat:'Graines & Céréales',      pct:6,   p:9.00 },
+  { id:'bex-avoine',    label:'Flocons d’avoine',     cat:'Graines & Céréales',      pct:10,  p:2.50 },
+  { id:'bex-chia',      label:'Graines de chia',      cat:'Graines & Céréales',      pct:3,   p:8.00 },
+  { id:'bex-millet',    label:'Millet',               cat:'Graines & Céréales',      pct:8,   p:3.00 },
   // 🧀 Fromages & Laitiers
-  { id:'bex-parmesan',  label:'Parmesan râpé',         cat:'🧀 Fromages & Laitiers',     pct:8,   p:18.00 },
-  { id:'bex-gruyere',   label:'Gruyère râpé',          cat:'🧀 Fromages & Laitiers',     pct:10,  p:14.00 },
-  { id:'bex-chevre',    label:'Fromage de chèvre',     cat:'🧀 Fromages & Laitiers',     pct:12,  p:16.00 },
-  { id:'bex-ricotta',   label:'Ricotta',               cat:'🧀 Fromages & Laitiers',     pct:15,  p:8.00  },
-  { id:'bex-emmental',  label:'Emmental',              cat:'🧀 Fromages & Laitiers',     pct:10,  p:12.00 },
+  { id:'bex-parmesan',  label:'Parmesan râpé',         cat:'Fromages & Laitiers',     pct:8,   p:18.00 },
+  { id:'bex-gruyere',   label:'Gruyère râpé',          cat:'Fromages & Laitiers',     pct:10,  p:14.00 },
+  { id:'bex-chevre',    label:'Fromage de chèvre',     cat:'Fromages & Laitiers',     pct:12,  p:16.00 },
+  { id:'bex-ricotta',   label:'Ricotta',               cat:'Fromages & Laitiers',     pct:15,  p:8.00  },
+  { id:'bex-emmental',  label:'Emmental',              cat:'Fromages & Laitiers',     pct:10,  p:12.00 },
   // 🥓 Charcuterie & Salé
-  { id:'bex-lardons',   label:'Lardons fumés',         cat:'🥓 Charcuterie & Salé',      pct:15,  p:10.00 },
-  { id:'bex-jambon',    label:'Jambon sec',            cat:'🥓 Charcuterie & Salé',      pct:10,  p:22.00 },
-  { id:'bex-olives',    label:'Olives dénoyautées',    cat:'🥓 Charcuterie & Salé',      pct:12,  p:8.00  },
-  { id:'bex-anchois',   label:'Anchois',               cat:'🥓 Charcuterie & Salé',      pct:4,   p:25.00 },
-  { id:'bex-tomsech',   label:'Tomates séchées',       cat:'🥓 Charcuterie & Salé',      pct:8,   p:15.00 },
+  { id:'bex-lardons',   label:'Lardons fumés',         cat:'Charcuterie & Salé',      pct:15,  p:10.00 },
+  { id:'bex-jambon',    label:'Jambon sec',            cat:'Charcuterie & Salé',      pct:10,  p:22.00 },
+  { id:'bex-olives',    label:'Olives dénoyautées',    cat:'Charcuterie & Salé',      pct:12,  p:8.00  },
+  { id:'bex-anchois',   label:'Anchois',               cat:'Charcuterie & Salé',      pct:4,   p:25.00 },
+  { id:'bex-tomsech',   label:'Tomates séchées',       cat:'Charcuterie & Salé',      pct:8,   p:15.00 },
   // 🍯 Sucré & Fruits secs
-  { id:'bex-miel',      label:'Miel',                  cat:'🍯 Sucré & Fruits secs',     pct:5,   p:10.00 },
-  { id:'bex-raisins',   label:'Raisins secs',          cat:'🍯 Sucré & Fruits secs',     pct:15,  p:5.00  },
-  { id:'bex-noix',      label:'Noix (cerneaux)',        cat:'🍯 Sucré & Fruits secs',     pct:20,  p:12.00 },
-  { id:'bex-noisettes', label:'Noisettes',             cat:'🍯 Sucré & Fruits secs',     pct:15,  p:10.00 },
-  { id:'bex-cranberry', label:'Cranberries séchées',   cat:'🍯 Sucré & Fruits secs',     pct:10,  p:12.00 },
-  { id:'bex-figues',    label:'Figues séchées',        cat:'🍯 Sucré & Fruits secs',     pct:15,  p:8.00  },
-  { id:'bex-choco',     label:'Pépites de chocolat',   cat:'🍯 Sucré & Fruits secs',     pct:10,  p:9.00  },
+  { id:'bex-miel',      label:'Miel',                  cat:'Sucré & Fruits secs',     pct:5,   p:10.00 },
+  { id:'bex-raisins',   label:'Raisins secs',          cat:'Sucré & Fruits secs',     pct:15,  p:5.00  },
+  { id:'bex-noix',      label:'Noix (cerneaux)',        cat:'Sucré & Fruits secs',     pct:20,  p:12.00 },
+  { id:'bex-noisettes', label:'Noisettes',             cat:'Sucré & Fruits secs',     pct:15,  p:10.00 },
+  { id:'bex-cranberry', label:'Cranberries séchées',   cat:'Sucré & Fruits secs',     pct:10,  p:12.00 },
+  { id:'bex-figues',    label:'Figues séchées',        cat:'Sucré & Fruits secs',     pct:15,  p:8.00  },
+  { id:'bex-choco',     label:'Pépites de chocolat',   cat:'Sucré & Fruits secs',     pct:10,  p:9.00  },
   // 🌿 Herbes & Épices
-  { id:'bex-romarin',   label:'Romarin',               cat:'🌿 Herbes & Épices',         pct:0.5, p:15.00 },
-  { id:'bex-thym',      label:'Thym',                  cat:'🌿 Herbes & Épices',         pct:0.5, p:15.00 },
-  { id:'bex-cumin',     label:'Cumin',                 cat:'🌿 Herbes & Épices',         pct:0.8, p:12.00 },
-  { id:'bex-curcuma',   label:'Curcuma',               cat:'🌿 Herbes & Épices',         pct:0.5, p:14.00 },
-  { id:'bex-curry',     label:'Curry',                 cat:'🌿 Herbes & Épices',         pct:0.8, p:10.00 },
-  { id:'bex-fleursels', label:'Fleur de sel (finition)',cat:'🌿 Herbes & Épices',        pct:0.3, p:12.00 },
-  { id:'bex-poivre',    label:'Poivre noir',           cat:'🌿 Herbes & Épices',         pct:0.3, p:20.00 },
+  { id:'bex-romarin',   label:'Romarin',               cat:'Herbes & Épices',         pct:0.5, p:15.00 },
+  { id:'bex-thym',      label:'Thym',                  cat:'Herbes & Épices',         pct:0.5, p:15.00 },
+  { id:'bex-cumin',     label:'Cumin',                 cat:'Herbes & Épices',         pct:0.8, p:12.00 },
+  { id:'bex-curcuma',   label:'Curcuma',               cat:'Herbes & Épices',         pct:0.5, p:14.00 },
+  { id:'bex-curry',     label:'Curry',                 cat:'Herbes & Épices',         pct:0.8, p:10.00 },
+  { id:'bex-fleursels', label:'Fleur de sel (finition)',cat:'Herbes & Épices',        pct:0.3, p:12.00 },
+  { id:'bex-poivre',    label:'Poivre noir',           cat:'Herbes & Épices',         pct:0.3, p:20.00 },
   // ⚗️ Additifs & Améliorants
-  { id:'bex-gluten',    label:'Gluten de blé',         cat:'⚗️ Additifs & Améliorants',  pct:2,   p:8.00  },
-  { id:'bex-vitc',      label:'Acide ascorbique (vit. C)', cat:'⚗️ Additifs & Améliorants', pct:0.02, p:30.00 },
-  { id:'bex-lecithine', label:'Lécithine de soja',     cat:'⚗️ Additifs & Améliorants',  pct:0.5, p:6.00  },
-  { id:'bex-malt',      label:'Farine de malt',        cat:'⚗️ Additifs & Améliorants',  pct:1.5, p:5.00  },
-  { id:'bex-feve',      label:'Farine de fève',        cat:'⚗️ Additifs & Améliorants',  pct:1,   p:4.00  },
+  { id:'bex-gluten',    label:'Gluten de blé',         cat:'Additifs & Améliorants',  pct:2,   p:8.00  },
+  { id:'bex-vitc',      label:'Acide ascorbique (vit. C)', cat:'Additifs & Améliorants', pct:0.02, p:30.00 },
+  { id:'bex-lecithine', label:'Lécithine de soja',     cat:'Additifs & Améliorants',  pct:0.5, p:6.00  },
+  { id:'bex-malt',      label:'Farine de malt',        cat:'Additifs & Améliorants',  pct:1.5, p:5.00  },
+  { id:'bex-feve',      label:'Farine de fève',        cat:'Additifs & Améliorants',  pct:1,   p:4.00  },
 ];
 
 // État runtime des bread extras (% et prix ajustables par l'utilisateur)
@@ -5442,7 +5446,7 @@ function renderBreadExtras(){
           <div class="pz-top-row-head">
             <input type="checkbox" id="bex-c-${item.id}" ${isCk?'checked':''}>
             <span class="pz-top-label" data-bex-edit="${item.id}" title="Cliquer pour renommer">${labelText}</span>
-            <button class="pz-top-del" data-bex-del="${item.id}" title="Supprimer">🗑</button>
+            <button class="pz-top-del" data-bex-del="${item.id}" title="Supprimer">×</button>
           </div>
           <div class="pz-top-row-fields">
             <input type="number" inputmode="decimal" class="pz-top-num bex-pct" id="bex-pct-${item.id}" value="${st.pct}" min="0" step="0.5">
@@ -5523,7 +5527,7 @@ function deleteBexItem(id){
   renderBreadExtras();
   computeCosts();
   if(typeof scheduleQuickStatusUpdate==='function') scheduleQuickStatusUpdate();
-  if(typeof toast==='function') toast(`🗑 « ${label} » supprimé`);
+  if(typeof toast==='function') toast(`« ${label} » supprimé`);
 }
 
 function showBexAddForm(preselectCat){
@@ -5772,7 +5776,7 @@ function computeCosts(){
 
   // Pâte de base
   if(baseRows.length){
-    out += `<div class="bex-cat"><span>🌾 Pâte de base</span></div>`;
+    out += `<div class="bex-cat"><span>Pâte de base</span></div>`;
     out += baseRows.map(rowHtml).join('');
   }
 
@@ -5790,7 +5794,7 @@ function computeCosts(){
 
   // Énergie
   if(energyRow){
-    out += `<div class="bex-cat" style="margin-top:8px;"><span>⚡ Énergie</span></div>`;
+    out += `<div class="bex-cat" style="margin-top:8px;"><span>Énergie</span></div>`;
     out += rowHtml(energyRow);
   }
 
@@ -5935,9 +5939,9 @@ function computeWaterTemp(){
     if(isPizza){
       // V17-Dfix3 — Tableau pédagogique : friction par type de pétrin
       const rows=[
-        {key:'hand',        label:'✋ Manuel',       fr:0, active:pizzaPetr==='hand'},
-        {key:'spiral-slow', label:'🌀 Spirale lent', fr:4, active:pizzaPetr==='spiral-slow'},
-        {key:'spiral-pro',  label:'⚡ Spirale pro',  fr:9, active:pizzaPetr==='spiral-pro'},
+        {key:'hand',        label:'Manuel',       fr:0, active:pizzaPetr==='hand'},
+        {key:'spiral-slow', label:'Spirale lent', fr:4, active:pizzaPetr==='spiral-slow'},
+        {key:'spiral-pro',  label:'Spirale pro',  fr:9, active:pizzaPetr==='spiral-pro'},
       ];
       tbPetrInfo.className='alert a-info mt8';
       tbPetrInfo.classList.remove('hidden');
@@ -5968,9 +5972,9 @@ function computeWaterTemp(){
     } else if(!S.surPool){
       // Mode pain direct : afficher le tableau TB selon pétrissage
       const rows=[
-        {key:'pvl',label:'🐢 PVL — Lent',   tb:69, active:petrV==='pvl'},
-        {key:'pa', label:'⚙️ PA — Amélioré', tb:63, active:petrV==='pa'},
-        {key:'pi', label:'⚡ PI — Intensifié',tb:55, active:petrV==='pi'},
+        {key:'pvl',label:'PVL — Lent',   tb:69, active:petrV==='pvl'},
+        {key:'pa', label:'PA — Amélioré', tb:63, active:petrV==='pa'},
+        {key:'pi', label:'PI — Intensifié',tb:55, active:petrV==='pi'},
       ];
       tbPetrInfo.className='alert a-info mt8';
       tbPetrInfo.classList.remove('hidden');
@@ -6320,11 +6324,14 @@ function renderPhaseRow(ph, mode, agent){
       phIcon = '💧'; phLabel = 'Poolish';
     }
   }
+  const PHASE_IC = {'⚖️':'ic-scale','🥣':'ic-bowl','💧':'ic-droplet','🧱':'ic-bread','🔄':'ic-refresh','🌡️':'ic-thermometer','🍞':'ic-bread','🍕':'ic-bread','🥯':'ic-bread','❄️':'ic-thermometer','✂️':'ic-arrow','⏸️':'ic-clock','🍽️':'ic-bowl','🧪':'ic-leaf','🫙':'ic-bowl'};
+  const phSvgId = PHASE_IC[phIcon];
+  const phIconHtml = phSvgId ? `<svg class="ic"><use href="#${phSvgId}"/></svg>` : phIcon;
 
   return `<div class="phase-row${isCold?' cold':''}${!isChecked?' inactive':''}" id="prow-${prefixId}">
     <input type="checkbox" id="${chkId}" ${isChecked?'checked':''}
       onchange="togglePhaseRow('${prefixId}',this.checked);computeAll();">
-    <span class="phase-icon">${phIcon}</span>
+    <span class="phase-icon">${phIconHtml}</span>
     <label for="${chkId}" class="phase-label${tipClass}" ${tipAttr}>${phLabel}</label>
     ${isCold?'<span style="font-size:10px;color:#5BA3D0;font-weight:700;white-space:nowrap;">4–6°C</span>':''}
     ${durHTML}
@@ -6372,22 +6379,22 @@ function renderPlanPhases(){
 
   const sections = planMode==='pizza'
     ? [
-        {title:'🥣 Pétrissage',    ids2:pz1},
-        {title:'🌡️ Fermentation',  ids2:pz2},
-        {title:'🍕 Service',       ids2:pz3},
+        {title:'Pétrissage',    ids2:pz1},
+        {title:'Fermentation',  ids2:pz2},
+        {title:'Service',       ids2:pz3},
       ]
     : planMode==='focaccia'
     ? [
-        {title:'🥣 Préparation & Pétrissage', ids2:fc1},
-        {title:'🌡️ Fermentation masse',      ids2:fc2},
-        {title:'✂️ Division & Mise en plaque',ids2:fc3},
-        {title:'👆 Apprêt, Empreintes & Cuisson', ids2:fc4},
+        {title:'Préparation & Pétrissage', ids2:fc1},
+        {title:'Fermentation masse',      ids2:fc2},
+        {title:'Division & Mise en plaque',ids2:fc3},
+        {title:'Apprêt, Empreintes & Cuisson', ids2:fc4},
       ]
     : [
-        {title:'🥣 Préparation & Pétrissage', ids2:sect1},
-        {title:'🌡️ Fermentation',            ids2:sect2},
-        {title:'✂️ Division & Façonnage',     ids2:sect3},
-        {title:'🧺 Apprêt & Cuisson',         ids2:sect4},
+        {title:'Préparation & Pétrissage', ids2:sect1},
+        {title:'Fermentation',            ids2:sect2},
+        {title:'Division & Façonnage',     ids2:sect3},
+        {title:'Apprêt & Cuisson',         ids2:sect4},
       ];
 
   sections.forEach(sec=>{
@@ -6797,14 +6804,14 @@ function exportToCalendar(){
   const wrap = document.createElement('div');
   wrap.id = 'plan-ics-dl-link';
   wrap.style.cssText = 'margin-top:10px;padding:10px 12px;background:var(--bg2,var(--bg));border:1px solid var(--border);border-radius:var(--r-sm);text-align:center;';
-  wrap.innerHTML = '<a href="'+url+'" download="'+fname+'" style="font-weight:800;color:var(--prim);font-size:14px;text-decoration:none;">⬇️ Télécharger '+fname+'</a>'
+  wrap.innerHTML = '<a href="'+url+'" download="'+fname+'" style="font-weight:800;color:var(--prim);font-size:14px;text-decoration:none;">Télécharger '+fname+'</a>'
     + '<div style="font-size:10px;color:var(--muted);margin-top:4px;">Cliquer pour télécharger le fichier calendrier ('+activeSteps.length+' phases)</div>';
 
   const btnRow = document.getElementById('btn-export-cal')?.parentElement;
   if (btnRow) btnRow.appendChild(wrap);
 
   setTimeout(() => URL.revokeObjectURL(url), 60000);
-  toast('📅 Lien de téléchargement prêt — cliquez ci-dessous.');
+  toast('✅ Lien de téléchargement prêt — cliquez ci-dessous.');
 }
 
 function computeTimeline(){
@@ -6824,7 +6831,7 @@ function computeTimeline(){
   // ── Barre d'info pétrissage + T° fournil ──
   const infoEl=$('plan-petr-info');
   if(infoEl){
-    const petrLabel={pvl:'🐢 PVL — Lent',pa:'⚙️ PA — Amélioré',pi:'⚡ PI — Intensifié'}[petr];
+    const petrLabel={pvl:'PVL — Lent',pa:'PA — Amélioré',pi:'PI — Intensifié'}[petr];
     const petrDesc={
       pvl:`Facteur pointage ×${PETR_FACTORS.pvl} · TB ${!S.surPool?'69':'-'} · Échauffement pâte +1°C`,
       pa :`Facteur pointage ×${PETR_FACTORS.pa}  · TB ${!S.surPool?'63':'-'} · Échauffement pâte +3°C`,
@@ -6968,12 +6975,12 @@ function computeTimeline(){
   // Badges
   const badges=[];
   if(totalMin>720) badges.push({label:'⏳ Protocole long — prévoir J+'+(daysBack||1), cls:'warn'});
-  if(steps.some(s=>s.type==='froid')) badges.push({label:'❄️ Fermentation froide incluse', cls:'cold'});
+  if(steps.some(s=>s.type==='froid')) badges.push({label:'Fermentation froide incluse', cls:'cold'});
   // V17-LotF — badge biga si active en pizza
   if($('pizza-surbiga')?.checked && MODE==='pizza'){
     const bigaH = toNum($('pz-biga-duree')?.value, 18);
     const bigaT = toNum($('pz-biga-temp')?.value, 18);
-    badges.push({label:`🧱 Biga ${bigaH}h @${bigaT}°C incluse`, cls:'info'});
+    badges.push({label:`Biga ${bigaH}h @${bigaT}°C incluse`, cls:'info'});
   }
 
   const badgeHTML=badges.length
@@ -7028,7 +7035,7 @@ function computeTimeline(){
     if(st.tooltip){
       tooltipHTML=`<div class="tl-tooltip">${st.tooltip}</div>`;
     }
-    let coldLabel = isCold ? `<span class="tl-cold-badge">❄️ Réfrigérateur (4–6 °C)</span>` : '';
+    let coldLabel = isCold ? `<span class="tl-cold-badge">Réfrigérateur (4–6 °C)</span>` : '';
 
     // Badge J+N si la phase dure plus d'un jour
     let multiDay='';
@@ -7373,7 +7380,7 @@ async function renderQuickSelector(){
   if(!sel || !ico) return;
 
   // Icône selon mode
-  ico.textContent = MODES[MODE]?.icon || '🍞';
+  ico.innerHTML = '<svg class="ic"><use href="#ic-bread"/></svg>';
 
   // Liste des recettes de la famille active
   const all = await dbAll();
@@ -7405,7 +7412,7 @@ async function renderQuickSelector(){
       nameEl.value = (cur?.title || 'Recette sans nom') + (isDef ? ' ⭐' : '');
     } else {
       nameEl.value = '';
-      nameEl.placeholder = '✨ Nom de la recette…';
+      nameEl.placeholder = 'Nom de la recette…';
     }
     // Sync bidirectionnelle avec rec-name (onglet Recettes)
     const recName = $('rec-name');
@@ -7422,13 +7429,13 @@ function updateQuickStatus(){
   if(!status) return;
   if(!RID){
     status.className = 'rec-quick-status';
-    status.textContent = '✨ Nouvelle recette (non sauvegardée)';
+    status.textContent = 'Nouvelle recette (non sauvegardée)';
     return;
   }
   const modified = isCurrentRecipeModified();
   if(modified){
     status.className = 'rec-quick-status modified';
-    status.textContent = '✏️ Modifications non sauvegardées';
+    status.textContent = 'Modifications non sauvegardées';
   } else {
     status.className = 'rec-quick-status saved';
     status.textContent = '✓ À jour';
@@ -7522,10 +7529,10 @@ async function setDefaultRecipe(mode, recipeId){
   // Si déjà la défaut, on retire (toggle)
   if(DEFAULT_RECIPES[mode] === recipeId){
     delete DEFAULT_RECIPES[mode];
-    toast('⭐ Recette n\'est plus la défaut');
+    toast('Recette n\'est plus la défaut');
   } else {
     DEFAULT_RECIPES[mode] = recipeId;
-    toast('⭐ Recette définie comme défaut');
+    toast('Recette définie comme défaut');
   }
   saveDefaultRecipes();
   await renderRecList();
@@ -7554,7 +7561,7 @@ function renderRecFamilyFilters(allRecipes){
     const ico = cfg.icon || '🍞';
     const lbl = cfg.label || m;
     html += `<button class="rec-filter-btn ${REC_FILTER===m?'active':''}" data-fam="${m}">
-      ${ico} ${lbl} <span class="rfb-count">${counts[m]}</span></button>`;
+      ${lbl} <span class="rfb-count">${counts[m]}</span></button>`;
   }
   el.innerHTML = html;
 
@@ -7586,7 +7593,7 @@ window.exportRecJSON = async function(id){
   a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'}));
   a.download = `${safeName}.json`;
   a.click();
-  toast('📤 JSON exporté');
+  toast('✅ JSON exporté');
 };
 
 // Export PDF imprimable d'une recette
@@ -7622,7 +7629,7 @@ window.exportRecPDF = async function(id){
   setTimeout(()=>{
     try { w.focus(); w.print(); } catch(e) { console.warn(e); }
   }, 500);
-  toast('🖨️ Fenêtre d\'impression ouverte');
+  toast('Fenêtre d\'impression ouverte');
 };
 
 // Construit le HTML d'une fiche recette imprimable
@@ -7656,14 +7663,14 @@ function buildPrintableRecipe(r){
   let poolishSection = '';
   if(S.surPool && S.poolF > 0){
     poolishSection = `
-      <h3>💧 Poolish</h3>
+      <h3>Poolish</h3>
       <table>
         <tr><th>Ingrédient</th><th class="r">Quantité</th></tr>
         <tr><td>Farine</td><td class="r">${rnd(S.poolF)} g</td></tr>
         <tr><td>Eau</td><td class="r">${rnd(S.poolW)} g</td></tr>
         <tr><td>Levure</td><td class="r">${(S.poolY||0).toFixed(2)} g</td></tr>
       </table>
-      <h3>🥖 Pétrisée</h3>
+      <h3>Pétrisée</h3>
       <table>
         <tr><th>Ingrédient</th><th class="r">Quantité</th></tr>
         <tr><td>Farine</td><td class="r">${rnd(S.restF)} g</td></tr>
@@ -7677,7 +7684,7 @@ function buildPrintableRecipe(r){
   if(S.surBiga && (S.bigaF||0) > 0){
     const bigaAutoSuff = (S.bigaResteY||0) === 0 && (S.bigaY||0) > 0;
     poolishSection = `
-      <h3>🧱 Biga Giorilli (${S.bigaPropBiga||50}% · ${S.bigaHydrat||45}% hydrat · ${S.bigaDuree||18}h @${S.bigaTemp||18}°C)</h3>
+      <h3>Biga Giorilli (${S.bigaPropBiga||50}% · ${S.bigaHydrat||45}% hydrat · ${S.bigaDuree||18}h @${S.bigaTemp||18}°C)</h3>
       <table>
         <tr><th>Ingrédient</th><th class="r">Quantité</th><th class="r">Note</th></tr>
         <tr><td>Farine</td><td class="r">${rnd(S.bigaF||0)} g</td><td class="r" style="color:#888;">W ≥ 300 requis</td></tr>
@@ -7686,7 +7693,7 @@ function buildPrintableRecipe(r){
         <tr><td>Sel</td><td class="r">0 g</td><td class="r" style="color:#888;">Ajouté au rafraîchissement</td></tr>
       </table>
       <p style="font-size:12px;color:#7a4a20;"><b>⚠️ Pétrissage biga : 1-2 min seulement — texture grumeleuse intentionnelle.</b></p>
-      <h3>🥖 Pétrisée finale (rafraîchissement biga)</h3>
+      <h3>Pétrisée finale (rafraîchissement biga)</h3>
       <table>
         <tr><th>Ingrédient</th><th class="r">Quantité</th></tr>
         <tr><td>Farine</td><td class="r">${rnd(S.bigaResteF||0)} g</td></tr>
@@ -7718,7 +7725,7 @@ function buildPrintableRecipe(r){
         rows += `<tr><td>${label}</td><td class="r">${st.g} g/${unitLbl}</td><td class="r">${euro(c)}</td></tr>`;
       }
       toppingsSection = `
-        <h3>🍅 Garniture (${qty} ${unitLblPl})</h3>
+        <h3>Garniture (${qty} ${unitLblPl})</h3>
         <table>
           <tr><th>Ingrédient</th><th class="r">Quantité</th><th class="r">Coût total</th></tr>
           ${rows}
@@ -7733,7 +7740,7 @@ function buildPrintableRecipe(r){
       const cPate = (S.farine||0)*pFarine/1000 + (S.sel||0)*pSel/1000 + (S.levure||0)*pLev/1000 + (S.huile||0)*pHuile/1000;
       const cTot = cPate + totGarn;
       costSection = `
-        <h3>💰 Coût matière</h3>
+        <h3>Coût matière</h3>
         <table>
           <tr><td>Pâte (${qty} ${unitLblPl})</td><td class="r">${euro(cPate)}</td></tr>
           <tr><td>Garniture (${qty} ${unitLblPl})</td><td class="r">${euro(totGarn)}</td></tr>
@@ -7753,10 +7760,10 @@ function buildPrintableRecipe(r){
     const flW   = toNum($('pzf-w-1')?.value, 320);
     const flLabel = $('pzf-preset-1')?.selectedOptions?.[0]?.text || 'Personnalisée';
     protoSection = `
-      <h3>⏱️ Protocole de fermentation</h3>
+      <h3>Protocole de fermentation</h3>
       <ul>
         <li><b>Farine :</b> ${flLabel} (W ${flW})</li>
-        <li><b>Pré-ferment :</b> ${$('pizza-surbiga')?.checked ? '🧱 Biga Giorilli' : ($('pizza-surpool')?.checked ? '💧 Poolish' : 'Direct (aucun)')}</li>
+        <li><b>Pré-ferment :</b> ${$('pizza-surbiga')?.checked ? 'Biga Giorilli' : ($('pizza-surpool')?.checked ? 'Poolish' : 'Direct (aucun)')}</li>
         <li><b>Heures TA :</b> ${hTA} h</li>
         ${isLong?`<li><b>Heures froid :</b> ${hCold} h à ${tCold}°C</li>`:'<li><b>Type :</b> Direct (pas de froid)</li>'}
         <li><b>Hydratation :</b> ${$('pizza-hydrat')?.value}%</li>
@@ -7788,7 +7795,7 @@ function buildPrintableRecipe(r){
     const hCuiteLo = hCru * 1.15;
     const hCuiteHi = hCru * 1.25;
     protoSection = `
-      <h3>🥯 Protocole focaccia</h3>
+      <h3>Protocole focaccia</h3>
       <ul>
         <li><b>Farine :</b> ${flLabel} (W ${flW})</li>
         <li><b>Hydratation :</b> ${hydrat}%</li>
@@ -7846,7 +7853,7 @@ function buildPrintableRecipe(r){
 </style>
 </head>
 <body>
-<h1>${cfg.icon||'🍞'} ${title}</h1>
+<h1>${title}</h1>
 <div class="meta">${cfg.label||r.mode} · Fiche du ${dt}</div>
 
 <div class="cols">
@@ -7880,7 +7887,7 @@ async function saveRec(){
   await renderQuickSelector();
 }
 
-function newRec(){ RID=null; if($('rec-name'))$('rec-name').value=''; toast('✨ Nouvelle recette'); }
+function newRec(){ RID=null; if($('rec-name'))$('rec-name').value=''; toast('Nouvelle recette'); }
 
 async function renderRecList(){
   const all=await dbAll();
@@ -7918,14 +7925,14 @@ async function renderRecList(){
         <div class="rec-title">${r.title||'Recette sans nom'}</div>
         <div class="rec-meta">
           ${isDefault?'<span class="rec-default-badge">⭐ DÉFAUT</span>':''}
-          <span class="rec-fam-badge">${cfg.icon||'🍞'} ${cfg.label||r.mode}</span>
+          <span class="rec-fam-badge">${cfg.label||r.mode}</span>
           ${dt}
         </div>
         <div class="btn-row" style="margin-top:8px;">
-          <button class="btn btn-s btn-sm" onclick="loadR('${r.id}')">📂 Charger</button>
-          <button class="btn btn-s btn-sm" onclick="exportRecPDF('${r.id}')">🖨️ PDF</button>
-          <button class="btn btn-s btn-sm" onclick="exportRecJSON('${r.id}')">📤 JSON</button>
-          <button class="btn btn-d btn-sm" onclick="delR('${r.id}')">🗑</button>
+          <button class="btn btn-s btn-sm" onclick="loadR('${r.id}')">Charger</button>
+          <button class="btn btn-s btn-sm" onclick="exportRecPDF('${r.id}')">PDF</button>
+          <button class="btn btn-s btn-sm" onclick="exportRecJSON('${r.id}')">JSON</button>
+          <button class="btn btn-d btn-sm" onclick="delR('${r.id}')" title="Supprimer">×</button>
         </div>
       </div>`;
   }).join('');
@@ -7952,7 +7959,7 @@ async function autoLoadDefaultForMode(mode){
     if($('rec-name')) $('rec-name').value = r.title || '';
     setFormData(r.data);
     _loadingRecipe = false;
-    toast(`⭐ Recette défaut chargée : ${r.title||'Sans nom'}`);
+    toast(`Recette défaut chargée : ${r.title||'Sans nom'}`);
   } catch(e){
     _loadingRecipe = false;
     console.warn('autoLoadDefaultForMode err:', e);
@@ -7966,7 +7973,7 @@ window.loadR=async id=>{
   _loadingRecipe = true;
   setFormData(r.data);
   _loadingRecipe = false;
-  toast('📂 Recette chargée !');
+  toast('✅ Recette chargée !');
   document.querySelector('.nav-btn[data-tab="recette"]')?.click();
 };
 
@@ -7979,7 +7986,7 @@ window.delR=async id=>{
       saveDefaultRecipes();
     }
   }
-  await dbDel(id); await renderRecList(); toast('🗑 Supprimée');
+  await dbDel(id); await renderRecList(); toast('Supprimée');
 };
 
 async function exportRecs(){
@@ -7987,14 +7994,14 @@ async function exportRecs(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(all,null,2)],{type:'application/json'}));
   a.download=`recettes-opdcj-${Date.now()}.json`; a.click();
-  toast('📤 Export terminé');
+  toast('✅ Export terminé');
 }
 
 async function importRecs(file){
   try{
     const data=JSON.parse(await file.text());
     for(const r of data)await dbPut({...r,id:r.id||Date.now().toString()});
-    toast('📂 Import terminé'); await renderRecList();
+    toast('✅ Import terminé'); await renderRecList();
   }catch{alert('Fichier invalide.');}
 }
 
@@ -8210,8 +8217,8 @@ function levainUpdateMixResume() {
 
   resume.innerHTML = `<div style="margin-bottom:6px;">${parts.join(' · ')}</div>`
     + `<div style="font-size:11px;border-top:1px solid var(--border);padding-top:5px;margin-top:2px;display:flex;gap:12px;">`
-    + `<span>💧 Eau totale J1 : <strong style="color:var(--prim);">${eauTotale}g</strong> <span style="color:var(--muted);">(H${avgHydro}%)</span></span>`
-    + `<span>🌾 Farine totale : <strong style="color:var(--prim);">${farineTotal}g</strong></span>`
+    + `<span>Eau J1 : <strong style="color:var(--prim);">${eauTotale}g</strong> <span style="color:var(--muted);">(H${avgHydro}%)</span></span>`
+    + `<span>Farine totale : <strong style="color:var(--prim);">${farineTotal}g</strong></span>`
     + `</div>`;
 
   if (noteEl) {
@@ -8292,7 +8299,7 @@ function levainDemarrer() {
   L.dateDebut = document.getElementById('lv-date-debut').value || new Date().toISOString().slice(0,10);
   levainSave();
   const btn = document.getElementById('lv-btn-demarrer');
-  if (btn) { btn.textContent = '✅ Levain démarré !'; setTimeout(()=>{ btn.textContent = '🚀 Démarrer ce levain'; }, 2000); }
+  if (btn) { btn.textContent = '✅ Levain démarré !'; setTimeout(()=>{ btn.textContent = 'Démarrer ce levain'; }, 2000); }
 }
 
 function levainReset() {
@@ -8312,7 +8319,7 @@ function levainEffacer() {
   // Feedback
   const toast = document.getElementById('toast');
   if (toast) {
-    toast.textContent = '🗑 Données levain effacées';
+    toast.textContent = 'Données levain effacées';
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2500);
   }
@@ -8413,7 +8420,7 @@ const LEVAIN_JOURS = [
     protocole:{
       base:'Dernier jour du protocole de création. Ensemencement réduit à 10% pour maximaliser la force. Effectuer le test de maturité complet après le pic.',
     },
-    indicateurs:['✅ Flotte dans l\'eau', '✅ A doublé en 4–8h', '✅ Surface bombée au pic', '✅ Odeur vineuse agréable (pas agressive)', '✅ Levain dur : chaud au toucher, rebond après pression', '🎉 Tous critères = levain actif — passer en mode entretien'],
+    indicateurs:['✅ Flotte dans l\'eau', '✅ A doublé en 4–8h', '✅ Surface bombée au pic', '✅ Odeur vineuse agréable (pas agressive)', '✅ Levain dur : chaud au toucher, rebond après pression', '✅ Tous critères = levain actif — passer en mode entretien'],
   },
 ];
 
@@ -8566,7 +8573,7 @@ function levainRenderJournal() {
     const farineRows = secDetails.length > 1
       ? `<div style="margin:6px 0;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;">
           <div style="display:grid;grid-template-columns:1fr 44px 56px;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);padding:4px 8px;background:var(--bg2,var(--bg));border-bottom:1px solid var(--border);">
-            <span>🌾 Farine</span><span style="text-align:right;">Part</span><span style="text-align:right;">Poids</span>
+            <span>Farine</span><span style="text-align:right;">Part</span><span style="text-align:right;">Poids</span>
           </div>
           ${secDetails.map(d =>
             `<div style="display:grid;grid-template-columns:1fr 44px 56px;font-size:12px;padding:5px 8px;border-bottom:1px solid var(--border);align-items:center;">
@@ -8606,7 +8613,7 @@ function levainRenderJournal() {
               <div style="font-size:18px;font-weight:800;color:var(--prim);">${pesees.farine}g</div>
             </div>
             <div style="text-align:center;padding:8px;background:var(--bg2,var(--bg));border-radius:var(--r-sm);border:1px solid var(--border);">
-              <div style="font-size:10px;color:var(--muted);font-weight:700;">💧 EAU TOTALE</div>
+              <div style="font-size:10px;color:var(--muted);font-weight:700;">EAU TOTALE</div>
               <div style="font-size:18px;font-weight:800;color:var(--prim);">${pesees.eauTotale}g</div>
               ${eauNote}
             </div>
@@ -8628,7 +8635,7 @@ function levainRenderJournal() {
               <div style="font-size:18px;font-weight:800;color:var(--prim);">${pesees.farine}g</div>
             </div>
             <div style="text-align:center;padding:8px;background:var(--bg2,var(--bg));border-radius:var(--r-sm);border:1px solid var(--border);">
-              <div style="font-size:10px;color:var(--muted);font-weight:700;">💧 EAU TOTALE</div>
+              <div style="font-size:10px;color:var(--muted);font-weight:700;">EAU TOTALE</div>
               <div style="font-size:18px;font-weight:800;color:var(--prim);">${pesees.eauTotale}g</div>
               ${eauNote}
             </div>
@@ -8650,7 +8657,7 @@ function levainRenderJournal() {
           <div style="font-size:13px;font-weight:800;">${def.titre}</div>
           <div style="font-size:11px;color:var(--muted);">${dateStr}${dateStr?' · ':''}${def.note}</div>
         </div>
-        ${obs ? '<span style="margin-left:auto;font-size:16px;" title="Observation notée">✏️</span>' : ''}
+        ${obs ? '<span style="margin-left:auto;font-size:11px;color:var(--muted);" title="Observation notée">obs.</span>' : ''}
       </div>
       <div class="cb lv-jour-body" style="${idx > 0 ? 'display:none;' : ''}">
         <div style="font-size:12px;color:var(--txt);line-height:1.6;margin-bottom:8px;">${proto}</div>
@@ -8798,11 +8805,11 @@ function levainCalcRafraichi() {
         <div style="font-size:10px;color:var(--muted);">${Math.round(ratio*100)}%${tempNote}</div>
       </div>
       <div style="text-align:center;padding:10px 6px;border-right:1px solid var(--border);">
-        <div style="font-size:10px;color:var(--muted);font-weight:700;">🌾 FARINE</div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700;">FARINE</div>
         <div style="font-size:22px;font-weight:800;color:var(--prim);">${farine}g</div>
       </div>
       <div style="text-align:center;padding:10px 6px;border-right:1px solid var(--border);">
-        <div style="font-size:10px;color:var(--muted);font-weight:700;">💧 EAU</div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700;">EAU</div>
         <div style="font-size:22px;font-weight:800;color:var(--prim);">${eau}g</div>
       </div>
       <div style="text-align:center;padding:10px 6px;">
@@ -8960,7 +8967,7 @@ function levainIcsDownload(filename, events) {
   wrap.style.cssText = 'margin-top:10px;padding:10px 12px;background:var(--bg2,var(--bg));border:1px solid var(--border);border-radius:var(--r-sm);text-align:center;';
   wrap.innerHTML = `<a href="${url}" download="${filename}"
     style="font-weight:800;color:var(--prim);font-size:14px;text-decoration:none;">
-    ⬇️ Télécharger ${filename}
+    Télécharger ${filename}
   </a><div style="font-size:10px;color:var(--muted);margin-top:4px;">Cliquer sur le lien pour télécharger le fichier calendrier</div>`;
 
   // Insérer après le bouton qui a déclenché l'export
@@ -9115,9 +9122,9 @@ function levainIcsFourneePreview() {
     + ' ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 
   preview.innerHTML = `
-    <div style="margin-bottom:4px;">🌙 <strong>Rafraîchi J-1 soir</strong> : ${fmt(j1s)} <span style="color:var(--muted);font-size:10px;">(${ratio12h.label})</span></div>
-    <div style="margin-bottom:4px;">🌅 <strong>Rafraîchi J-0 matin</strong> : ${fmt(j0)} <span style="color:var(--muted);font-size:10px;">(${ratio5h.label})</span></div>
-    <div>🥣 <strong>Pétrissage</strong> : ${fmt(petri)}</div>`;
+    <div style="margin-bottom:4px;"><strong>Rafraîchi J-1 soir</strong> : ${fmt(j1s)} <span style="color:var(--muted);font-size:10px;">(${ratio12h.label})</span></div>
+    <div style="margin-bottom:4px;"><strong>Rafraîchi J-0 matin</strong> : ${fmt(j0)} <span style="color:var(--muted);font-size:10px;">(${ratio5h.label})</span></div>
+    <div><strong>Pétrissage</strong> : ${fmt(petri)}</div>`;
 }
 
 function levainIcsExportFournee() {
@@ -9240,7 +9247,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     // Icône
     const iconOrig = document.getElementById('rec-quick-icon');
     const iconFixed = document.getElementById('rec-quick-icon-fixed');
-    if(iconOrig && iconFixed) iconFixed.textContent = iconOrig.textContent;
+    if(iconOrig && iconFixed) iconFixed.innerHTML = iconOrig.innerHTML;
 
     // Nom recette
     const nameOrig = document.getElementById('rec-quick-name');
