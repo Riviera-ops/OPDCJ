@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.17</title>
+<title>Ô Pain De Ce Jour V21.18</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -353,16 +353,19 @@ body.dark .nav-btn.active{background:rgba(255,255,255,.12);color:var(--prim-dk);
 
 /* Bouton toggle thème */
 #theme-btn{
-  position:absolute;top:15px;right:14px;z-index:20;
-  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);
-  border-radius:50%;width:28px;height:28px;font-size:13px;
+  position:absolute;top:14px;right:14px;z-index:20;
+  background:transparent;border:none;
+  border-radius:50%;width:24px;height:24px;padding:0;
   cursor:pointer;transition:background .2s;display:flex;
-  align-items:center;justify-content:center;
-  outline:none;box-shadow:none;-webkit-tap-highlight-color:transparent;
+  align-items:center;justify-content:center;color:rgba(255,255,255,.85);
+  outline:none !important;box-shadow:none !important;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-appearance:none;appearance:none;
 }
-#theme-btn:hover{background:rgba(255,255,255,.25);}
-#theme-btn:focus,#theme-btn:focus-visible,#theme-btn:active{outline:none;box-shadow:none;}
-#theme-btn .ic{width:14px;height:14px;}
+#theme-btn:hover,#theme-btn:focus,#theme-btn:focus-visible,#theme-btn:active{
+  outline:none !important;box-shadow:none !important;background:transparent;
+}
+#theme-btn .ic{width:16px;height:16px;}
 
 /* Flash recalcul — animation sur les valeurs totales */
 @keyframes flashUpdate{
@@ -3482,7 +3485,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.17';
+const APP_VERSION = 'V21.18';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
