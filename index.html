@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.20</title>
+<title>Ô Pain De Ce Jour V21.21</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -11,6 +11,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ô Pain">
 <meta name="theme-color" content="#C4633F">
+<link rel="apple-touch-icon" href="/OPDCJ/icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/OPDCJ/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/OPDCJ/icon-512.png">
 <link rel="manifest" href="/OPDCJ/manifest.json">
 
 <style>
@@ -3484,7 +3487,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.20';
+const APP_VERSION = 'V21.21';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
