@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.27</title>
+<title>Ô Pain De Ce Jour V21.28</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1688,8 +1688,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <datalist id="dl-levain-pct"><option value="5"><option value="10"><option value="15"><option value="20"><option value="25"><option value="30"><option value="40"><option value="50"></datalist>
       <datalist id="dl-levain-hydrat"><option value="50"><option value="75"><option value="100"><option value="125"><option value="150"><option value="200"></datalist>
 
+      <!-- V21.28 — Bandeau récap pré-ferments combinés (PF + Levain) + alerte somme > 100 % -->
+      <div id="ferm-out" class="alert hidden"></div>
+
       <div class="hint mt8" style="font-size:11px;">
-        ⓘ V21.27 — Stratégie principale (Directe / Poolish / Biga) en exclusion mutuelle. Compléments « + Pâte fermentée » et « + Levain » indépendants, cumulables avec n'importe quelle stratégie. Le moteur de calcul prendra en compte la combinaison à partir de V21.28.
+        ⓘ V21.28 — Stratégie principale (Directe / Poolish / Biga) en exclusion mutuelle. Compléments « + PF » et « + Levain » cumulables. Le moteur calcule la farine/eau disponibles pour Pool/Biga après extraction des compléments. PF hérite de l'hydratation recette ; levure PF/Levain considérée nulle (épuisée / cultures sauvages).
       </div>
 
       <!-- Persistance JSON via getFormData/setFormData -->
@@ -3974,7 +3977,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.27';
+const APP_VERSION = 'V21.28';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5836,14 +5839,71 @@ function computeCore(){
   if(pcEl) pcEl.classList.toggle('hidden',!surPool);
 }
 
+// ═════════════════════════════════════════════
+// V21.28 — Pré-ferments complémentaires (PF + Levain)
+// Cumulables avec la stratégie principale (Directe/Poolish/Biga).
+// Conservation : Y_PF = Y_levain = 0 (épuisée / cultures sauvages)
+// ═════════════════════════════════════════════
+function computePF(){
+  const st = (typeof fermentGetState === 'function') ? fermentGetState() : null;
+  const active = !!(st && st.addPF);
+  if(!active){
+    Object.assign(S, {pfF:0, pfW:0, pfS:0, pfY:0});
+    return;
+  }
+  const pct = (st.pf && st.pf.pct) || 20;
+  const hyd = S.farine > 0 ? (S.eau / S.farine) : 0;
+  const pSel = S.farine > 0 ? (S.sel / S.farine) : 0;
+  const pfF = S.farine * pct / 100;
+  const pfW = pfF * hyd;          // PF hérite de l'hydratation recette
+  const pfS = pfF * pSel;          // PF salée comme la pâte mère
+  const pfY = 0;                   // Levure considérée épuisée (choix utilisateur)
+  Object.assign(S, {pfF, pfW, pfS, pfY});
+}
+
+function computeLevain(){
+  const st = (typeof fermentGetState === 'function') ? fermentGetState() : null;
+  const active = !!(st && st.addLevain);
+  if(!active){
+    Object.assign(S, {levainF:0, levainW:0, levainS:0, levainY:0});
+    return;
+  }
+  const pct    = (st.levain && st.levain.pct)    || 20;
+  const hydrat = (st.levain && st.levain.hydrat) || 100;
+  const levainF = S.farine * pct / 100;
+  const levainW = levainF * hydrat / 100;
+  Object.assign(S, {levainF, levainW, levainS:0, levainY:0});
+}
+
+// Calcule la farine/eau "disponibles" pour Poolish/Biga après extraction
+// des pré-ferments complémentaires. Pose une alerte si la somme dépasse 100 %.
+function computeDispo(){
+  const consumedF = (S.pfF || 0) + (S.levainF || 0);
+  const consumedW = (S.pfW || 0) + (S.levainW || 0);
+  S.fDispo = S.farine - consumedF;
+  S.wDispo = S.eau    - consumedW;
+  // Drapeau pour renderFermOut
+  S.preFermOverflow = (consumedF > S.farine + 0.5) || (consumedW > S.eau + 0.5);
+}
+
 // ─────────────────────────────────────────────
 // COMPUTE POOLISH — calcule la répartition, stocke dans S
 // ─────────────────────────────────────────────
 function computePoolish(){
+  // V21.28 — fDispo/wDispo = farine/eau restantes après extraction PF + Levain.
+  // En l'absence de boosters, fDispo === S.farine → comportement identique à V21.27.
+  const fDispo = (S.fDispo !== undefined) ? S.fDispo : S.farine;
+  const wDispo = (S.wDispo !== undefined) ? S.wDispo : S.eau;
+  const pfF = S.pfF || 0, pfW = S.pfW || 0, pfS = S.pfS || 0;
+  const levF = S.levainF || 0, levW = S.levainW || 0;
+
   if(!S.surPool){
-    // Réinitialiser split
+    // Réinitialiser split — la pétrie reçoit tout sauf PF + Levain
     Object.assign(S,{poolF:0,poolW:0,poolY:0,poolS:0,
-      restF:S.farine,restW:S.eau,restY:S.levure,restS:S.sel});
+      restF:S.farine - pfF - levF,
+      restW:S.eau    - pfW - levW,
+      restY:S.levure,
+      restS:S.sel    - pfS});
     return;
   }
 
@@ -5853,8 +5913,8 @@ function computePoolish(){
   const typeLev  = $('pool-type')?.value??'fraiche';
   const microSel = toNum($('pool-microsel')?.value,0)/100;
 
-  // Poolish 1:1 farine/eau
-  const poolW=S.eau*pctPool;
+  // V21.28 — Poolish 1:1 sur l'eau DISPONIBLE (après PF + Levain)
+  const poolW=wDispo*pctPool;
   const poolF=poolW;
 
   // Levure poolish — Technomitron: dose en g/kg de farine poolish à 22°C
@@ -5869,11 +5929,11 @@ function computePoolish(){
   const poolY=poolF*finalGperKg/1000;  // poolF en g, finalGperKg en g/kg → résultat en g
   const poolS=poolF*microSel;
 
-  // Pétrisée = reste
-  const restF=S.farine-poolF;
-  const restW=S.eau-poolW;
-  const restY=Math.max(0,S.levure-poolY);
-  const restS=S.sel-poolS;
+  // V21.28 — Pétrisée = total − pool − PF − Levain (Y inchangé pour PF/Lev car Y=0)
+  const restF=S.farine - poolF - pfF - levF;
+  const restW=S.eau    - poolW - pfW - levW;
+  const restY=Math.max(0, S.levure - poolY);
+  const restS=S.sel    - poolS - pfS;
 
   Object.assign(S,{poolF,poolW,poolY,poolS,restF,restW,restY,restS,
     pctPool,dureePool:duree,tempPool:tempAmb,baseGperKg,finalGperKg});
@@ -5913,12 +5973,19 @@ function computePoolish(){
 // Symétrique à computePoolish() — appelle computePizzaBigaSplit() de F1
 // ─────────────────────────────────────────────
 function computePizzaBiga(){
+  // V21.28 — Pré-ferments complémentaires
+  const pfF = S.pfF || 0, pfW = S.pfW || 0, pfS = S.pfS || 0;
+  const levF = S.levainF || 0, levW = S.levainW || 0;
+
   if(!S.surBiga){
-    // Pas de biga : reset des champs biga dans S, laisser les valeurs pool intactes
+    // Pas de biga : la pétrie reçoit tout sauf PF + Levain
     Object.assign(S, {
       bigaF:0, bigaW:0, bigaS:0, bigaY:0,
       bigaBaseGperKg:0, bigaFinalGperKg:0,
-      bigaResteF:S.farine, bigaResteW:S.eau, bigaResteS:S.sel, bigaResteY:S.levure,
+      bigaResteF:S.farine - pfF - levF,
+      bigaResteW:S.eau    - pfW - levW,
+      bigaResteS:S.sel    - pfS,
+      bigaResteY:S.levure,
     });
     // Masquer le bandeau de sortie biga
     const out = $('pz-biga-out');
@@ -5933,10 +6000,15 @@ function computePizzaBiga(){
   const typeLev    = $('pz-biga-type')?.value || 'fraiche';
   const appointPct = toNum($('pz-biga-appoint')?.value, 0.1);
 
+  // V21.28 — Biga calculée sur F/W DISPONIBLES (après PF + Levain)
+  const fDispo = (S.fDispo !== undefined) ? S.fDispo : S.farine;
+  const wDispo = (S.wDispo !== undefined) ? S.wDispo : S.eau;
+  const sDispo = S.sel - pfS;     // sel disponible (PF salée comme la pâte mère)
+
   const split = computePizzaBigaSplit({
-    totalF: S.farine,
-    totalW: S.eau,
-    totalS: S.sel,
+    totalF: fDispo,
+    totalW: wDispo,
+    totalS: sDispo,
     totalY: S.levure,
     propBiga, hydratBiga, dureeBiga, tempBiga,
     typeLevBiga: typeLev,
@@ -5944,7 +6016,8 @@ function computePizzaBiga(){
     appointPct,
   });
 
-  // Stocker dans S (mêmes noms que poolish pour cohérence)
+  // Stocker dans S (mêmes noms que poolish pour cohérence).
+  // ResteF/W/S sortent du split sur le DISPONIBLE → déjà nets de PF+Levain.
   Object.assign(S, {
     bigaF:    split.bigaF,
     bigaW:    split.bigaW,
@@ -8314,11 +8387,16 @@ function computeAll(){
     updatePizzaFlowUI();     // V16-LotB : visibilité Long/Poolish, tags
     computePizzaPreCore();   // V16 : auto-suggest levure pizza AVANT computeCore
     computeCore();           // totaux dans S (sans poolish)
+    // V21.28 — Pré-ferments complémentaires AVANT pool/biga (fDispo/wDispo)
+    computePF();
+    computeLevain();
+    computeDispo();
     computePoolish();        // split poolish dans S (si surPool)
     computePizzaBiga();      // V17-LotF3 : split biga dans S (si surBiga)
     computePizzaPostCore();  // V16 : flour mix + protocole + alertes pizza
     readExtras();            // V17.4 : ingrédients spéciaux → S.extras
     renderIngredients();     // affichage basé sur S complet
+    renderFermOut();         // V21.28 : résumé pré-ferments combinés + alertes
     computeCosts();
     computeWaterTemp();
     computeTimeline();
@@ -8327,6 +8405,48 @@ function computeAll(){
     computeFocacciaHeightHint(); // V17-H4c : hauteur calculée selon plaque (focaccia)
     updatePhaseDurHints();       // I1 : suggestions durées pointage/apprêt
   }catch(e){console.warn('computeAll err:',e);}
+}
+
+// V21.28 — Affichage du bandeau récap pré-ferments cumulés sous le Pilote
+function renderFermOut(){
+  const out = $('ferm-out');
+  if(!out) return;
+  const pfActive  = (S.pfF || 0) > 0;
+  const levActive = (S.levainF || 0) > 0;
+  const overflow  = !!S.preFermOverflow;
+
+  if(!pfActive && !levActive && !overflow){
+    out.className = 'alert hidden';
+    out.innerHTML = '';
+    return;
+  }
+
+  const consumedF = (S.pfF || 0) + (S.levainF || 0);
+  const consumedW = (S.pfW || 0) + (S.levainW || 0);
+  const pctF = S.farine > 0 ? Math.round(consumedF / S.farine * 100) : 0;
+  const pctW = S.eau    > 0 ? Math.round(consumedW / S.eau    * 100) : 0;
+
+  const rows = [];
+  if(pfActive){
+    rows.push(`<div><b>Pâte fermentée :</b> ${fmtG(S.pfF)} farine · ${fmtG(S.pfW)} eau · ${fmtG(S.pfS, 2)} sel <span style="color:var(--muted);font-size:10px;">(levure considérée épuisée)</span></div>`);
+  }
+  if(levActive){
+    const st = (typeof fermentGetState === 'function') ? fermentGetState() : {};
+    const hyd = (st.levain && st.levain.hydrat) || 100;
+    rows.push(`<div><b>Levain :</b> ${fmtG(S.levainF)} farine · ${fmtG(S.levainW)} eau <span style="color:var(--muted);font-size:10px;">(hyd. ${hyd} % · cultures sauvages)</span></div>`);
+  }
+  rows.push(`<div style="color:var(--muted);font-size:10px;margin-top:2px;">→ Pré-ferments cumulés : ${pctF} % de la farine, ${pctW} % de l'eau. Le reste va dans la pétrissée${S.surPool ? ' (avec poolish)' : (S.surBiga ? ' (avec biga)' : ' (directe)')}.</div>`);
+
+  if(overflow){
+    out.className = 'alert a-warn mt8';
+    out.innerHTML = `<div style="font-weight:700;color:#8C3A12;">⚠ Somme des pré-ferments &gt; 100 % de la farine ou de l'eau.</div>
+      <div style="font-size:11px;margin-top:4px;">Réduisez les pourcentages PF/Levain ou la stratégie principale.</div>
+      ${rows.join('')}`;
+  } else {
+    out.className = 'alert a-info mt8';
+    out.innerHTML = `<div style="display:flex;flex-direction:column;gap:4px;font-size:12px;">${rows.join('')}</div>`;
+  }
+  out.classList.remove('hidden');
 }
 
 // ─────────────────────────────────────────────
