@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.26</title>
+<title>Ô Pain De Ce Jour V21.27</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -631,6 +631,15 @@ body.dark .fcm-readout.fcm-warn{background:#5A2410;color:#FFD0A8;}
 body.mode-pain .ferm-strategy-seg [data-val="biga"],
 body.mode-brioche .ferm-strategy-seg [data-val="biga"],
 body.mode-petit-pain .ferm-strategy-seg [data-val="biga"]{display:none !important;}
+
+/* V21.27 — Boosters (Pâte fermentée + Levain), checkboxes combinables avec la stratégie principale */
+.ferm-add-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;}
+.ferm-add-chk{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--txt);
+  padding:6px 12px;border-radius:10px;background:var(--surface-2);border:1px solid transparent;transition:border-color .15s,background .15s;}
+.ferm-add-chk:hover{border-color:var(--prim);}
+.ferm-add-chk input[type="checkbox"]{accent-color:var(--prim);cursor:pointer;}
+.ferm-add-chk:has(input:checked){background:var(--acc-bg);border-color:var(--prim);color:var(--prim-dk);font-weight:600;}
+body.dark .ferm-add-chk:has(input:checked){color:var(--prim);}
 
 /* ── V21.22 — Pilote de fermentation (Module 4.2) ── */
 .ferm-pilot-card .ferm-substrate{
@@ -1519,14 +1528,19 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <span class="tag" id="ferm-tag">Directe · Tout TA</span>
     </div>
     <div class="cb">
-      <!-- Stratégie XOR -->
-      <div class="slbl" style="margin-top:0;">Stratégie</div>
+      <!-- V21.27 — Stratégie principale XOR (directe/poolish/biga) -->
+      <div class="slbl" style="margin-top:0;">Stratégie principale</div>
       <div class="radio-seg ferm-strategy-seg" id="ferm-strategy-seg" style="flex-wrap:wrap;">
-        <label class="rseg-btn active" data-val="directe"><input type="radio" name="ferm-strategy" value="directe" checked>Directe</label>
-        <label class="rseg-btn" data-val="poolish"><input type="radio" name="ferm-strategy" value="poolish">Poolish</label>
-        <label class="rseg-btn" data-val="biga"><input type="radio" name="ferm-strategy" value="biga">Biga</label>
-        <label class="rseg-btn" data-val="pf"><input type="radio" name="ferm-strategy" value="pf">Pâte ferm.</label>
-        <label class="rseg-btn" data-val="levain"><input type="radio" name="ferm-strategy" value="levain">Levain</label>
+        <label class="rseg-btn active" data-val="directe"><input type="radio" name="ferm-main" value="directe" checked>Directe</label>
+        <label class="rseg-btn" data-val="poolish"><input type="radio" name="ferm-main" value="poolish">Poolish</label>
+        <label class="rseg-btn" data-val="biga"><input type="radio" name="ferm-main" value="biga">Biga</label>
+      </div>
+
+      <!-- V21.27 — Boosters indépendants (combinables avec la stratégie principale) -->
+      <div class="slbl mt8">Compléments</div>
+      <div class="ferm-add-row">
+        <label class="ferm-add-chk"><input type="checkbox" id="ferm-add-pf">+ Pâte fermentée</label>
+        <label class="ferm-add-chk"><input type="checkbox" id="ferm-add-levain">+ Levain</label>
       </div>
 
       <!-- Profil maturation -->
@@ -1553,10 +1567,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         </div>
       </div>
 
-      <!-- V21.25 : cards riches intégrées dans le Pilote (sous-paramètres détaillés)
-           Une seule visible à la fois selon state.strategy. Les inputs numériques
-           utilisent <datalist> pour proposer des valeurs courantes tout en gardant
-           la saisie libre. -->
+      <!-- V21.27 : cards riches intégrées dans le Pilote (sous-paramètres détaillés)
+           Pool/Biga visible selon state.main (XOR), PF/Levain selon state.addPF/addLevain.
+           Plusieurs cards peuvent cohabiter (Poolish + PF + Levain par exemple).
+           Les inputs numériques utilisent <datalist> pour proposer des valeurs
+           courantes tout en gardant la saisie libre. -->
 
       <!-- Configuration POOLISH -->
       <div id="pool-config" class="pool-config hidden">
@@ -1674,7 +1689,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <datalist id="dl-levain-hydrat"><option value="50"><option value="75"><option value="100"><option value="125"><option value="150"><option value="200"></datalist>
 
       <div class="hint mt8" style="font-size:11px;">
-        ⓘ Module 4.2 V21.25 complet. La carte détaillée s'affiche selon la stratégie sélectionnée. Valeurs suggérées via menu déroulant — saisie libre toujours possible. Les anciens contrôles legacy sont conservés dans le DOM pour la rétrocompatibilité.
+        ⓘ V21.27 — Stratégie principale (Directe / Poolish / Biga) en exclusion mutuelle. Compléments « + Pâte fermentée » et « + Levain » indépendants, cumulables avec n'importe quelle stratégie. Le moteur de calcul prendra en compte la combinaison à partir de V21.28.
       </div>
 
       <!-- Persistance JSON via getFormData/setFormData -->
@@ -3202,8 +3217,11 @@ function migrateLegacyPainFlourMix(data){
 // V21.22 — PILOTE DE FERMENTATION (Module 4.2 commit 2/4)
 // État JSON unifié, UI réactive. Branchement métier en V21.23.
 // ═══════════════════════════════════════════════════════════════════
-const FERM_STRATEGIES = ['directe','poolish','biga','pf','levain'];
-const FERM_PROFILES   = ['allTA','taColdDelay','coldLong'];
+// V21.27 — Stratégie principale XOR (1 pré-ferment d'eau max) + boosters libres
+const FERM_MAIN_STRATEGIES = ['directe','poolish','biga'];
+const FERM_PROFILES        = ['allTA','taColdDelay','coldLong'];
+const FERM_MAIN_LABELS = { directe:'Directe', poolish:'Poolish', biga:'Biga' };
+// Conservée pour compatibilité affichage legacy (migration interne)
 const FERM_STRATEGY_LABELS = {
   directe:'Directe', poolish:'Poolish', biga:'Biga', pf:'Pâte ferm.', levain:'Levain'
 };
@@ -3212,8 +3230,10 @@ const FERM_PROFILE_LABELS = {
 };
 
 const FERM_DEFAULT_STATE = {
-  strategy: 'directe',
-  profile:  'allTA',
+  main:      'directe',  // V21.27 — XOR (directe | poolish | biga)
+  addPF:     false,      // V21.27 — Pâte fermentée en complément
+  addLevain: false,      // V21.27 — Levain en complément
+  profile:   'allTA',
   hTA:    4,
   hCold: 24,
   tCold:  4,
@@ -3222,6 +3242,31 @@ const FERM_DEFAULT_STATE = {
   pf:      { pct:20 },
   levain:  { pct:20, hydrat:100 },
 };
+
+// V21.27 — Normalise un state (migration legacy strategy→main/addPF/addLevain + defaults manquants)
+function fermentNormalizeState(s){
+  if(!s || typeof s !== 'object') return JSON.parse(JSON.stringify(FERM_DEFAULT_STATE));
+  // Migration legacy V21.24-V21.26 : champ `strategy` → main/addPF/addLevain
+  if(s.strategy !== undefined && s.main === undefined){
+    if(s.strategy === 'pf'){ s.main = 'directe'; s.addPF = true; }
+    else if(s.strategy === 'levain'){ s.main = 'directe'; s.addLevain = true; }
+    else { s.main = s.strategy; }
+    delete s.strategy;
+  }
+  // Defaults manquants
+  if(s.main === undefined) s.main = 'directe';
+  if(s.addPF === undefined) s.addPF = false;
+  if(s.addLevain === undefined) s.addLevain = false;
+  if(s.profile === undefined) s.profile = 'allTA';
+  if(s.hTA === undefined) s.hTA = 4;
+  if(s.hCold === undefined) s.hCold = 24;
+  if(s.tCold === undefined) s.tCold = 4;
+  if(!s.poolish) s.poolish = {...FERM_DEFAULT_STATE.poolish};
+  if(!s.biga)    s.biga    = {...FERM_DEFAULT_STATE.biga};
+  if(!s.pf)      s.pf      = {...FERM_DEFAULT_STATE.pf};
+  if(!s.levain)  s.levain  = {...FERM_DEFAULT_STATE.levain};
+  return s;
+}
 
 function fermentReadState(){
   const hid = $('ferment-state');
@@ -3236,7 +3281,7 @@ function fermentWriteState(state){
 
 function fermentGetState(){
   const s = fermentReadState();
-  if(s && s.strategy) return s;
+  if(s) return fermentNormalizeState(s);
   return JSON.parse(JSON.stringify(FERM_DEFAULT_STATE));
 }
 
@@ -3244,13 +3289,19 @@ function fermentGetState(){
 function fermentRender(){
   const state = fermentGetState();
 
-  // Stratégie : segments + radios
+  // V21.27 — Stratégie principale (radios XOR : directe/poolish/biga)
   document.querySelectorAll('#ferm-strategy-seg .rseg-btn').forEach(b => {
-    const active = b.dataset.val === state.strategy;
+    const active = b.dataset.val === state.main;
     b.classList.toggle('active', active);
     const inp = b.querySelector('input');
     if(inp) inp.checked = active;
   });
+  // V21.27 — Boosters indépendants (checkboxes)
+  const cbPF = $('ferm-add-pf');
+  if(cbPF) cbPF.checked = !!state.addPF;
+  const cbLev = $('ferm-add-levain');
+  if(cbLev) cbLev.checked = !!state.addLevain;
+
   // Profil : segments + radios
   document.querySelectorAll('#ferm-profile-seg .rseg-btn').forEach(b => {
     const active = b.dataset.val === state.profile;
@@ -3282,11 +3333,16 @@ function fermentRender(){
     if(tColdWrap) tColdWrap.style.display = '';
   }
 
-  // V21.25 — Cards riches sous-paramètres au-dessus d'Ingrédients spéciaux
-  const cardIdByStrategy = {poolish:'pool-config', biga:'biga-config', pf:'pf-config', levain:'levain-config'};
-  Object.entries(cardIdByStrategy).forEach(([s, id]) => {
+  // V21.27 — Cards riches : combinables. Pool/Biga selon main, PF/Levain selon add*
+  const cardVisibility = {
+    'pool-config'  : state.main === 'poolish',
+    'biga-config'  : state.main === 'biga',
+    'pf-config'    : !!state.addPF,
+    'levain-config': !!state.addLevain,
+  };
+  Object.entries(cardVisibility).forEach(([id, visible]) => {
     const card = $(id);
-    if(card) card.classList.toggle('hidden', state.strategy !== s);
+    if(card) card.classList.toggle('hidden', !visible);
   });
 
   // Sous-paramètres : valeurs
@@ -3301,10 +3357,13 @@ function fermentRender(){
   if($('ferm-levain-pct'))   $('ferm-levain-pct').value   = state.levain.pct;
   if($('ferm-levain-hydrat'))$('ferm-levain-hydrat').value= state.levain.hydrat;
 
-  // Tag header
+  // V21.27 — Tag header : main + boosters
   const tag = $('ferm-tag');
   if(tag){
-    tag.textContent = `${FERM_STRATEGY_LABELS[state.strategy]} · ${FERM_PROFILE_LABELS[state.profile]}`;
+    const parts = [FERM_MAIN_LABELS[state.main] || 'Directe'];
+    if(state.addPF) parts.push('PF');
+    if(state.addLevain) parts.push('Levain');
+    tag.textContent = `${parts.join(' + ')} · ${FERM_PROFILE_LABELS[state.profile]}`;
   }
 }
 
@@ -3331,10 +3390,11 @@ function fermentUpdateField(path, value){
 function fermentSyncToLegacy(){
   const state = fermentGetState();
   if(!state) return;
-  const isPoolish = state.strategy === 'poolish';
-  const isBiga    = state.strategy === 'biga';
-  const isPF     = state.strategy === 'pf';
-  const isLevain = state.strategy === 'levain';
+  // V21.27 — main XOR (poolish/biga) + addPF/addLevain libres
+  const isPoolish = state.main === 'poolish';
+  const isBiga    = state.main === 'biga';
+  const isPF     = !!state.addPF;
+  const isLevain = !!state.addLevain;
 
   // Toggles surpool par famille
   ['pain','foc','pp','bri','pizza'].forEach(pfx => {
@@ -3399,11 +3459,19 @@ function fermentMigrateFromLegacy(data){
   if(data['ferment-state']) return null;
   const state = JSON.parse(JSON.stringify(FERM_DEFAULT_STATE));
 
-  // Strategy : priorité biga > poolish > directe
-  if(data['pizza-surbiga'] === true || data['pizza-surbiga'] === 'true') state.strategy = 'biga';
+  // V21.27 — main XOR (biga > poolish > directe). PF/Levain via fc-pf/fc-ll/fc-lf legacy.
+  if(data['pizza-surbiga'] === true || data['pizza-surbiga'] === 'true') state.main = 'biga';
   else if(['pizza-surpool','pain-surpool','foc-surpool','pp-surpool','bri-surpool']
-          .some(k => data[k] === true || data[k] === 'true')) state.strategy = 'poolish';
-  else state.strategy = 'directe';
+          .some(k => data[k] === true || data[k] === 'true')) state.main = 'poolish';
+  else state.main = 'directe';
+  // Boosters depuis les anciennes cases legacy de la section "Pré-fermentation" pain
+  state.addPF     = (data['fc-pf'] === true || data['fc-pf'] === 'true');
+  state.addLevain = (data['fc-ll'] === true || data['fc-ll'] === 'true' ||
+                     data['fc-lf'] === true || data['fc-lf'] === 'true');
+  if(data['fc-lf'] === true || data['fc-lf'] === 'true') state.levain.hydrat = 50; // levain ferme
+  if(data['fp-pf']) state.pf.pct      = parseFloat(data['fp-pf']) || 20;
+  if(data['fp-ll']) state.levain.pct  = parseFloat(data['fp-ll']) || 20;
+  else if(data['fp-lf']) state.levain.pct = parseFloat(data['fp-lf']) || 20;
 
   // Profil : pz-long → taColdDelay
   if(data['pz-long'] === true || data['pz-long'] === 'true') state.profile = 'taColdDelay';
@@ -3430,12 +3498,17 @@ function fermentMigrateFromLegacy(data){
 function initFermentPilotUI(){
   // V21.24 — Au démarrage : pousse l'état Pilote (défaut ou recette) vers legacy
   if(typeof fermentSyncToLegacy === 'function') fermentSyncToLegacy();
-  // Stratégie radios → state
+  // V21.27 — Stratégie principale radios → state.main
   document.querySelectorAll('#ferm-strategy-seg .rseg-btn').forEach(b => {
     b.addEventListener('click', () => {
-      fermentUpdateField('strategy', b.dataset.val);
+      fermentUpdateField('main', b.dataset.val);
     });
   });
+  // V21.27 — Boosters checkboxes → state.addPF / state.addLevain
+  const cbPF = $('ferm-add-pf');
+  if(cbPF) cbPF.addEventListener('change', () => fermentUpdateField('addPF', cbPF.checked));
+  const cbLev = $('ferm-add-levain');
+  if(cbLev) cbLev.addEventListener('change', () => fermentUpdateField('addLevain', cbLev.checked));
   // Profil radios → state
   document.querySelectorAll('#ferm-profile-seg .rseg-btn').forEach(b => {
     b.addEventListener('click', () => {
@@ -3901,7 +3974,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.26';
+const APP_VERSION = 'V21.27';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5650,12 +5723,12 @@ function updateToppingsCardTitle(){
 // ─────────────────────────────────────────────
 function switchMode(mode){
   MODE=mode;
-  // V21.25 — Biga indisponible en pain/brioche/petit-pain → fallback Directe
+  // V21.27 — Biga indisponible en pain/brioche/petit-pain → fallback Directe
   if(['pain','brioche','petit-pain'].includes(mode)){
     try{
       const st = (typeof fermentGetState === 'function') ? fermentGetState() : null;
-      if(st && st.strategy === 'biga' && typeof fermentUpdateField === 'function'){
-        fermentUpdateField('strategy','directe');
+      if(st && st.main === 'biga' && typeof fermentUpdateField === 'function'){
+        fermentUpdateField('main','directe');
       }
     }catch(_){}
   }
