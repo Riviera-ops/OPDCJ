@@ -1,10 +1,11 @@
-const CACHE = 'opdcj-v21.29';
+const CACHE = 'opdcj-v21.33';
 const SHELL = [
   '/OPDCJ/',
   '/OPDCJ/index.html',
   '/OPDCJ/manifest.json',
   '/OPDCJ/icon-192.png',
   '/OPDCJ/icon-512.png',
+  '/OPDCJ/logo_opdcj_final.png',
   '/OPDCJ/fonts/playfair-600.woff2',
   '/OPDCJ/fonts/playfair-700.woff2',
   '/OPDCJ/fonts/nunito-400.woff2',
