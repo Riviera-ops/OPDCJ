@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.42</title>
+<title>Ô Pain De Ce Jour V21.48</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -482,6 +482,9 @@ body > .app { padding-top: var(--header-offset, 130px); }
   #costs-list .ing-name span{display:block;white-space:normal;line-height:1.3;}
   #costs-list .ing-row > div:last-child{font-size:14px !important;flex-shrink:0;}
   #costs-list .ing-row.total > div:last-child{font-size:17px !important;}
+  /* V21.43 — POINT 3 : police selects compactée pour mobile (tokens existants conservés) */
+  .fg select{font-size:13px;}
+  select option{font-size:13px;}
 }
 @media(max-width:360px){
   .g2{grid-template-columns:1fr;}
@@ -696,6 +699,16 @@ body.dark .fcm-readout.fcm-ok{background:rgba(126,147,89,.22);}
 /* V21.39 — Boutons du composeur en 36px de hauteur (mobile-first) */
 .fcm .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
 .fcm .btn-row > .btn{min-height:36px;padding:0 14px;font-size:13px;}
+
+/* V21.47 — POINT 6 : bouton Supprimer des archives, sobre (texte rouge sans fond) */
+.rec-del-btn{color:var(--danger);border-color:var(--danger);background:transparent;}
+.rec-del-btn:hover{background:var(--danger);color:#fff;}
+
+/* V21.48 — POINT 7 : hiérarchie visuelle des optgroups dans le sélecteur recettes
+   Le rendu d'optgroup/option est limité par les navigateurs — best effort cross-browser. */
+.rec-quick-select optgroup{font-weight:700;color:var(--prim);font-size:11px;letter-spacing:.5px;
+  text-transform:uppercase;background:var(--surface-2);}
+.rec-quick-select option{color:var(--txt);font-weight:600;padding-left:12px;background:var(--card);}
 
 /* V21.42 — POINT 2 : bandeau Total souches levain (cohérent avec composeur farine) */
 .lv-total-msg{font-size:12px;font-weight:700;padding:5px 9px;border-radius:6px;margin-bottom:6px;}
@@ -1077,7 +1090,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <div class="fg"><label>Poids cuit (g)</label><input type="number" inputmode="decimal" id="pain-weight" value="300" min="50"></div>
           <div class="fg"><label>Hydratation (%)</label><select id="pain-hydrat"></select></div>
           <div class="fg"><label>Évaporation (%)</label><select id="pain-evap"></select></div>
-          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="pain-levure" value="0.4" step="0.01" oninput="levHintUpdate('pain',this)"><div class="hint" id="pain-lev-hint">Réf. 0.4 % (instantanée)</div></div>
+          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="pain-levure" value="0.4" step="0.01" oninput="levHintUpdate('pain',this)"><div class="hint" id="pain-lev-hint">Réf. 0.4 % (instantanée) ≈ 1.21 % fraîche</div></div>
           <div class="fg"><label>Type de levure</label><select id="pain-lev-type" data-prev="instant" onchange="levTypeChange('pain',this)"><option value="fraiche">Fraîche</option><option value="instant" selected>Sèche instantanée (×0.33)</option><option value="active">Sèche active (×0.5)</option></select><div class="hint">Fraîche ×1 · Inst. ×0.33 · Active ×0.5</div></div>
           <div class="fg"><label>% Sel</label><input type="number" inputmode="decimal" id="pain-sel" value="1.8" step="0.1"><div class="hint">Réf. 1.8 %</div></div>
         </div>
@@ -1479,7 +1492,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <div class="fg"><label>Poids cuit (g)</label><input type="number" inputmode="decimal" id="pp-weight" value="80" min="20"></div>
           <div class="fg"><label>Hydratation (%)</label><select id="pp-hydrat"></select></div>
           <div class="fg"><label>Évaporation (%)</label><select id="pp-evap"></select></div>
-          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="pp-levure" value="0.03" step="0.01" oninput="levHintUpdate('pp',this)"><div class="hint" id="pp-lev-hint">Réf. 0.03 % (instantanée)</div></div>
+          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="pp-levure" value="0.03" step="0.01" oninput="levHintUpdate('pp',this)"><div class="hint" id="pp-lev-hint">Réf. 0.03 % (instantanée) ≈ 0.09 % fraîche</div></div>
           <div class="fg"><label>Type de levure</label><select id="pp-lev-type" data-prev="instant" onchange="levTypeChange('pp',this)"><option value="fraiche">Fraîche</option><option value="instant" selected>Sèche instantanée (×0.33)</option><option value="active">Sèche active (×0.5)</option></select><div class="hint">Fraîche ×1 · Inst. ×0.33 · Active ×0.5</div></div>
           <div class="fg"><label>% Sel</label><input type="number" inputmode="decimal" id="pp-sel" value="1.6" step="0.1"></div>
           <div class="fg"><label>% Beurre</label><input type="number" inputmode="decimal" id="pp-beurre" value="5" step="0.5"></div>
@@ -1523,7 +1536,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <div class="fg"><label>Poids pâton (g)</label><input type="number" inputmode="decimal" id="foc-weight" value="500" min="100"><div class="hint">Poids cible cru. Les quantités d'ingrédients s'ajustent pour atteindre ce poids exact.</div></div>
           <div class="fg"><label>Hydratation (%)</label><select id="foc-hydrat"></select></div>
           <div class="fg"><label>% Huile</label><input type="number" inputmode="decimal" id="foc-huile" value="5" step="0.5"><div class="hint">Réf. 5 %</div></div>
-          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="foc-levure" value="0.05" step="0.01" oninput="levHintUpdate('foc',this)"><div class="hint" id="foc-lev-hint">Réf. 0.05 % (instantanée)</div></div>
+          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="foc-levure" value="0.05" step="0.01" oninput="levHintUpdate('foc',this)"><div class="hint" id="foc-lev-hint">Réf. 0.05 % (instantanée) ≈ 0.15 % fraîche</div></div>
           <div class="fg"><label>Type de levure</label><select id="foc-lev-type" data-prev="instant" onchange="levTypeChange('foc',this)"><option value="fraiche">Fraîche</option><option value="instant" selected>Sèche instantanée (×0.33)</option><option value="active">Sèche active (×0.5)</option></select><div class="hint">Fraîche ×1 · Inst. ×0.33 · Active ×0.5</div></div>
           <div class="fg"><label>% Sel</label><input type="number" inputmode="decimal" id="foc-sel" value="2.2" step="0.1"></div>
         </div>
@@ -1564,7 +1577,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <div class="fg"><label>Poids cuit (g)</label><input type="number" inputmode="decimal" id="bri-weight" value="400" min="100"></div>
           <div class="fg"><label>Hydratation (%)</label><select id="bri-hydrat"></select></div>
           <div class="fg"><label>Évaporation (%)</label><select id="bri-evap"></select></div>
-          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="bri-levure" value="0.1" step="0.01" oninput="levHintUpdate('bri',this)"><div class="hint" id="bri-lev-hint">Réf. 0.1 % (instantanée)</div></div>
+          <div class="fg"><label>% Levure</label><input type="number" inputmode="decimal" id="bri-levure" value="0.1" step="0.01" oninput="levHintUpdate('bri',this)"><div class="hint" id="bri-lev-hint">Réf. 0.1 % (instantanée) ≈ 0.30 % fraîche</div></div>
           <div class="fg"><label>Type de levure</label><select id="bri-lev-type" data-prev="instant" onchange="levTypeChange('bri',this)"><option value="fraiche">Fraîche</option><option value="instant" selected>Sèche instantanée (×0.33)</option><option value="active">Sèche active (×0.5)</option></select><div class="hint">Fraîche ×1 · Inst. ×0.33 · Active ×0.5</div></div>
           <div class="fg"><label>% Sel</label><input type="number" inputmode="decimal" id="bri-sel" value="1.8" step="0.1"></div>
           <div class="fg"><label>% Beurre</label><input type="number" inputmode="decimal" id="bri-beurre" value="30" step="1"></div>
@@ -1852,8 +1865,8 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     </div>
     <div class="cb">
       <div class="g3">
-        <div class="fg"><label>T° Farine (°C)</label><input type="number" inputmode="decimal" id="tb-f" value="20"></div>
-        <div class="fg"><label>T° Fournil (°C)</label><input type="number" inputmode="decimal" id="tb-fo" value="22"></div>
+        <div class="fg"><label>T° Farine (°C)</label><input type="number" inputmode="decimal" id="tb-f" list="dl-tb-f" value="20"></div>
+        <div class="fg"><label>T° Fournil (°C)</label><input type="number" inputmode="decimal" id="tb-fo" list="dl-tb-fo" value="22"></div>
         <div class="fg">
           <label>Température de base — TB (°C)</label>
           <input type="number" inputmode="decimal" id="tb-base" value="66" min="52" max="80" step="1">
@@ -1863,15 +1876,20 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         </div>
         <div class="fg" id="tb-pool-wrap" style="display:none;">
           <label>T° Poolish (°C)</label>
-          <input type="number" inputmode="decimal" id="tb-pool" value="25">
+          <input type="number" inputmode="decimal" id="tb-pool" list="dl-tb-pool" value="25">
           <div class="hint">Pour calcul eau pétrisée</div>
         </div>
         <!-- V17-Dfix4 — T° eau du robinet (utile pour calcul glace si eau cible plus froide) -->
         <div class="fg">
           <label>T° eau du robinet (°C)</label>
-          <input type="number" inputmode="decimal" id="tb-reseau" value="15" min="8" max="30">
+          <input type="number" inputmode="decimal" id="tb-reseau" list="dl-tb-reseau" value="15" min="8" max="30">
           <div class="hint">Sert au calcul de glace · 8°C hiver → 25°C été</div>
         </div>
+        <!-- V21.46 — Datalists pour suggestions T° (saisie libre conservée) -->
+        <datalist id="dl-tb-f"><option value="16"><option value="18"><option value="20"><option value="22"><option value="24"></datalist>
+        <datalist id="dl-tb-fo"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"><option value="30"></datalist>
+        <datalist id="dl-tb-pool"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"></datalist>
+        <datalist id="dl-tb-reseau"><option value="8"><option value="10"><option value="12"><option value="15"><option value="18"><option value="20"><option value="25"></datalist>
         <!-- V21.17 — Pétrin (toutes familles) : preset + friction modifiable -->
         <div class="fg">
           <label>Pétrin</label>
@@ -3563,20 +3581,14 @@ function fermentSyncToLegacy(){
   // S model (utilisé par compute*)
   if(typeof S !== 'undefined'){ S.surPool = isPoolish; S.surBiga = isBiga; }
 
-  // Durée totale (TA + froid) injectée comme "durée poolish/biga" (legacy unifié)
+  // Durée totale (TA + froid) injectée comme "durée biga" (legacy biga)
   const totalH = state.hTA + state.hCold;
-
-  // Pool params : shared pool-* + pizza-specific pz-pool-*
-  const p = state.poolish || {};
   const setIf = (id, v) => { const el = $(id); if(el) el.value = v; };
-  setIf('pool-pct',     p.pct);
-  setIf('pool-duree',   totalH);
-  setIf('pool-temp',    p.temp);
-  setIf('pool-type',    p.type);
-  setIf('pz-pool-pct',  p.pct);
-  setIf('pz-pool-duree',totalH);
-  setIf('pz-pool-temp', p.temp);
-  setIf('pz-pool-type', p.type);
+
+  // V21.44 — POINT 4 : sync des champs pool-* / pz-pool-* SUPPRIMÉ.
+  // Depuis V21.25 la card "Configuration de la Poolish" est la source de vérité.
+  // L'ancien sync écrasait les sélections utilisateur après chaque computeAll.
+  // computePoolish lit pool-pct/duree/temp/type directement depuis le DOM.
 
   // Biga (pizza only)
   const b = state.biga || {};
@@ -4115,7 +4127,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.42';
+const APP_VERSION = 'V21.48';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -8462,12 +8474,17 @@ function levHintUpdate(pfx, inp) {
   const refConv = parseFloat((refFraiche * mult).toFixed(4));
   const cur = parseFloat(inp.value) || 0;
   const label = LEV_LABELS[levType] || levType;
+  // V21.45 — POINT 5 : équivalent fraîche affiché quand type ≠ fraîche
+  // Ex : 0.4 % instantanée ÷ 0.33 ≈ 1.21 % fraîche (≈ 1.2 % référence)
+  const eqStr = (levType !== 'fraiche' && cur > 0)
+    ? ` ≈ ${(cur / mult).toFixed(2)} % fraîche`
+    : '';
   if (cur > 0 && Math.abs(cur - refConv) > 0.001) {
     const diff = Math.round((cur / refConv - 1) * 100);
     const sign = diff > 0 ? '+' : '';
-    hint.textContent = `Réf. ${refConv} % (${label}) — ${sign}${diff}%`;
+    hint.textContent = `Réf. ${refConv} % (${label}) — ${sign}${diff}%${eqStr}`;
   } else {
-    hint.textContent = `Réf. ${refConv} % (${label})`;
+    hint.textContent = `Réf. ${refConv} % (${label})${eqStr}`;
   }
 }
 
@@ -8787,11 +8804,11 @@ async function renderQuickSelector(){
   for(const fam of families){
     const recs = sortRecs(all.filter(r => r.mode === fam));
     if(!recs.length) continue;
-    const famLabel = MODES[fam]?.label || fam;
+    const famLabel = (MODES[fam]?.label || fam).toUpperCase();   // V21.48 — POINT 7 : catégorie en MAJUSCULES
     html += `<optgroup label="${famLabel}">`;
     for(const r of recs){
       const star = DEFAULT_RECIPES[r.mode] === r.id ? ' ⭐' : '';
-      html += `<option value="${r.id}">${(r.title||'Sans nom')}${star}</option>`;
+      html += `<option value="${r.id}">    ${(r.title||'Sans nom')}${star}</option>`;   // V21.48 — POINT 7 : indentation (Android masque souvent padding-left CSS sur option)
     }
     html += `</optgroup>`;
   }
@@ -9328,7 +9345,7 @@ async function renderRecList(){
           <button class="btn btn-s btn-sm" onclick="loadR('${r.id}')">Charger</button>
           <button class="btn btn-s btn-sm" onclick="exportRecPDF('${r.id}')">PDF</button>
           <button class="btn btn-s btn-sm" onclick="exportRecJSON('${r.id}')">JSON</button>
-          <button class="btn btn-d btn-sm" onclick="delR('${r.id}')" title="Supprimer">×</button>
+          <button class="btn btn-s btn-sm rec-del-btn" onclick="delR('${r.id}')">Supprimer</button>
         </div>
       </div>`;
   }).join('');
