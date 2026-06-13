@@ -1,4 +1,4 @@
-const CACHE = 'opdcj-v21.38';
+const CACHE = 'opdcj-v21.42';
 const SHELL = [
   '/OPDCJ/',
   '/OPDCJ/index.html',

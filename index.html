@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.38</title>
+<title>Ô Pain De Ce Jour V21.42</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -664,8 +664,45 @@ body.mode-focaccia .bread-extras-card{display:none;}
 .fcm-readout span{display:inline-flex;gap:4px;align-items:baseline;letter-spacing:.3px;text-transform:uppercase;font-weight:600;}
 .fcm-readout strong{font-size:16px;color:var(--acc);font-weight:800;font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;}
 .fcm-readout .fcm-flag{font-size:10px;color:var(--prim);font-weight:700;letter-spacing:.5px;}
+.fcm-readout .fcm-total-msg{font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;flex-basis:100%;}
 .fcm-readout.fcm-warn{background:#FFE9D6;color:#8C3A12;}
+.fcm-readout.fcm-warn .fcm-total-msg{color:#8C3A12;}
 body.dark .fcm-readout.fcm-warn{background:#5A2410;color:#FFD0A8;}
+body.dark .fcm-readout.fcm-warn .fcm-total-msg{color:#FFD0A8;}
+.fcm-readout.fcm-ok{background:rgba(126,147,89,.18);color:var(--ok);}
+.fcm-readout.fcm-ok .fcm-total-msg{color:var(--ok);}
+body.dark .fcm-readout.fcm-ok{background:rgba(126,147,89,.22);}
+
+/* V21.39 — Layout dédié slot pain (pn) : select compact + range + number + remove
+   V21.40 — Compact (32px) avec thumb 16
+   V21.41 — Encore plus compact (28px) avec thumb 14, track 3px : mobile-friendly */
+.fcm-row-pn{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.fcm-row-pn .fcm-flour{flex:1 1 100%;min-width:0;padding:5px 7px;border:1px solid var(--border);
+  background:var(--bg);color:var(--txt);border-radius:var(--r-sm);font-size:12px;font-weight:600;min-height:30px;}
+.fcm-row-pn .fcm-flour:disabled{opacity:.7;cursor:not-allowed;background:var(--surface-2);}
+.fcm-row-pn .fcm-pct-range{flex:1;min-width:0;-webkit-appearance:none;appearance:none;
+  height:3px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;margin:0 2px;}
+.fcm-row-pn .fcm-pct-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:14px;height:14px;border-radius:50%;background:var(--prim);border:2px solid var(--card);cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.fcm-row-pn .fcm-pct-range::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--prim);border:2px solid var(--card);cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.fcm-row-pn .fcm-pct{width:46px;padding:3px 5px;min-height:28px;font-size:12px;}
+.fcm-row-pn .fcm-pct-u{font-size:11px;color:var(--muted);font-weight:700;}
+.fcm-row-pn .fcm-remove{width:28px;height:28px;font-size:13px;}
+.fcm-row-pn .fcm-locked{font-size:9px;color:var(--prim);font-weight:700;letter-spacing:.3px;text-transform:uppercase;flex-basis:100%;margin-top:-2px;}
+
+/* V21.39 — Boutons du composeur en 36px de hauteur (mobile-first) */
+.fcm .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.fcm .btn-row > .btn{min-height:36px;padding:0 14px;font-size:13px;}
+
+/* V21.42 — POINT 2 : bandeau Total souches levain (cohérent avec composeur farine) */
+.lv-total-msg{font-size:12px;font-weight:700;padding:5px 9px;border-radius:6px;margin-bottom:6px;}
+.lv-total-msg.lv-total-warn{color:#8C3A12;background:#FFE9D6;}
+body.dark .lv-total-msg.lv-total-warn{color:#FFD0A8;background:#5A2410;}
+.lv-total-msg.lv-total-ok{color:var(--ok);background:rgba(126,147,89,.18);}
+body.dark .lv-total-msg.lv-total-ok{background:rgba(126,147,89,.22);}
 
 /* ── V21.25 — Module 4.2 commit 4/4 : masquage des contrôles legacy
    Les inputs restent dans le DOM pour le sync ferment→legacy. */
@@ -3104,13 +3141,28 @@ function _fcmReadoutHtml(out){
       }
     } catch(e){}
   }
+  // V21.40 — Message Total : distinguer dépassement (>) vs incomplet (<)
+  let totalMsg;
+  if(totPct > 100.5){
+    totalMsg = `<span class="fcm-total-msg">Total : ${rnd(totPct)} % — DÉPASSE 100 %</span>`;
+  } else if(totPct < 99.5){
+    totalMsg = `<span class="fcm-total-msg">Total : ${rnd(totPct)} % — doit être égal à 100 %</span>`;
+  } else {
+    totalMsg = `<span class="fcm-total-msg">Total : 100 % ✓</span>`;
+  }
+  // V21.40 — Farine totale en grammes (lue depuis S global si dispo)
+  const farineG = (typeof S !== 'undefined' && S && S.farine > 0) ? rnd(S.farine) : null;
+  const farineSpan = (farineG !== null)
+    ? `<span>Farine totale <strong>${farineG} g</strong></span>`
+    : '';
   return `
+    ${farineSpan}
     <span>W <strong>${rnd(out.Wmoy)}</strong></span>
     <span>Prot <strong>${out.protM.toFixed(1)}%</strong></span>
     <span>P/L <strong>${out.PLm.toFixed(2)}</strong></span>
-    <span>Total <strong>${rnd(totPct)}%</strong>${warn?' <em style="color:#c03000;font-style:normal;">⚠</em>':''}</span>
     ${flags}
     ${durInfo}
+    ${totalMsg}
   `;
 }
 
@@ -3148,17 +3200,39 @@ function composerRender(slot){
     return `<option value="${f.id}">${escapeHTML(f.appellation)} — ${escapeHTML(sub)} · W${rnd(f.W)||'?'}</option>`;
   }).join('');
 
-  rowsHost.innerHTML = picks.map((p, idx) => `
-    <div class="fcm-row" data-idx="${idx}">
-      <select class="fcm-flour" onchange="composerOnSelect('${slot}', ${idx}, this)">${opts}</select>
-      <input type="number" class="fcm-pct" value="${+p.pct||0}" step="5" min="0" max="100"
-             oninput="composerOnPct('${slot}', ${idx}, this)">
-      <span class="fcm-pct-u">%</span>
-      <button type="button" class="fcm-remove" title="Retirer"
-              ${picks.length<=1?'disabled':''}
-              onclick="composerRemoveRow('${slot}', ${idx})">×</button>
-    </div>
-  `).join('');
+  // V21.39 — Layout dédié pour le slot pain (range + number synchronisés, idx 0 verrouillé)
+  if(slot === 'pn'){
+    rowsHost.innerHTML = picks.map((p, idx) => {
+      const isLocked = (idx === 0);   // farine de base verrouillée (T65 par défaut)
+      const pct = +p.pct || 0;
+      return `
+        <div class="fcm-row fcm-row-pn" data-idx="${idx}">
+          <select class="fcm-flour" ${isLocked?'disabled':''} onchange="composerOnSelect('${slot}', ${idx}, this)">${opts}</select>
+          <input type="range" class="fcm-pct-range" min="0" max="100" step="1" value="${pct}"
+                 oninput="composerOnPct('${slot}', ${idx}, this)">
+          <input type="number" class="fcm-pct" min="0" max="100" step="1" value="${pct}"
+                 oninput="composerOnPct('${slot}', ${idx}, this)">
+          <span class="fcm-pct-u">%</span>
+          <button type="button" class="fcm-remove" title="${isLocked?'Farine de base (non supprimable)':'Retirer'}"
+                  ${isLocked?'disabled':''}
+                  onclick="composerRemoveRow('${slot}', ${idx})">×</button>
+          ${isLocked?'<span class="fcm-locked">Farine de base</span>':''}
+        </div>
+      `;
+    }).join('');
+  } else {
+    rowsHost.innerHTML = picks.map((p, idx) => `
+      <div class="fcm-row" data-idx="${idx}">
+        <select class="fcm-flour" onchange="composerOnSelect('${slot}', ${idx}, this)">${opts}</select>
+        <input type="number" class="fcm-pct" value="${+p.pct||0}" step="5" min="0" max="100"
+               oninput="composerOnPct('${slot}', ${idx}, this)">
+        <span class="fcm-pct-u">%</span>
+        <button type="button" class="fcm-remove" title="Retirer"
+                ${picks.length<=1?'disabled':''}
+                onclick="composerRemoveRow('${slot}', ${idx})">×</button>
+      </div>
+    `).join('');
+  }
 
   // Set the selected values (innerHTML resets selections)
   picks.forEach((p, idx) => {
@@ -3168,7 +3242,8 @@ function composerRender(slot){
 
   // Readout
   const out = composeFlours(picks);
-  readout.className = (out && Math.abs(out.totPct - 100) > 0.5) ? 'fcm-readout fcm-warn' : 'fcm-readout';
+  const warn = (out && Math.abs(out.totPct - 100) > 0.5);
+  readout.className = 'fcm-readout' + (warn ? ' fcm-warn' : ' fcm-ok');
   readout.innerHTML = _fcmReadoutHtml(out);
 
   // Tag dans l'en-tête de la card (convention : ${slot}-fl-tag)
@@ -3177,6 +3252,8 @@ function composerRender(slot){
 }
 
 function composerOnSelect(slot, idx, el){
+  // V21.39 — slot pain : la farine de base (idx 0) est verrouillée
+  if(slot === 'pn' && idx === 0) return;
   const picks = _readFcmState(slot) || _fcmDefaultFor(slot);
   if(!picks[idx]) return;
   picks[idx].id = el.value;
@@ -3192,21 +3269,33 @@ function composerAddRowFallback(picks, slot){
 function composerOnPct(slot, idx, el){
   const picks = _readFcmState(slot) || _fcmDefaultFor(slot);
   if(!picks[idx]) return;
-  picks[idx].pct = parseFloat(el.value) || 0;
+  const newPct = Math.max(0, Math.min(100, parseFloat(el.value) || 0));
+  picks[idx].pct = newPct;
   _writeFcmState(slot, picks);
-  // Re-render only the readout (avoid losing focus on the input)
   const cont = $(_fcmContainerId(slot));
+  // V21.39 — Si slot pn, synchroniser range ↔ number AVANT computeAll (sans reflow visuel)
+  if(cont && slot === 'pn'){
+    const row = cont.querySelector(`[data-idx="${idx}"]`);
+    if(row){
+      const range  = row.querySelector('.fcm-pct-range');
+      const number = row.querySelector('.fcm-pct');
+      if(range  && range  !== el) range.value  = newPct;
+      if(number && number !== el) number.value = newPct;
+    }
+  }
+  // V21.40 — computeAll d'abord (met à jour S.farine) puis re-render du readout
+  if(typeof computeAll === 'function') computeAll();
   if(cont){
     const readout = cont.querySelector('.fcm-readout');
     const out = composeFlours(picks);
     if(readout){
-      readout.className = (out && Math.abs(out.totPct - 100) > 0.5) ? 'fcm-readout fcm-warn' : 'fcm-readout';
+      const warn = (out && Math.abs(out.totPct - 100) > 0.5);
+      readout.className = 'fcm-readout' + (warn ? ' fcm-warn' : ' fcm-ok');
       readout.innerHTML = _fcmReadoutHtml(out);
     }
     const tag = $(`${slot}-fl-tag`);
     if(tag && out) tag.textContent = `W ${rnd(out.Wmoy)}`;
   }
-  if(typeof computeAll === 'function') computeAll();
 }
 
 function composerAddRow(slot){
@@ -3224,6 +3313,8 @@ function composerAddRow(slot){
 }
 
 function composerRemoveRow(slot, idx){
+  // V21.39 — slot pain : idx 0 est la farine de base verrouillée
+  if(slot === 'pn' && idx === 0) return;
   const picks = _readFcmState(slot) || _fcmDefaultFor(slot);
   if(picks.length <= 1) return;
   picks.splice(idx, 1);
@@ -4024,7 +4115,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.38';
+const APP_VERSION = 'V21.42';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -9358,34 +9449,19 @@ function levainToggleSubstrat(btn) {
   btn.classList.toggle('active');
   const grid = document.getElementById('lv-substrat-grid');
   const active = [...grid.querySelectorAll('.rseg-btn.active')].map(b => b.dataset.val);
-  // Init proportions : parts égales pour les nouveaux arrivants
   const prevProportions = L.proportions || {};
-  const n = active.length;
-  if (n === 0) {
-    L.substrats    = [];
-    L.proportions  = {};
+  if (active.length === 0) {
+    L.substrats   = [];
+    L.proportions = {};
   } else {
-    // Répartir équitablement les nouvelles entrées, garder les anciennes normalisées
-    const existing = active.filter(s => prevProportions[s] !== undefined);
-    const newcomers = active.filter(s => prevProportions[s] === undefined);
-    const totalExisting = existing.reduce((sum, s) => sum + prevProportions[s], 0);
-    const shareForNew = newcomers.length > 0 ? (100 - totalExisting) / (newcomers.length) : 0;
+    // V21.42 — POINT 2 : pas de normalisation. Garder valeurs existantes, init nouvelles à 0.
     const newProps = {};
-    existing.forEach(s => { newProps[s] = prevProportions[s]; });
-    newcomers.forEach(s => { newProps[s] = Math.round(shareForNew); });
-    // Normalise to exactly 100
-    const total = Object.values(newProps).reduce((a,b)=>a+b,0);
-    if (total > 0) {
-      const keys = Object.keys(newProps);
-      let runningSum = 0;
-      keys.forEach((k, i) => {
-        if (i < keys.length - 1) {
-          newProps[k] = Math.round(newProps[k] * 100 / total);
-          runningSum += newProps[k];
-        } else {
-          newProps[k] = 100 - runningSum;
-        }
-      });
+    active.forEach(s => {
+      newProps[s] = prevProportions[s] !== undefined ? prevProportions[s] : 0;
+    });
+    // F1a : single souche → forcer 100 % (le slider est masqué, garde la cohérence)
+    if (active.length === 1) {
+      newProps[active[0]] = 100;
     }
     L.substrats   = active;
     L.proportions = newProps;
@@ -9448,33 +9524,14 @@ function levainUpdateSubDetail() {
 }
 
 function levainSliderInput(slider) {
+  // V21.42 — POINT 2 : pas d'autoadjustement. Chaque souche indépendante.
   const moved = slider.dataset.sub;
-  const newVal = parseInt(slider.value);
-  const subs   = L.substrats || [];
-  const others = subs.filter(s => s !== moved);
-  if (others.length === 0) { L.proportions[moved] = 100; levainUpdateMixResume(); return; }
-  // Distribute remaining % proportionally among others
-  const remaining  = 100 - newVal;
-  const totalOther = others.reduce((sum, s) => sum + (L.proportions[s] || 0), 0);
-  const newProps   = { [moved]: newVal };
-  let assigned = newVal;
-  others.forEach((s, i) => {
-    if (i < others.length - 1) {
-      const share = totalOther > 0 ? Math.round((L.proportions[s] / totalOther) * remaining) : Math.round(remaining / others.length);
-      newProps[s] = Math.max(5, share);
-      assigned   += newProps[s];
-    } else {
-      newProps[s] = Math.max(5, 100 - assigned);
-    }
-  });
-  L.proportions = newProps;
-  // Update all slider values + labels
-  subs.forEach(s => {
-    const el = document.querySelector(`input[data-sub="${s}"]`);
-    if (el) el.value = newProps[s];
-    const lbl = document.getElementById('lv-pct-' + s);
-    if (lbl) lbl.textContent = newProps[s] + '%';
-  });
+  const newVal = parseInt(slider.value) || 0;
+  L.proportions = L.proportions || {};
+  L.proportions[moved] = newVal;
+  // Maj du label de la souche bougée uniquement
+  const lbl = document.getElementById('lv-pct-' + moved);
+  if (lbl) lbl.textContent = newVal + '%';
   levainUpdateSubDetail();
   levainUpdateMixResume();
   levainSave();
@@ -9520,7 +9577,19 @@ function levainUpdateMixResume() {
     return `<span style="white-space:nowrap;"><strong>${pct}%</strong> ${label}${isLiq ? ` <span style="font-size:10px;color:var(--muted);">(apport liquide ${subPoids}g)</span>` : ` <span style="font-size:10px;color:var(--muted);">(${Math.round(farineTotal * pct / 100)}g farine)</span>`}</span>`;
   });
 
-  resume.innerHTML = `<div style="margin-bottom:6px;">${parts.join(' · ')}</div>`
+  // V21.42 — POINT 2 : message Total avec alerte selon écart à 100 %
+  const totPct = subs.reduce((a, k) => a + (props[k] || 0), 0);
+  let totalMsgHtml;
+  if (totPct > 100.5) {
+    totalMsgHtml = `<div class="lv-total-msg lv-total-warn">Total : ${totPct} % — DÉPASSE 100 %</div>`;
+  } else if (totPct < 99.5) {
+    totalMsgHtml = `<div class="lv-total-msg lv-total-warn">Total : ${totPct} % — doit être égal à 100 %</div>`;
+  } else {
+    totalMsgHtml = `<div class="lv-total-msg lv-total-ok">Total : 100 % ✓</div>`;
+  }
+
+  resume.innerHTML = totalMsgHtml
+    + `<div style="margin-bottom:6px;">${parts.join(' · ')}</div>`
     + `<div style="font-size:11px;border-top:1px solid var(--border);padding-top:5px;margin-top:2px;display:flex;gap:12px;">`
     + `<span>Eau J1 : <strong style="color:var(--prim);">${eauTotale}g</strong> <span style="color:var(--muted);">(H${avgHydro}%)</span></span>`
     + `<span>Farine totale : <strong style="color:var(--prim);">${farineTotal}g</strong></span>`
