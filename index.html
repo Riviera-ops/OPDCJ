@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.34</title>
+<title>Ô Pain De Ce Jour V21.37</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -33,10 +33,10 @@
 </style>
 <style>
 :root {
-  --bg:      #F4E3D5;
+  --bg:      #F5EED8;   /* V21.37 J5 — ivoire chaud, cohérent avec le header */
   --bg2:     #EFD7C6;
-  --card:    #FFF6EF;
-  --surface-2:#FBE3D5;
+  --card:    #FFFBEE;   /* V21.37 J5 — carte légèrement plus claire */
+  --surface-2:#F5EAC0;  /* V21.37 J5 — surface secondaire teintée miel */
   --icon-bubble:#FBE3D5;
   --prim:    #C4633F;
   --prim-lt: #D98A66;
@@ -77,7 +77,17 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
   box-sizing:border-box;
 }
 .app-header{
-  background:linear-gradient(150deg,var(--prim) 0%,var(--prim-dk) 100%);
+  /* V21.37 — Direction J5 « Ivoire & miel ». Mode jour clair, distinct de la nuit.
+     4 custom properties J5 (gradient + nav). Reste en hex direct pour minimiser
+     la surface. Mode nuit : background entièrement overridé par body.dark. */
+  --header-j5-1:#F5E8C0;
+  --header-j5-2:#E8D09A;
+  --header-j5-3:#D8B870;
+  --header-j5-nav:#5A3008;
+  background:linear-gradient(150deg,
+    var(--header-j5-1) 0%,
+    var(--header-j5-2) 60%,
+    var(--header-j5-3) 100%);
   border-radius:20px;
   overflow:visible;        /* V21.33 — laisser le logo déborder hors du header */
   position:relative;
@@ -93,8 +103,6 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
   display:flex;
   align-items:center;
   gap:16px;
-  /* V21.32 — couleur muted contextuelle au header (lisible sur fond brun, jour ET nuit) */
-  --header-muted: rgba(255,255,255,.65);
 }
 /* V21.32 — Bloc texte (titre + sous-titre) à droite du logo
    V21.33 — flex:1 + text-align:center → centré dans l'espace restant */
@@ -112,11 +120,13 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
 .app-header h1{
   font-family:'Playfair Display',serif;
   font-size:clamp(20px,5vw,26px);
-  color:#fff;
-  text-shadow:0 2px 10px rgba(0,0,0,.30);
+  color:#3A1A06;                           /* V21.37 J5 — sombre sur fond ivoire */
+  text-shadow:0 1px 2px rgba(255,255,255,.4); /* V21.37 J5 — halo clair léger */
   letter-spacing:.5px;
 }
-/* V21.33 — Logo OPDCJ : 110px, déborde hors du header (marges négatives) */
+/* V21.33 — Logo OPDCJ : 110px, déborde hors du header (marges négatives)
+   V21.36 — pastille .logo-bubble retirée ; débord remis directement sur le logo.
+   V21.37 — drop-shadow adapté au fond ivoire (mode jour). */
 #app-logo{
   height:110px;
   width:auto;
@@ -125,11 +135,11 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
   display:block;
   margin-top:-16px;
   margin-bottom:-16px;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));
+  filter:drop-shadow(0 2px 8px rgba(60,30,6,.4));
   pointer-events:none;
 }
 .app-header p{
-  font-size:10px;color:var(--header-muted);
+  font-size:10px;color:#6A3A10;            /* V21.37 J5 — brun lisible sur ivoire */
   margin-top:5px;letter-spacing:1.4px;
   text-transform:uppercase;
 }
@@ -137,7 +147,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
 /* ── NAV — pilule flottante dans le header ── */
 .nav{
   display:flex;
-  background:rgba(255,255,255,.13);
+  background:var(--header-j5-nav);          /* V21.37 J5 — bandeau brun foncé */
   border-radius:12px;
   margin:0 12px 12px 12px;
   padding:3px;
@@ -153,7 +163,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
 .nav-btn{
   flex:1;min-width:52px;padding:7px 4px 6px;
   border:none;background:transparent;
-  color:rgba(255,255,255,.55);
+  color:rgba(245,232,192,.75);             /* V21.37 J5 — ivoire mi-translucide sur brun */
   font-family:'Nunito',sans-serif;font-size:9px;
   font-weight:700;cursor:pointer;
   text-align:center;transition:all .18s;
@@ -165,8 +175,8 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
 }
 .nav-btn .ni{font-size:17px;font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif;line-height:1.2;}
 .nav-btn.active{
-  background:rgba(255,255,255,.18);
-  color:#F0CC90;
+  background:rgba(196,99,63,.4);           /* V21.37 J5 — terracotta translucide */
+  color:#FFA860;                            /* V21.37 J5 — orange chaud lumineux */
 }
 .nav-btn.active::after{display:none;}
 
@@ -371,7 +381,13 @@ body.dark .app-header{
   border-color:rgba(255,255,255,.06);
 }
 body.dark .nav{background:rgba(0,0,0,.25);}
+body.dark .nav-btn{color:rgba(255,255,255,.55);}                  /* V21.37 — restore inactif */
 body.dark .nav-btn.active{background:rgba(255,255,255,.12);color:var(--prim-dk);}
+/* V21.37 — Overrides nuit : header conserve son apparence sombre */
+body.dark .app-header h1{color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.30);}
+body.dark .app-header p{color:rgba(255,255,255,.65);}
+body.dark #theme-btn{color:rgba(255,255,255,.85);}
+body.dark #app-logo{filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));}
 
 /* Bouton toggle thème */
 #theme-btn{
@@ -379,7 +395,7 @@ body.dark .nav-btn.active{background:rgba(255,255,255,.12);color:var(--prim-dk);
   background:transparent;border:none;
   border-radius:50%;width:24px;height:24px;padding:0;
   cursor:pointer;transition:background .2s;display:flex;
-  align-items:center;justify-content:center;color:rgba(255,255,255,.85);
+  align-items:center;justify-content:center;color:#6A3A10;  /* V21.37 J5 — brun lisible sur ivoire */
   outline:none !important;box-shadow:none !important;
   -webkit-tap-highlight-color:transparent;
   -webkit-appearance:none;appearance:none;
@@ -4008,7 +4024,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.34';
+const APP_VERSION = 'V21.37';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
