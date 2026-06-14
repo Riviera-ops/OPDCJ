@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.62</title>
+<title>Ô Pain De Ce Jour V21.63</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -4267,7 +4267,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.62';
+const APP_VERSION = 'V21.63';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -8004,19 +8004,27 @@ function renderPlanPhases(){
     const el=$(id); if(el) el.value=v;
   });
 
-  // V18-1 — Filet de sécurité : forcer preferm cochée si biga ou poolish pizza actif.
-  // La boucle savedChecks ci-dessus peut écraser l'état calculé par renderPhaseRow
-  // si la phase était décochée AVANT l'activation du pré-ferment.
-  if(planMode === 'pizza'){
-    const forceOn = !!$('pizza-surbiga')?.checked || !!$('pizza-surpool')?.checked;
-    const prefermChkFix = $('pchk-pizza-preferm');
-    if(prefermChkFix && forceOn && !prefermChkFix.checked){
-      prefermChkFix.checked = true;
-      togglePhaseRow('pizza-preferm', true);
-    }
-    // Inversement : décochée si ni biga ni poolish et phase était activée par erreur
-    if(prefermChkFix && !forceOn && agent !== 'poolish' && agent !== 'levain'){
-      // ne pas forcer la décochaison — l'utilisateur peut l'avoir cochée manuellement
+  // V18-1 / V21.63 — Filet de sécurité étendu à TOUS les modes.
+  // La boucle savedChecks ci-dessus écrase l'état calculé par renderPhaseRow
+  // si la phase était décochée AVANT l'activation du pré-ferment (poolish/levain
+  // depuis le Pilote → plan-agent sync'd → renderPhaseRow calcule isChecked=true
+  // → savedChecks restaure à false → phase grisée).
+  const isPoolishAgent = (agent === 'poolish');
+  const isLevainAgent  = (agent === 'levain');
+  const pizzaPreFermOn = (planMode === 'pizza') &&
+    (!!$('pizza-surbiga')?.checked || !!$('pizza-surpool')?.checked);
+  const forceOn = isPoolishAgent || isLevainAgent || pizzaPreFermOn;
+  const prefermChkFix = $(`pchk-${planMode}-preferm`);
+  if(prefermChkFix && forceOn && !prefermChkFix.checked){
+    prefermChkFix.checked = true;
+    togglePhaseRow(`${planMode}-preferm`, true);
+  }
+  // Levain : la phase levain-refresh doit aussi être cochée si agent='levain'
+  if(isLevainAgent){
+    const levRefreshChk = $(`pchk-${planMode}-levain-refresh`);
+    if(levRefreshChk && !levRefreshChk.checked){
+      levRefreshChk.checked = true;
+      togglePhaseRow(`${planMode}-levain-refresh`, true);
     }
   }
 
