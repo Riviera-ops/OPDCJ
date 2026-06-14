@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.72</title>
+<title>Ô Pain De Ce Jour V21.73</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -2785,6 +2785,115 @@ const rnd  = x => Math.round(x);
 const fmtG = (g,dec=0) => dec===0?`${rnd(g)} g`:`${Number(g).toFixed(dec)} g`;
 const euro = x => (Number.isFinite(x)?x:0).toFixed(2).replace('.',',')+' €';
 
+// ═══════════════════════════════════════════════════════════════════
+// V21.73 — safeStorage : wrapper centralisé localStorage (§5.12 Robustesse)
+// Gère : mode privé Safari/iOS (SecurityError), QuotaExceededError,
+// profil corrompu. Expose get/set/remove/getJSON/setJSON + diagnostics.
+// Toast automatique sur quota dépassé.
+// ═══════════════════════════════════════════════════════════════════
+const safeStorage = (function(){
+  const errors = [];
+  let _available = null;
+
+  function _probe(){
+    if(_available !== null) return _available;
+    try {
+      const k = '__opdcj_probe_' + Date.now();
+      localStorage.setItem(k, '1');
+      const ok = localStorage.getItem(k) === '1';
+      localStorage.removeItem(k);
+      _available = ok;
+    } catch(e){
+      _available = false;
+    }
+    return _available;
+  }
+
+  function _record(op, key, err){
+    errors.push({ op, key, msg: err?.message || String(err), ts: Date.now() });
+    if(errors.length > 50) errors.shift();
+    console.warn(`[safeStorage] ${op} "${key}" :`, err?.message || err);
+  }
+
+  function _isQuotaError(e){
+    return e && (e.name === 'QuotaExceededError' ||
+                 e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+                 e.code === 22 || e.code === 1014);
+  }
+
+  return {
+    available: _probe,
+    get(key, fallback = null){
+      try {
+        const v = localStorage.getItem(key);
+        return v === null ? fallback : v;
+      } catch(e){ _record('get', key, e); return fallback; }
+    },
+    set(key, value){
+      try {
+        localStorage.setItem(key, value);
+        return { ok: true };
+      } catch(e){
+        _record('set', key, e);
+        if(_isQuotaError(e) && typeof toast === 'function'){
+          toast('💾 Stockage local plein — supprime des recettes anciennes (Archives)');
+        }
+        return { ok: false, quota: _isQuotaError(e), error: e?.message };
+      }
+    },
+    remove(key){
+      try { localStorage.removeItem(key); return { ok: true }; }
+      catch(e){ _record('remove', key, e); return { ok: false }; }
+    },
+    getJSON(key, fallback = null){
+      const raw = this.get(key, null);
+      if(raw === null) return fallback;
+      try { return JSON.parse(raw); } catch(e){
+        _record('parseJSON', key, e);
+        return fallback;
+      }
+    },
+    setJSON(key, value){
+      let s;
+      try { s = JSON.stringify(value); }
+      catch(e){ _record('serialize', key, e); return { ok: false, error: 'serialization' }; }
+      return this.set(key, s);
+    },
+    usedBytes(){
+      try {
+        let total = 0;
+        for(const k in localStorage){
+          if(!Object.prototype.hasOwnProperty.call(localStorage, k)) continue;
+          total += (k.length + String(localStorage[k] || '').length) * 2; // UTF-16 approx
+        }
+        return total;
+      } catch { return -1; }
+    },
+    keys(prefix){
+      try {
+        const out = [];
+        for(let i = 0; i < localStorage.length; i++){
+          const k = localStorage.key(i);
+          if(!prefix || (k && k.startsWith(prefix))) out.push(k);
+        }
+        return out;
+      } catch { return []; }
+    },
+    errors: () => [...errors]
+  };
+})();
+
+// V21.73 — Bannière persistante si localStorage indisponible (mode privé, profil cassé, etc.)
+function checkStorageAtBoot(){
+  if(safeStorage.available()) return;
+  // Bannière non bloquante : informe que les modifs ne survivront pas
+  const banner = document.createElement('div');
+  banner.id = 'storage-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--danger,#c03000);color:#fff;padding:12px 16px;text-align:center;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 -2px 8px rgba(0,0,0,.2);line-height:1.4;';
+  banner.innerHTML = `⚠️ Stockage local indisponible — modifications non sauvegardées à la fermeture (mode privé navigateur ?). <button style="margin-left:8px;background:transparent;border:1px solid #fff;color:#fff;padding:3px 10px;border-radius:4px;cursor:pointer;font-weight:700;" onclick="this.parentElement.remove()">×</button>`;
+  document.body.appendChild(banner);
+}
+
 function fillSel(el,min,max,step,def){
   if(!el)return; el.innerHTML='';
   for(let v=min;v<=max;v=parseFloat((v+step).toFixed(4))){
@@ -4429,7 +4538,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.72';
+const APP_VERSION = 'V21.73';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -6193,7 +6302,7 @@ function chronoStart(durationMin, phaseName){
   // Auto-démarrage du chrono recette si pas déjà lancé
   if(!ChronoState.recipe.startTs){
     ChronoState.recipe.startTs = Date.now();
-    try { localStorage.setItem(CHRONO_LS_KEY, String(ChronoState.recipe.startTs)); } catch(e){}
+    safeStorage.set(CHRONO_LS_KEY, String(ChronoState.recipe.startTs)); // V21.73
     chronoRenderRecipe();
   }
   chronoSaveSession(); // V21.72
@@ -6274,27 +6383,22 @@ function chronoUpdateWakeLockUI(active){
   }
 }
 
-// V21.72 — Persistance session chrono (phase active + planning current)
+// V21.72 → V21.73 — Persistance session chrono via safeStorage (auto-toast quota)
 function chronoSaveSession(){
-  try {
-    if(!chronoIsActive()){ localStorage.removeItem(CHRONO_SESSION_KEY); return; }
-    const session = {
-      v: 1,
-      phase: { ...ChronoState.phase },
-      planning: { ...ChronoState.planning },
-      savedAt: Date.now()
-    };
-    localStorage.setItem(CHRONO_SESSION_KEY, JSON.stringify(session));
-  } catch(e) {}
+  if(!chronoIsActive()){ safeStorage.remove(CHRONO_SESSION_KEY); return; }
+  safeStorage.setJSON(CHRONO_SESSION_KEY, {
+    v: 1,
+    phase: { ...ChronoState.phase },
+    planning: { ...ChronoState.planning },
+    savedAt: Date.now()
+  });
 }
 function chronoClearSession(){
-  try { localStorage.removeItem(CHRONO_SESSION_KEY); } catch(e){}
+  safeStorage.remove(CHRONO_SESSION_KEY);
 }
 function chronoLoadSession(){
   try {
-    const raw = localStorage.getItem(CHRONO_SESSION_KEY);
-    if(!raw) return;
-    const sess = JSON.parse(raw);
+    const sess = safeStorage.getJSON(CHRONO_SESSION_KEY, null);
     if(!sess || sess.v !== 1 || !sess.phase || !sess.phase.durationMs) return;
 
     ChronoState.phase = {
@@ -6362,17 +6466,15 @@ function chronoRenderRecipe(){
 function chronoRecipeReset(){
   if(!confirm('Démarrer une nouvelle recette ? Le chrono total sera remis à zéro.')) return;
   ChronoState.recipe.startTs = null;
-  try { localStorage.removeItem(CHRONO_LS_KEY); } catch(e){}
+  safeStorage.remove(CHRONO_LS_KEY); // V21.73
   chronoRenderRecipe();
   if(typeof toast === 'function') toast('Chrono recette remis à zéro');
 }
 
 function initChrono(){
-  // Restaurer chrono recette depuis localStorage
-  try {
-    const saved = parseInt(localStorage.getItem(CHRONO_LS_KEY), 10);
-    if(saved > 0) ChronoState.recipe.startTs = saved;
-  } catch(e){}
+  // V21.73 — Restaurer chrono recette via safeStorage
+  const saved = parseInt(safeStorage.get(CHRONO_LS_KEY, '0'), 10);
+  if(saved > 0) ChronoState.recipe.startTs = saved;
   chronoRenderRecipe();
   // Refresh chrono recette toutes les 30s (suffit pour HH:MM)
   ChronoState.recipeIntervalId = setInterval(chronoRenderRecipe, 30000);
@@ -11684,6 +11786,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   levainInitUI();
   levRestoreFromStorage(); // D — restore yeast type selections
   initChrono(); // V21.65 — Module 4.4 Chronomètre (squelette UI)
+  checkStorageAtBoot(); // V21.73 — bannière si localStorage indisponible
   try{ init(); }
   catch(e){
     console.error('Init error:',e);

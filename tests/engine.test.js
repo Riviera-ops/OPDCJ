@@ -546,6 +546,99 @@ console.log('\nT14 — Autolyse longue : shift tf vers tfo');
 
 
 // ══════════════════════════════════════════════════════════════════════
+// T15-T17 — safeStorage (Module §5.12 Robustesse stockage, V21.73)
+// Tests des comportements clés : fallback, parse JSON, détection quota.
+// ══════════════════════════════════════════════════════════════════════
+
+// Mini-réplique de safeStorage pour tester la logique pure (sans DOM/window)
+function makeMockSafeStorage(storage){
+  // storage = { _data:{}, throwOnSet:false, throwOnGet:false }
+  return {
+    get(key, fallback = null){
+      try {
+        if(storage.throwOnGet) throw new Error('SecurityError');
+        const v = storage._data[key];
+        return v === undefined ? fallback : v;
+      } catch { return fallback; }
+    },
+    set(key, value){
+      try {
+        if(storage.throwOnSet){
+          const err = new Error('QuotaExceededError'); err.name = 'QuotaExceededError'; throw err;
+        }
+        storage._data[key] = value;
+        return { ok: true };
+      } catch(e){
+        const quota = e.name === 'QuotaExceededError';
+        return { ok: false, quota, error: e.message };
+      }
+    },
+    remove(key){
+      try { delete storage._data[key]; return { ok: true }; }
+      catch { return { ok: false }; }
+    },
+    getJSON(key, fallback = null){
+      const raw = this.get(key, null);
+      if(raw === null) return fallback;
+      try { return JSON.parse(raw); } catch { return fallback; }
+    },
+    setJSON(key, value){
+      let s; try { s = JSON.stringify(value); } catch { return { ok: false }; }
+      return this.set(key, s);
+    }
+  };
+}
+
+console.log('\nT15 — safeStorage : opérations normales');
+{
+  const mock = { _data: {}, throwOnSet: false, throwOnGet: false };
+  const s = makeMockSafeStorage(mock);
+
+  s.set('foo', 'bar');
+  assert('T15a — set + get round-trip', s.get('foo') === 'bar');
+  assert('T15b — get clé absente avec fallback', s.get('absent', 'default') === 'default');
+  assert('T15c — get clé absente sans fallback → null', s.get('absent') === null);
+
+  s.setJSON('config', { x: 1, y: 'two' });
+  const o = s.getJSON('config');
+  assert('T15d — setJSON + getJSON round-trip', o && o.x === 1 && o.y === 'two');
+
+  s.remove('foo');
+  assert('T15e — remove → get retourne fallback', s.get('foo', 'gone') === 'gone');
+}
+
+console.log('\nT16 — safeStorage : QuotaExceededError → ok:false, quota:true');
+{
+  const mock = { _data: {}, throwOnSet: true, throwOnGet: false };
+  const s = makeMockSafeStorage(mock);
+
+  const res = s.set('big', 'x'.repeat(1000));
+  assert('T16a — set échec : ok = false', res.ok === false, `res=${JSON.stringify(res)}`);
+  assert('T16b — flag quota détecté', res.quota === true);
+
+  // getJSON ne plante pas après échec
+  const obj = s.getJSON('big', { fallback: true });
+  assert('T16c — getJSON après échec retourne fallback',
+    obj && obj.fallback === true);
+}
+
+console.log('\nT17 — safeStorage : SecurityError au get (mode privé)');
+{
+  const mock = { _data: { foo: 'bar' }, throwOnSet: false, throwOnGet: true };
+  const s = makeMockSafeStorage(mock);
+
+  assert('T17a — get échec gracieux → fallback',
+    s.get('foo', 'default') === 'default');
+
+  // getJSON ne plante pas non plus
+  assert('T17b — getJSON échec gracieux → fallback null',
+    s.getJSON('foo') === null);
+  assert('T17c — getJSON échec avec fallback',
+    s.getJSON('foo', { ok: 1 })?.ok === 1);
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
 // BILAN
 // ══════════════════════════════════════════════════════════════════════
 console.log(`\n${'═'.repeat(60)}`);
