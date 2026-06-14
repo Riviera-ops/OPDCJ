@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.75</title>
+<title>Ô Pain De Ce Jour V21.76</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -3287,6 +3287,10 @@ const MODES = {
 // TB et durées V1/V2 attachées à la recette (persistées via getFormData).
 // L'utilisateur peut éditer TB après la sélection (pétrin propose, user corrige).
 // ═══════════════════════════════════════════════════════════════════
+// V21.76 — TB fallback par MODE (fallback si pétrin non défini, fallback PETR_TB_DEFAULTS).
+// Centralisé ici (était dupliqué 3× dans init / switchMode / computeWaterTemp avant V21.76).
+const TB_FALLBACK_BY_MODE = { pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60 };
+
 const PETR_TB_DEFAULTS = {
   spirale: 56, oblique: 50, batteur: 60, bras: 62, manuel: 70
 };
@@ -4557,7 +4561,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.75';
+const APP_VERSION = 'V21.76';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -6596,7 +6600,7 @@ function init(){
   });
 
   // TB par famille — initialisation au démarrage + persistance
-  const TB_DEFAULTS = {pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60};
+  // V21.76 — TB_DEFAULTS local supprimé, utilise TB_FALLBACK_BY_MODE global
   const tbEl = $('tb-base');
   if(tbEl){
     // V21.64 — Dépréciation localStorage opdcj_tb_${MODE} : TB est désormais
@@ -6606,7 +6610,7 @@ function init(){
     // Priorité : localStorage legacy > pétrin défaut > MODE fallback
     const petrType = petrMigrateLegacy($('pz-petr-type')?.value || 'spirale');
     const petrTB = PETR_TB_DEFAULTS[petrType];
-    tbEl.value = (saved>=52 && saved<=80) ? saved : (petrTB || TB_DEFAULTS[MODE] || 66);
+    tbEl.value = (saved>=52 && saved<=80) ? saved : (petrTB || TB_FALLBACK_BY_MODE[MODE] || 66);
     tbEl.addEventListener('input', computeWaterTemp);
   }
   // V21.61 — Init friction + V1/V2 selon pétrin courant (si pas déjà saved)
@@ -6865,14 +6869,14 @@ function switchMode(mode){
     }catch(_){}
   }
   // Charger la TB sauvegardée (ou défaut) pour la nouvelle famille
-  const _TB_DEF = {pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60};
+  // V21.76 — _TB_DEF local supprimé, utilise TB_FALLBACK_BY_MODE global
   const _tbEl = $('tb-base');
   if(_tbEl){
     let _sv; try{_sv=parseInt(localStorage.getItem('opdcj_tb_'+mode),10);}catch(e){}
     // V21.61 — Priorité : localStorage > pétrin défaut > MODE fallback
     const _petr = petrMigrateLegacy($('pz-petr-type')?.value || 'spirale');
     const _petrTB = PETR_TB_DEFAULTS[_petr];
-    _tbEl.value = (_sv>=52 && _sv<=80) ? _sv : (_petrTB || _TB_DEF[mode] || 66);
+    _tbEl.value = (_sv>=52 && _sv<=80) ? _sv : (_petrTB || TB_FALLBACK_BY_MODE[mode] || 66);
   }
   document.querySelectorAll('.pb').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('vis'));
@@ -8268,8 +8272,8 @@ function computeWaterTemp(){
   if(poolWrap) poolWrap.style.display=S.surPool?'':'none';
 
   // TB saisie par l'utilisateur (avec défaut par famille)
-  const _TB_DEFAULTS = {pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60};
-  const tbUser = toNum($('tb-base')?.value, _TB_DEFAULTS[MODE]||66);
+  // V21.76 — _TB_DEFAULTS local supprimé, utilise TB_FALLBACK_BY_MODE global
+  const tbUser = toNum($('tb-base')?.value, TB_FALLBACK_BY_MODE[MODE] || 66);
 
   // V21.17 — Pétrin + friction désormais actifs sur TOUTES les familles
   // V21.61 — petrType = nouveaux types (spirale/oblique/batteur/bras/manuel/custom)
@@ -8936,6 +8940,33 @@ function applyAgentDefaults(agent, planMode){
 // Prend en compte : agent, pétrissage, T° fournil
 // ─────────────────────────────────────────────
 
+// V21.76 — Calcul durée ajustée d'une phase Planning (factorisé : était dupliqué
+// 2× dans planIcsRenderPhases/getAdjDurIcs et computeTimeline/getAdjDur).
+// agent, factTfo, factPetr sont passés en paramètres (calculés au call site).
+// Retourne durée en MINUTES, intégrant ajustements pétrissage/fournil.
+function getPlanAdjustedDurMin(ph, planMode, agent, factTfo, factPetr){
+  const prefixId = planMode + '-' + ph.id;
+  // Poolish : pizza lit pz-pool-duree, pain lit pool-duree
+  if(ph.type === 'preferm' && (agent === 'poolish' || (MODE === 'pizza' && !!$('pizza-surpool')?.checked))){
+    const src = (MODE === 'pizza') ? $('pz-pool-duree') : $('pool-duree');
+    return toNum(src?.value, 4) * 60;
+  }
+  if(ph.type === 'preferm' && $('pizza-surbiga')?.checked && MODE === 'pizza'){
+    return toNum($('pz-biga-duree')?.value, 18) * 60;
+  }
+  // Froid : input en heures → minutes
+  if(ph.type === 'froid'){
+    return Math.round(toNum($('pdur-' + prefixId)?.value, ph.dur / 60) * 60);
+  }
+  const base = toNum($('pdur-' + prefixId)?.value, ph.dur);
+  switch(ph.type){
+    case 'manual': case 'preferm': return base;
+    case 'pointage': return Math.round(Math.max(15, base * factPetr) * factTfo);
+    case 'appret': case 'retourTA': case 'ferm': return Math.round(base * factTfo);
+    default: return base;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // V17.4 — EXPORT CALENDRIER (.ics)
 // Exporte uniquement les phases cochées par l'utilisateur
@@ -8963,27 +8994,8 @@ function planIcsRenderPhases() {
   const factTfo  = fermentTempFactor(tfo);
   const factPetr = PETR_FACTORS[petr] || 1.0;
 
-  function getAdjDurIcs(ph) {
-    const prefixId = planMode + '-' + ph.id;
-    // V18-1 — Poolish : pizza lit pz-pool-duree, pain lit pool-duree
-    if (ph.type === 'preferm' && (agent === 'poolish' || (MODE === 'pizza' && !!$('pizza-surpool')?.checked))){
-      const src = (MODE === 'pizza') ? $('pz-pool-duree') : $('pool-duree');
-      return toNum(src?.value, 4) * 60;
-    }
-    if (ph.type === 'preferm' && $('pizza-surbiga')?.checked && MODE === 'pizza')
-      return toNum($('pz-biga-duree')?.value, 18) * 60;
-    // V18-1 — Froid : input en heures → minutes
-    if (ph.type === 'froid') {
-      return Math.round(toNum($('pdur-' + prefixId)?.value, ph.dur/60) * 60);
-    }
-    const base = toNum($('pdur-' + prefixId)?.value, ph.dur);
-    switch (ph.type) {
-      case 'manual': case 'preferm': return base;
-      case 'pointage': return Math.round(Math.max(15, base * factPetr) * factTfo);
-      case 'appret': case 'retourTA': case 'ferm': return Math.round(base * factTfo);
-      default: return base;
-    }
-  }
+  // V21.76 — getAdjDurIcs remplacé par getPlanAdjustedDurMin global
+  const getAdjDurIcs = ph => getPlanAdjustedDurMin(ph, planMode, agent, factTfo, factPetr);
 
   // Lire date + heure de sortie du four pour calculer les heures absolues
   const timeVal = $('plan-end')?.value;
@@ -9106,27 +9118,8 @@ function exportToCalendar(){
   const factTfo   = fermentTempFactor(tfo);
   const factPetr  = PETR_FACTORS[petr] || 1.0;
 
-  function getAdjDur(ph){
-    const prefixId = planMode+'-'+ph.id;
-    // V18-1 — Poolish : pizza lit pz-pool-duree, pain lit pool-duree
-    if(ph.type==='preferm' && (agent==='poolish' || (MODE==='pizza' && !!$('pizza-surpool')?.checked))){
-      const src = (MODE==='pizza') ? $('pz-pool-duree') : $('pool-duree');
-      return toNum(src?.value, 4)*60;
-    }
-    if(ph.type==='preferm' && $('pizza-surbiga')?.checked && MODE==='pizza')
-      return toNum($('pz-biga-duree')?.value, 18)*60;
-    // V18-1 — Froid : input en heures → minutes
-    if(ph.type==='froid'){
-      return Math.round(toNum($('pdur-'+prefixId)?.value, ph.dur/60)*60);
-    }
-    const base = toNum($('pdur-'+prefixId)?.value, ph.dur);
-    switch(ph.type){
-      case 'manual': case 'preferm': return base;
-      case 'pointage': return Math.round(Math.max(15, base*factPetr)*factTfo);
-      case 'appret': case 'retourTA': case 'ferm':  return Math.round(base*factTfo);
-      default: return base;
-    }
-  }
+  // V21.76 — getAdjDur remplacé par getPlanAdjustedDurMin global
+  const getAdjDur = ph => getPlanAdjustedDurMin(ph, planMode, agent, factTfo, factPetr);
 
   // ── Collecter les phases sélectionnées dans le sélecteur ICS ──
   const alarmMin = parseInt(document.getElementById('plan-ics-alarm-min')?.value) || 15;
