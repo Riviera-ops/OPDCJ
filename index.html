@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.68</title>
+<title>Ô Pain De Ce Jour V21.69</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -2709,10 +2709,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           </div>
         </div>
 
-        <!-- V21.66 — Chrono total recette (auto-démarre au 1er Start, persiste localStorage) -->
-        <div class="chrono-recipe" id="chrono-recipe" style="display:none;">
-          <div class="cr-label">Recette démarrée il y a</div>
-          <div class="cr-val" id="chrono-recipe-elapsed">—</div>
+        <!-- V21.66 — Chrono total recette (auto-démarre au 1er Start, persiste localStorage)
+             V21.69 — Toujours visible (état "Pas démarrée" si pas encore lancée) -->
+        <div class="chrono-recipe" id="chrono-recipe">
+          <div class="cr-label">Recette</div>
+          <div class="cr-val" id="chrono-recipe-elapsed">Pas démarrée</div>
           <button type="button" class="cr-reset" id="chrono-recipe-reset" title="Démarrer une nouvelle recette">↺ Reset</button>
         </div>
 
@@ -4415,7 +4416,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.68';
+const APP_VERSION = 'V21.69';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5999,6 +6000,13 @@ function chronoOnPhaseEnd(){
 
 function chronoRender(){
   const p = ChronoState.phase;
+  // V21.69 — Détection fin-de-phase AVANT calcul des boutons.
+  // Bug V21.68 : running/ended étaient calculés AVANT chronoOnPhaseEnd → boutons
+  // restaient set avec l'ancien state (running=true) → Démarrer toujours grisé.
+  if(chronoIsActive() && chronoElapsedMs() >= p.durationMs && !p.endNotified){
+    chronoOnPhaseEnd();  // mute state : runStartTs=null, accumulatedMs=durationMs
+  }
+  // Recompute avec le state mis à jour
   const elapsed = chronoElapsedMs();
   const remaining = Math.max(0, p.durationMs - elapsed);
   const progress = p.durationMs > 0 ? Math.min(1, elapsed / p.durationMs) : 0;
@@ -6053,10 +6061,7 @@ function chronoRender(){
                           : '<span class="icn">▶</span> Démarrer');
   }
 
-  // Notification de fin (une seule fois) — appelle chronoOnPhaseEnd qui clean tout
-  if(chronoIsActive() && elapsed >= p.durationMs && !p.endNotified){
-    chronoOnPhaseEnd();
-  }
+  // (Détection fin-de-phase déplacée en haut de la fonction V21.69)
 }
 
 function chronoTickFrame(){
@@ -6163,14 +6168,20 @@ function chronoUpdateWakeLockUI(active){
 }
 
 // ── Chrono total recette ──
+// V21.69 — Toujours visible (Pas démarrée si pas de timestamp)
 function chronoRenderRecipe(){
   const wrap = $('chrono-recipe');
   const val  = $('chrono-recipe-elapsed');
+  const reset = $('chrono-recipe-reset');
   if(!wrap || !val) return;
   const ts = ChronoState.recipe.startTs;
-  if(!ts){ wrap.style.display = 'none'; return; }
-  wrap.style.display = '';
-  val.textContent = chronoFmtHM(Date.now() - ts);
+  if(!ts){
+    val.textContent = 'Pas démarrée';
+    if(reset) reset.style.visibility = 'hidden';  // pas de reset si rien à reset
+    return;
+  }
+  val.textContent = 'Démarrée il y a ' + chronoFmtHM(Date.now() - ts);
+  if(reset) reset.style.visibility = '';
 }
 
 function chronoRecipeReset(){
