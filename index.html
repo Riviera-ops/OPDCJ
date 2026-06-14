@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.63</title>
+<title>Ô Pain De Ce Jour V21.64</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -4267,7 +4267,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.63';
+const APP_VERSION = 'V21.64';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5784,15 +5784,15 @@ function init(){
   const TB_DEFAULTS = {pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60};
   const tbEl = $('tb-base');
   if(tbEl){
+    // V21.64 — Dépréciation localStorage opdcj_tb_${MODE} : TB est désormais
+    // recette-attaché via le type de pétrin (BLOC 2 V21.61). On lit encore pour
+    // rétro-compat (sessions sans recette sauvegardée), mais on n'écrit plus.
     let saved; try{saved=parseInt(localStorage.getItem('opdcj_tb_'+MODE),10);}catch(e){}
-    // V21.61 — Priorité : localStorage > pétrin défaut > MODE fallback
+    // Priorité : localStorage legacy > pétrin défaut > MODE fallback
     const petrType = petrMigrateLegacy($('pz-petr-type')?.value || 'spirale');
     const petrTB = PETR_TB_DEFAULTS[petrType];
     tbEl.value = (saved>=52 && saved<=80) ? saved : (petrTB || TB_DEFAULTS[MODE] || 66);
-    tbEl.addEventListener('input',()=>{
-      try{localStorage.setItem('opdcj_tb_'+MODE, tbEl.value);}catch(e){}
-      computeWaterTemp();
-    });
+    tbEl.addEventListener('input', computeWaterTemp);
   }
   // V21.61 — Init friction + V1/V2 selon pétrin courant (si pas déjà saved)
   applyPetrDefaults(petrMigrateLegacy($('pz-petr-type')?.value || 'spirale'), {skipTB:true});
@@ -7757,24 +7757,12 @@ function initPlanning(){
       btn.classList.add('active');
       const val=btn.dataset.val;
       const hidden=$('plan-petrissage'); if(hidden) hidden.value=val;
-      // M2 — sync to pain card selector
-      document.querySelectorAll('#pain-card-petr-seg .rseg-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===val));
+      // V21.64 — Suppression sync vers #pain-card-petr-seg (sélecteur supprimé en V21.58)
       computeAll();
     });
   });
 
-  // M2 — Pain card petrissage selector (synced with Planning tab)
-  document.querySelectorAll('#pain-card-petr-seg .rseg-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('#pain-card-petr-seg .rseg-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const val=btn.dataset.val;
-      const hidden=$('plan-petrissage'); if(hidden) hidden.value=val;
-      // sync back to Planning tab selector
-      document.querySelectorAll('#plan-petr-seg .rseg-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===val));
-      computeAll();
-    });
-  });
+  // V21.64 — Listeners #pain-card-petr-seg supprimés (sélecteur n'existe plus depuis V21.58).
 
   // Quand pool-duree change, re-rendre les phases (lecture seule poolish)
   const poolDurEl=$('pool-duree');
@@ -8944,10 +8932,7 @@ function setFormData(data){
   document.querySelectorAll('#plan-petr-seg .rseg-btn').forEach(b=>{
     b.classList.toggle('active',b.dataset.val===petr);
   });
-  // M2 — sync pain card petrissage selector
-  document.querySelectorAll('#pain-card-petr-seg .rseg-btn').forEach(b=>{
-    b.classList.toggle('active',b.dataset.val===petr);
-  });
+  // V21.64 — Sync vers #pain-card-petr-seg supprimé (sélecteur n'existe plus depuis V21.58).
 
   // V16-LotB : synchroniser pool-* → pz-pool-* pour les recettes sauvegardées
   // qui n'ont pas encore les nouveaux IDs (compat ascendante)
