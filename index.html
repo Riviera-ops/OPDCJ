@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.57</title>
+<title>Ô Pain De Ce Jour V21.58</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -624,7 +624,55 @@ body.mode-pizza .bread-extras-card,
 body.mode-focaccia .bread-extras-card{display:none;}
 
 /* ── V21.57 — Card autolyse (masquée en mode brioche) ── */
-body.mode-brioche .autolyse-card{display:none;}
+body.mode-brioche .autolyse-card,
+body.mode-brioche .sub-card[data-sub="autolyse"]{display:none;}
+
+/* ── V21.58 — Sous-cards accordéon dans Fermentation & Process (mobile-first) ── */
+.sub-card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  margin:10px 0;
+  overflow:hidden;
+}
+.sub-card:first-child{margin-top:0;}
+.sub-card:last-child{margin-bottom:0;}
+.sub-ch{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  min-height:44px;
+  cursor:pointer;
+  user-select:none;
+  background:transparent;
+  transition:background .15s;
+}
+.sub-ch:hover{background:var(--acc-bg);}
+.sub-ch h4{
+  font-size:13px;
+  font-weight:700;
+  flex:1;
+  margin:0;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  color:var(--prim-dk);
+}
+.sub-ch .sub-tag{
+  font-size:11px;
+  color:var(--muted);
+  font-weight:500;
+  white-space:nowrap;
+}
+.sub-ch .sub-caret{
+  font-size:14px;
+  color:var(--prim);
+  transition:transform .2s;
+  line-height:1;
+}
+.sub-card.collapsed .sub-caret{transform:rotate(-90deg);}
+.sub-card.collapsed .sub-cb{display:none;}
+.sub-cb{padding:4px 14px 14px;}
 
 /* ── V17.4 — Lignes ingrédients extras pain (même composant que pz-top-row) ── */
 .bex-cat{font-size:10px;font-weight:800;color:var(--prim);text-transform:uppercase;
@@ -1104,15 +1152,9 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <div class="fg"><label>Type de levure</label><select id="pain-lev-type" data-prev="instant" onchange="levTypeChange('pain',this)"><option value="fraiche">Fraîche</option><option value="instant" selected>Sèche instantanée (×0.33)</option><option value="active">Sèche active (×0.5)</option></select><div class="hint">Fraîche ×1 · Inst. ×0.33 · Active ×0.5</div></div>
           <div class="fg"><label>% Sel</label><input type="number" inputmode="decimal" id="pain-sel" value="1.8" step="0.1"><div class="hint">Réf. 1.8 %</div></div>
         </div>
-        <!-- M2 — Type de pétrissage (synchronisé avec Planning) -->
-        <div style="margin-top:10px;">
-          <div class="slbl" style="margin-bottom:6px;">Type de pétrissage</div>
-          <div class="radio-seg" id="pain-card-petr-seg">
-            <label class="rseg-btn" data-val="pvl"><input type="radio" name="pain-card-petr" value="pvl">PVL</label>
-            <label class="rseg-btn active" data-val="pa"><input type="radio" name="pain-card-petr" value="pa" checked>PA</label>
-            <label class="rseg-btn" data-val="pi"><input type="radio" name="pain-card-petr" value="pi">PI</label>
-          </div>
-        </div>
+        <!-- V21.58 — Sélecteur PA/PVL/PI supprimé (réorganisation Fermentation & Process).
+             Le contrôle du type de pétrissage reste dans Planning (#plan-petrissage). -->
+
         <div class="mt8 legacy-ferm">
           <label class="trow" id="pain-pool-row">
             <div><div class="tl">Sur Poolish</div><div class="ts">Fermentation différée sur levain liquide</div></div>
@@ -1526,10 +1568,20 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <div class="card ferm-pilot-card">
     <div class="ch collapsible">
       <div class="ico"><svg class="ic"><use href="#ic-clock"/></svg></div>
-      <h3>Fermentation</h3>
+      <h3>Fermentation &amp; Process</h3>
       <span class="tag" id="ferm-tag">Directe · Tout TA</span>
     </div>
     <div class="cb">
+
+      <!-- ══════ Sous-section 1 : Pré-ferments & maturation (OUVERT) ══════ -->
+      <div class="sub-card" data-sub="ferment">
+        <div class="sub-ch" data-start="open">
+          <h4>Pré-ferments &amp; maturation</h4>
+          <span class="sub-tag" id="ferm-sub-tag">Directe · Tout TA</span>
+          <span class="sub-caret">▾</span>
+        </div>
+        <div class="sub-cb">
+
       <!-- V21.27 — Stratégie principale XOR (directe/poolish/biga) -->
       <div class="slbl" style="margin-top:0;">Stratégie principale</div>
       <div class="radio-seg ferm-strategy-seg" id="ferm-strategy-seg" style="flex-wrap:wrap;">
@@ -1729,6 +1781,115 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <span class="tag" id="pz-prot-tag" style="display:inline-block;margin-top:6px;"></span>
         <div id="pz-w-warn" class="hidden mt8"></div>
       </div>
+        </div><!-- /sub-cb sub-card 1 -->
+      </div><!-- /sub-card ferment -->
+
+      <!-- ══════ Sous-section 2 : Autolyse & bassinage (REPLIÉ) ══════ -->
+      <div class="sub-card" data-sub="autolyse">
+        <div class="sub-ch" data-start="closed">
+          <h4>Autolyse &amp; bassinage</h4>
+          <span class="sub-tag" id="autolyse-sub-tag">Aucune</span>
+          <span class="sub-caret">▾</span>
+        </div>
+        <div class="sub-cb">
+          <div class="hint" style="margin-bottom:10px;">
+            Repos farine + eau (sans levure) avant pétrissage final.
+            Réduit la friction (-2°C) et, au-delà de 60 min, décale la référence farine vers la T° fournil.
+          </div>
+          <div class="g2">
+            <div class="fg">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" id="autolyse-active" style="width:18px;height:18px;cursor:pointer;">
+                <span>Activer l'autolyse</span>
+              </label>
+            </div>
+            <div class="fg">
+              <label>Durée (min)</label>
+              <input type="number" inputmode="decimal" id="autolyse-duree"
+                     value="30" min="10" max="240" step="5" list="dl-autolyse-duree">
+              <datalist id="dl-autolyse-duree">
+                <option value="20"><option value="30"><option value="45"><option value="60"><option value="90"><option value="120">
+              </datalist>
+              <div class="hint">Calvel : 20-60 min · Long : 90-120 min</div>
+            </div>
+          </div>
+          <div class="g2 mt8">
+            <div class="fg">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;">
+                <input type="checkbox" id="autolyse-sel" style="width:16px;height:16px;cursor:pointer;">
+                <span>Sel inclus (frasage prolongé)</span>
+              </label>
+            </div>
+            <div class="fg">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;">
+                <input type="checkbox" id="autolyse-bass" style="width:16px;height:16px;cursor:pointer;">
+                <span>Bassinage en fin de pétrissage</span>
+              </label>
+            </div>
+          </div>
+          <div id="autolyse-out" class="alert a-info mt8 hidden" style="font-size:12px;"></div>
+        </div>
+      </div><!-- /sub-card autolyse -->
+
+      <!-- ══════ Sous-section 3 : Process & T° de coulage (REPLIÉ) ══════ -->
+      <div class="sub-card" data-sub="process">
+        <div class="sub-ch" data-start="closed">
+          <h4>Process &amp; T° de coulage</h4>
+          <span class="sub-tag" id="process-sub-tag">TB —</span>
+          <span class="sub-caret">▾</span>
+        </div>
+        <div class="sub-cb">
+          <div class="g3">
+            <div class="fg"><label>T° Farine (°C)</label><input type="number" inputmode="decimal" id="tb-f" list="dl-tb-f" value="20"></div>
+            <div class="fg"><label>T° Fournil (°C)</label><input type="number" inputmode="decimal" id="tb-fo" list="dl-tb-fo" value="22"></div>
+            <div class="fg">
+              <label>Température de base — TB (°C)</label>
+              <input type="number" inputmode="decimal" id="tb-base" value="66" min="52" max="80" step="1">
+              <div class="hint">TB intègre votre T° pâte cible et la friction de votre pétrin.
+                Ajustez-la une fois en début de saison selon vos conditions de fournil.
+                Valeur usuelle : 62–68 °C pain, 60–65 °C pizza.</div>
+            </div>
+            <div class="fg" id="tb-pool-wrap" style="display:none;">
+              <label>T° Poolish (°C)</label>
+              <input type="number" inputmode="decimal" id="tb-pool" list="dl-tb-pool" value="25">
+              <div class="hint">Pour calcul eau pétrisée</div>
+            </div>
+            <!-- V17-Dfix4 — T° eau du robinet (utile pour calcul glace si eau cible plus froide) -->
+            <div class="fg">
+              <label>T° eau du robinet (°C)</label>
+              <input type="number" inputmode="decimal" id="tb-reseau" list="dl-tb-reseau" value="15" min="8" max="30">
+              <div class="hint">Sert au calcul de glace · 8°C hiver → 25°C été</div>
+            </div>
+            <!-- V21.46 — Datalists pour suggestions T° (saisie libre conservée) -->
+            <datalist id="dl-tb-f"><option value="16"><option value="18"><option value="20"><option value="22"><option value="24"></datalist>
+            <datalist id="dl-tb-fo"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"><option value="30"></datalist>
+            <datalist id="dl-tb-pool"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"></datalist>
+            <datalist id="dl-tb-reseau"><option value="8"><option value="10"><option value="12"><option value="15"><option value="18"><option value="20"><option value="25"></datalist>
+            <!-- V21.17 — Pétrin (toutes familles) : preset + friction modifiable -->
+            <div class="fg">
+              <label>Pétrin</label>
+              <select id="pz-petr-type">
+                <option value="hand">Manuel / Doux</option>
+                <option value="spiral-slow" selected>Spirale lent</option>
+                <option value="spiral-pro">Spirale rapide / Pro</option>
+                <option value="custom">Personnalisé</option>
+              </select>
+              <div class="hint">Cible pâte 23-24°C · formule des 3T</div>
+            </div>
+            <div class="fg">
+              <label>Friction du pétrin (°C)</label>
+              <input type="number" inputmode="decimal" id="pz-friction" value="4" min="0" max="20" step="0.5">
+              <div class="hint" id="pz-friction-hint">Échauffement par pétrissage</div>
+            </div>
+          </div>
+          <div class="temp-boxes" id="tb-results"><!-- JS --></div>
+          <!-- V15 : info TB selon pétrissage (mode direct) -->
+          <div id="tb-petr-info" class="hidden mt8"></div>
+          <div id="tb-glace" class="hidden mt8"></div>
+          <div id="tb-warn" class="hidden mt8"></div>
+        </div>
+      </div><!-- /sub-card process -->
+
     </div>
   </div>
 
@@ -1786,118 +1947,6 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
         <div class="fg"><label>Gluten pur (%)</label><input type="number" inputmode="decimal" id="ext-gluten" value="0" step="0.5" min="0" max="5"><div class="hint">1-3% pour renforcer</div></div>
         <div class="fg"><label>Vit. C (mg/kg farine)</label><input type="number" inputmode="decimal" id="ext-vitc" value="0" step="10" min="0" max="300"><div class="hint">20-100 mg/kg typique</div></div>
       </div>
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════════
-       TEMPÉRATURES DE COULAGE — dans la recette
-  ═════════════════════════════════════ -->
-  <div class="card">
-    <div class="ch collapsible" data-start="closed">
-      <div class="ico"><svg class="ic"><use href="#ic-thermometer"/></svg></div>
-      <h3>Températures de coulage</h3>
-      <span class="tag" id="tb-tag">Direct</span>
-    </div>
-    <div class="cb">
-      <div class="g3">
-        <div class="fg"><label>T° Farine (°C)</label><input type="number" inputmode="decimal" id="tb-f" list="dl-tb-f" value="20"></div>
-        <div class="fg"><label>T° Fournil (°C)</label><input type="number" inputmode="decimal" id="tb-fo" list="dl-tb-fo" value="22"></div>
-        <div class="fg">
-          <label>Température de base — TB (°C)</label>
-          <input type="number" inputmode="decimal" id="tb-base" value="66" min="52" max="80" step="1">
-          <div class="hint">TB intègre votre T° pâte cible et la friction de votre pétrin.
-            Ajustez-la une fois en début de saison selon vos conditions de fournil.
-            Valeur usuelle : 62–68 °C pain, 60–65 °C pizza.</div>
-        </div>
-        <div class="fg" id="tb-pool-wrap" style="display:none;">
-          <label>T° Poolish (°C)</label>
-          <input type="number" inputmode="decimal" id="tb-pool" list="dl-tb-pool" value="25">
-          <div class="hint">Pour calcul eau pétrisée</div>
-        </div>
-        <!-- V17-Dfix4 — T° eau du robinet (utile pour calcul glace si eau cible plus froide) -->
-        <div class="fg">
-          <label>T° eau du robinet (°C)</label>
-          <input type="number" inputmode="decimal" id="tb-reseau" list="dl-tb-reseau" value="15" min="8" max="30">
-          <div class="hint">Sert au calcul de glace · 8°C hiver → 25°C été</div>
-        </div>
-        <!-- V21.46 — Datalists pour suggestions T° (saisie libre conservée) -->
-        <datalist id="dl-tb-f"><option value="16"><option value="18"><option value="20"><option value="22"><option value="24"></datalist>
-        <datalist id="dl-tb-fo"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"><option value="30"></datalist>
-        <datalist id="dl-tb-pool"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"></datalist>
-        <datalist id="dl-tb-reseau"><option value="8"><option value="10"><option value="12"><option value="15"><option value="18"><option value="20"><option value="25"></datalist>
-        <!-- V21.17 — Pétrin (toutes familles) : preset + friction modifiable -->
-        <div class="fg">
-          <label>Pétrin</label>
-          <select id="pz-petr-type">
-            <option value="hand">Manuel / Doux</option>
-            <option value="spiral-slow" selected>Spirale lent</option>
-            <option value="spiral-pro">Spirale rapide / Pro</option>
-            <option value="custom">Personnalisé</option>
-          </select>
-          <div class="hint">Cible pâte 23-24°C · formule des 3T</div>
-        </div>
-        <div class="fg">
-          <label>Friction du pétrin (°C)</label>
-          <input type="number" inputmode="decimal" id="pz-friction" value="4" min="0" max="20" step="0.5">
-          <div class="hint" id="pz-friction-hint">Échauffement par pétrissage</div>
-        </div>
-      </div>
-      <div class="temp-boxes" id="tb-results"><!-- JS --></div>
-      <!-- V15 : info TB selon pétrissage (mode direct) -->
-      <div id="tb-petr-info" class="hidden mt8"></div>
-      <div id="tb-glace" class="hidden mt8"></div>
-      <div id="tb-warn" class="hidden mt8"></div>
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════════
-       V21.57 — AUTOLYSE (Module 4.3)
-       Visible pain · petit-pain · pizza · focaccia (caché en brioche)
-       Effet sur computeWaterTemp : friction -2°C + shift tf→tfo après 60 min
-  ═════════════════════════════════════ -->
-  <div class="card autolyse-card">
-    <div class="ch collapsible" data-start="closed">
-      <div class="ico"><svg class="ic"><use href="#ic-leaf"/></svg></div>
-      <h3>Autolyse</h3>
-      <span class="tag" id="autolyse-tag">Optionnel</span>
-    </div>
-    <div class="cb">
-      <div class="hint" style="margin-bottom:10px;">
-        Repos farine + eau (sans levure) avant pétrissage final.
-        Réduit la friction (-2°C) et, au-delà de 60 min, décale la référence farine vers la T° fournil.
-      </div>
-      <div class="g2">
-        <div class="fg">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" id="autolyse-active" style="width:18px;height:18px;cursor:pointer;">
-            <span>Activer l'autolyse</span>
-          </label>
-        </div>
-        <div class="fg">
-          <label>Durée (min)</label>
-          <input type="number" inputmode="decimal" id="autolyse-duree"
-                 value="30" min="10" max="240" step="5" list="dl-autolyse-duree">
-          <datalist id="dl-autolyse-duree">
-            <option value="20"><option value="30"><option value="45"><option value="60"><option value="90"><option value="120">
-          </datalist>
-          <div class="hint">Calvel : 20-60 min · Long : 90-120 min</div>
-        </div>
-      </div>
-      <div class="g2 mt8">
-        <div class="fg">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;">
-            <input type="checkbox" id="autolyse-sel" style="width:16px;height:16px;cursor:pointer;">
-            <span>Sel inclus (frasage prolongé)</span>
-          </label>
-        </div>
-        <div class="fg">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;">
-            <input type="checkbox" id="autolyse-bass" style="width:16px;height:16px;cursor:pointer;">
-            <span>Bassinage en fin de pétrissage</span>
-          </label>
-        </div>
-      </div>
-      <div id="autolyse-out" class="alert a-info mt8 hidden" style="font-size:12px;"></div>
     </div>
   </div>
 
@@ -4128,7 +4177,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.57';
+const APP_VERSION = 'V21.58';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5625,6 +5674,18 @@ function init(){
   ['tb-f','tb-fo','tb-pool','tb-reseau',
    'autolyse-active','autolyse-duree','autolyse-sel','autolyse-bass'].forEach(id=>{
     const el=$(id); if(el){ el.addEventListener('input',computeAll); el.addEventListener('change',computeAll); }
+  });
+
+  // V21.58 — Accordéon sous-cards dans Fermentation & Process
+  document.addEventListener('click', e => {
+    const subCh = e.target.closest('.sub-ch');
+    // Éviter de toggle si l'utilisateur clique sur un input/label dans le header
+    if(!subCh || e.target.closest('input,select,label')) return;
+    subCh.closest('.sub-card')?.classList.toggle('collapsed');
+  });
+  // Init : appliquer .collapsed selon data-start
+  document.querySelectorAll('.sub-ch[data-start="closed"]').forEach(el => {
+    el.closest('.sub-card')?.classList.add('collapsed');
   });
 
   // TB par famille — initialisation au démarrage + persistance
@@ -7217,11 +7278,13 @@ function readAutolyseState(){
 function renderAutolyseOut(){
   const out = $('autolyse-out');
   const tag = $('autolyse-tag');
+  const subTag = $('autolyse-sub-tag'); // V21.58 — mirror sur sous-card header
   if(!out) return;
   const auto = readAutolyseState();
   if(MODE === 'brioche' || !auto.active){
     out.classList.add('hidden');
     if(tag) tag.textContent = 'Optionnel';
+    if(subTag) subTag.textContent = 'Aucune';
     return;
   }
   const tfo = toNum($('tb-fo')?.value, 22);
@@ -7239,6 +7302,18 @@ function renderAutolyseOut(){
   out.innerHTML = `Autolyse <b>${auto.duree} min</b> : friction effective -2°C${shiftLine}${extraTag}`;
   out.classList.remove('hidden');
   if(tag) tag.textContent = `${auto.duree}'${auto.selInclus ? ' · +sel' : ''}`;
+  if(subTag) subTag.textContent = `Autolyse ${auto.duree} min${auto.selInclus ? ' · +sel' : ''}`;
+}
+
+// V21.58 — Mirror ferm-tag et tb-tag vers les sous-card headers de Fermentation & Process
+function renderSubCardTags(){
+  const fermSrc = $('ferm-tag')?.textContent;
+  const fermSub = $('ferm-sub-tag');
+  if(fermSrc && fermSub) fermSub.textContent = fermSrc;
+
+  const tbSrc = $('tb-tag')?.textContent;
+  const processSub = $('process-sub-tag');
+  if(tbSrc && processSub) processSub.textContent = tbSrc;
 }
 
 // Sync vers la phase Planning 'autolyse' du planMode courant
@@ -8650,6 +8725,7 @@ function computeAll(){
     syncAutolyseToPlanning(); // V21.57 : sync recette → phase Planning AVANT computeWaterTemp + computeTimeline
     computeWaterTemp();      // V21.57 : applique frictionEff + tfEff (autolyse)
     renderAutolyseOut();     // V21.57 : tag + bandeau info autolyse
+    renderSubCardTags();     // V21.58 : mirror tags vers sous-card headers (Ferment & Process)
     computeTimeline();
     computePizzaCostSummary(); // V17-C3 : récap coût pizza (matière + garniture)
     renderBreadExtras();          // V17.4 : ingrédients extras pain
