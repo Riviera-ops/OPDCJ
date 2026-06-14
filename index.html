@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.48</title>
+<title>Ô Pain De Ce Jour V21.49</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -721,6 +721,9 @@ body.dark .lv-total-msg.lv-total-ok{background:rgba(126,147,89,.22);}
    Les inputs restent dans le DOM pour le sync ferment→legacy. */
 .legacy-ferm{display:none !important;}
 
+/* V21.49 — Éléments pizza-only dans la card Fermentation (Pilote unifié) */
+body:not(.mode-pizza) .pz-ferm-pizza{display:none;}
+
 /* V21.25 — Biga réservée à pizza/focaccia (pas de biga en pain/brioche/petit-pain) */
 body.mode-pain .ferm-strategy-seg [data-val="biga"],
 body.mode-brioche .ferm-strategy-seg [data-val="biga"],
@@ -1196,120 +1199,15 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
                   avec le mode focaccia (cf. .pz-shared-flour-card ci-dessus).
     ═════════════════════════════════════════ -->
 
-    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-         ÉTAPE 2 — TYPE DE FERMENTATION
-         · Toggle Direct/Long  → si Long, révèle les heures de froid
-         · Toggle Sur Poolish  → révèle l'étape 3
-    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-    <div class="card">
-      <div class="ch collapsible">
-        <div class="ico"><svg class="ic"><use href="#ic-clock"/></svg></div>
-        <h3>Fermentation</h3>
-        <span class="tag" id="pz-prot-tag">—</span>
-      </div>
-      <div class="cb">
-
-        <!-- Toggle Direct / Longue -->
-        <label class="trow legacy-ferm">
-          <div>
-            <div class="tl">Fermentation longue (avec froid)</div>
-            <div class="ts" id="pz-long-hint">Désactivé : tout TA</div>
-          </div>
-          <div class="tsw"><input type="checkbox" id="pz-long"><div class="tslider"></div></div>
-        </label>
-
-        <!-- Heures TA / froid / T° froid (legacy — pilotés par le Pilote V21.22+) -->
-        <div class="g2 mt8 legacy-ferm">
-          <div class="fg">
-            <label>Heures TA (h)</label>
-            <select id="pz-h-ta">
-              <option value="1">1 h</option>
-              <option value="2" selected>2 h</option>
-              <option value="3">3 h</option>
-              <option value="4">4 h</option>
-              <option value="6">6 h</option>
-              <option value="8">8 h</option>
-              <option value="10">10 h</option>
-              <option value="12">12 h</option>
-            </select>
-            <div class="hint">À T° fournil</div>
-          </div>
-          <div class="fg pz-cold-only">
-            <label>Heures froid (h)</label>
-            <select id="pz-h-cold">
-              <option value="0">0 h</option>
-              <option value="8">8 h</option>
-              <option value="16">16 h</option>
-              <option value="24" selected>24 h</option>
-              <option value="32">32 h</option>
-              <option value="40">40 h</option>
-              <option value="48">48 h</option>
-              <option value="56">56 h</option>
-              <option value="64">64 h</option>
-              <option value="72">72 h</option>
-              <option value="80">80 h</option>
-              <option value="88">88 h</option>
-              <option value="96">96 h</option>
-            </select>
-            <div class="hint">Frigo / cave</div>
-          </div>
-          <div class="fg pz-cold-only">
-            <label>T° froid (°C)</label>
-            <input type="number" inputmode="decimal" id="pz-t-cold" value="4" min="2" max="18">
-          </div>
-        </div>
-
-        <!-- Type de levure (gardé visible — pas géré par le Pilote) -->
-        <div class="g2 mt8">
-          <div class="fg gfull">
-            <label>Type de levure</label>
-            <select id="pz-lev-type">
-              <option value="fraiche">Fraîche</option>
-              <option value="instant" selected>Sèche instantanée (×0.33)</option>
-              <option value="active">Sèche active (×0.5)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Toggle calcul auto -->
-        <label class="trow mt8" style="background:var(--acc-bg);">
-          <div>
-            <div class="tl">Calcul auto de la levure</div>
-            <div class="ts">Suit le protocole TA + froid + type</div>
-          </div>
-          <div class="tsw"><input type="checkbox" id="pz-auto-lev" checked><div class="tslider"></div></div>
-        </label>
-
-        <!-- Toggle Sur Poolish (legacy, piloté par V21.22+) -->
-        <label class="trow mt8 legacy-ferm">
-          <div>
-            <div class="tl">Sur Poolish</div>
-            <div class="ts">Pré-ferment liquide (révèle étape 3 ↓)</div>
-          </div>
-          <div class="tsw"><input type="checkbox" id="pizza-surpool"><div class="tslider"></div></div>
-        </label>
-
-        <!-- V17-LotF2 — Toggle Sur Biga (legacy, piloté par V21.22+) -->
-        <label class="trow mt8 legacy-ferm">
-          <div>
-            <div class="tl">Sur Biga</div>
-            <div class="ts">Pré-ferment solide Giorilli (révèle étape 3 ↓)</div>
-          </div>
-          <div class="tsw"><input type="checkbox" id="pizza-surbiga"><div class="tslider"></div></div>
-        </label>
-
-        <!-- V17-Dfix4 — Coefficient personnel (REX) -->
-        <div class="g2 mt8">
-          <div class="fg gfull">
-            <label>🎯 Coefficient personnel (× sur levure suggérée)</label>
-            <input type="number" inputmode="decimal" id="pz-coef-perso" value="1.00" min="0.50" max="1.50" step="0.05">
-            <div class="hint">Ajuste selon ton REX. 1.00 = standard · 0.60 = pizzaiolo pro · 1.20 = farine W faible</div>
-          </div>
-        </div>
-
-        <div id="pz-prot-out" class="alert a-info mt8" style="font-size:12px;"></div>
-        <div id="pz-w-warn" class="hidden mt8"></div>
-      </div>
+    <!-- V21.49 — Éléments legacy fermentation pizza (masqués, conservés pour sync interne) -->
+    <div style="display:none;">
+      <span id="pz-long-hint"></span>
+      <input type="checkbox" id="pz-long">
+      <select id="pz-h-ta"><option value="1">1 h</option><option value="2" selected>2 h</option><option value="3">3 h</option><option value="4">4 h</option><option value="6">6 h</option><option value="8">8 h</option><option value="10">10 h</option><option value="12">12 h</option></select>
+      <select id="pz-h-cold"><option value="0">0 h</option><option value="8">8 h</option><option value="16">16 h</option><option value="24" selected>24 h</option><option value="32">32 h</option><option value="40">40 h</option><option value="48">48 h</option><option value="56">56 h</option><option value="64">64 h</option><option value="72">72 h</option><option value="80">80 h</option><option value="88">88 h</option><option value="96">96 h</option></select>
+      <input type="number" id="pz-t-cold" value="4">
+      <input type="checkbox" id="pizza-surpool">
+      <input type="checkbox" id="pizza-surbiga">
     </div>
 
     <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1362,8 +1260,8 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
             <div class="fg">
               <label>Type levure poolish</label>
               <select id="pz-pool-type">
-                <option value="fraiche" selected>Fraîche</option>
-                <option value="instant">Instantanée (×0.33)</option>
+                <option value="fraiche">Fraîche</option>
+                <option value="instant" selected>Instantanée (×0.33)</option>
                 <option value="active">Sèche active (×0.5)</option>
               </select>
             </div>
@@ -1420,8 +1318,8 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
             <div class="fg">
               <label>Type levure biga</label>
               <select id="pz-biga-type">
-                <option value="fraiche" selected>Fraîche</option>
-                <option value="instant">Instantanée (×0.33)</option>
+                <option value="fraiche">Fraîche</option>
+                <option value="instant" selected>Instantanée (×0.33)</option>
                 <option value="active">Sèche active (×0.5)</option>
               </select>
             </div>
@@ -1621,7 +1519,7 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
   <div class="card ferm-pilot-card">
     <div class="ch collapsible">
       <div class="ico"><svg class="ic"><use href="#ic-clock"/></svg></div>
-      <h3>Pilote de fermentation</h3>
+      <h3>Fermentation</h3>
       <span class="tag" id="ferm-tag">Directe · Tout TA</span>
     </div>
     <div class="cb">
@@ -1645,7 +1543,6 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div class="radio-seg" id="ferm-profile-seg" style="flex-wrap:wrap;">
         <label class="rseg-btn active" data-val="allTA"><input type="radio" name="ferm-profile" value="allTA" checked>Tout TA</label>
         <label class="rseg-btn" data-val="taColdDelay"><input type="radio" name="ferm-profile" value="taColdDelay">TA + Froid retardé</label>
-        <label class="rseg-btn" data-val="coldLong"><input type="radio" name="ferm-profile" value="coldLong">Froid long</label>
       </div>
 
       <!-- Durées + T° -->
@@ -1794,6 +1691,37 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
 
       <!-- Persistance JSON via getFormData/setFormData -->
       <input type="hidden" id="ferment-state" value="">
+
+      <!-- V21.49 — Éléments pizza-only fusionnés dans la card Fermentation -->
+      <div class="pz-ferm-pizza">
+        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0 10px;">
+        <div class="slbl" style="margin-top:0;">Levure &amp; protocole pizza</div>
+        <div class="g2 mt8">
+          <div class="fg">
+            <label>Type de levure</label>
+            <select id="pz-lev-type">
+              <option value="fraiche">Fraîche</option>
+              <option value="instant" selected>Sèche instantanée (×0.33)</option>
+              <option value="active">Sèche active (×0.5)</option>
+            </select>
+          </div>
+          <div class="fg gfull">
+            <label>Coefficient personnel (× levure suggérée)</label>
+            <input type="number" inputmode="decimal" id="pz-coef-perso" value="1.00" min="0.50" max="1.50" step="0.05">
+            <div class="hint">1.00 = standard · 0.60 = pro · 1.20 = W faible</div>
+          </div>
+        </div>
+        <label class="trow mt8" style="background:var(--acc-bg);">
+          <div>
+            <div class="tl">Calcul auto de la levure</div>
+            <div class="ts">Suit le protocole TA + froid + type</div>
+          </div>
+          <div class="tsw"><input type="checkbox" id="pz-auto-lev" checked><div class="tslider"></div></div>
+        </label>
+        <div id="pz-prot-out" class="alert a-info mt8" style="font-size:12px;"></div>
+        <span class="tag" id="pz-prot-tag" style="display:inline-block;margin-top:6px;"></span>
+        <div id="pz-w-warn" class="hidden mt8"></div>
+      </div>
     </div>
   </div>
 
@@ -2895,7 +2823,7 @@ let MODE='pain', RID=null;
 const S={
   farine:0, eau:0, sel:0, levure:0,
   huile:0, sucre:0, beurre:0, oeufs:0,
-  total:0, qte:0, cruUnit:0, surPool:true,
+  total:0, qte:0, cruUnit:0, surPool:false,
   // Poolish computed
   poolF:0, poolW:0, poolY:0, poolS:0,
   restF:0, restW:0, restY:0, restS:0,
@@ -3197,22 +3125,6 @@ function composerRender(slot){
   const readout  = cont.querySelector('.fcm-readout');
   if(!rowsHost || !readout) return;
 
-  // V21.23 — Assure la présence du bouton "+ Nouvelle farine" et de son host
-  const btnRow = cont.querySelector('.btn-row');
-  if(btnRow && !cont.querySelector('.fcm-create-btn')){
-    const createBtn = document.createElement('button');
-    createBtn.type = 'button';
-    createBtn.className = 'btn btn-s btn-sm fcm-create-btn';
-    createBtn.textContent = '+ Nouvelle farine perso';
-    createBtn.onclick = () => composerShowCreateFlour(slot);
-    btnRow.appendChild(createBtn);
-  }
-  if(!cont.querySelector('.fcm-create-host')){
-    const host = document.createElement('div');
-    host.className = 'fcm-create-host';
-    cont.appendChild(host);
-  }
-
   const opts = lib.map(f => {
     const sub = ESPECE_LABELS[f.espece]||f.espece;
     return `<option value="${f.id}">${escapeHTML(f.appellation)} — ${escapeHTML(sub)} · W${rnd(f.W)||'?'}</option>`;
@@ -3378,14 +3290,14 @@ function migrateLegacyPainFlourMix(data){
 // ═══════════════════════════════════════════════════════════════════
 // V21.27 — Stratégie principale XOR (1 pré-ferment d'eau max) + boosters libres
 const FERM_MAIN_STRATEGIES = ['directe','poolish','biga'];
-const FERM_PROFILES        = ['allTA','taColdDelay','coldLong'];
+const FERM_PROFILES        = ['allTA','taColdDelay'];
 const FERM_MAIN_LABELS = { directe:'Directe', poolish:'Poolish', biga:'Biga' };
 // Conservée pour compatibilité affichage legacy (migration interne)
 const FERM_STRATEGY_LABELS = {
   directe:'Directe', poolish:'Poolish', biga:'Biga', pf:'Pâte ferm.', levain:'Levain'
 };
 const FERM_PROFILE_LABELS = {
-  allTA:'Tout TA', taColdDelay:'TA+Froid', coldLong:'Froid long'
+  allTA:'Tout TA', taColdDelay:'TA+Froid'
 };
 
 const FERM_DEFAULT_STATE = {
@@ -3396,7 +3308,7 @@ const FERM_DEFAULT_STATE = {
   hTA:    4,
   hCold: 24,
   tCold:  4,
-  poolish: { pct:30, temp:22, type:'fraiche' },
+  poolish: { pct:50, temp:22, type:'instant', duree:4, microsel:0 },
   biga:    { prop:50, hydrat:45, temp:18, appoint:0 },
   pf:      { pct:20 },
   levain:  { pct:20, hydrat:100 },
@@ -3416,6 +3328,7 @@ function fermentNormalizeState(s){
   if(s.main === undefined) s.main = 'directe';
   if(s.addPF === undefined) s.addPF = false;
   if(s.addLevain === undefined) s.addLevain = false;
+  if(s.profile === 'coldLong') s.profile = 'taColdDelay';
   if(s.profile === undefined) s.profile = 'allTA';
   if(s.hTA === undefined) s.hTA = 4;
   if(s.hCold === undefined) s.hCold = 24;
@@ -3486,8 +3399,8 @@ function fermentRender(){
     if(hTAWrap)   hTAWrap.style.display   = '';
     if(hColdWrap) hColdWrap.style.display = '';
     if(tColdWrap) tColdWrap.style.display = '';
-  } else { // coldLong
-    if(hTAWrap)   hTAWrap.style.display   = 'none';
+  } else {
+    if(hTAWrap)   hTAWrap.style.display   = '';
     if(hColdWrap) hColdWrap.style.display = '';
     if(tColdWrap) tColdWrap.style.display = '';
   }
@@ -3505,9 +3418,11 @@ function fermentRender(){
   });
 
   // Sous-paramètres : valeurs
-  if($('ferm-pool-pct'))     $('ferm-pool-pct').value     = state.poolish.pct;
-  if($('ferm-pool-temp'))    $('ferm-pool-temp').value    = state.poolish.temp;
-  if($('ferm-pool-type'))    $('ferm-pool-type').value    = state.poolish.type;
+  if($('pool-pct'))      $('pool-pct').value      = state.poolish.pct;
+  if($('pool-duree'))   $('pool-duree').value   = state.poolish.duree || 4;
+  if($('pool-temp'))    $('pool-temp').value    = state.poolish.temp;
+  if($('pool-type'))    $('pool-type').value    = state.poolish.type;
+  if($('pool-microsel')) $('pool-microsel').value = state.poolish.microsel || 0;
   if($('ferm-biga-prop'))    $('ferm-biga-prop').value    = state.biga.prop;
   if($('ferm-biga-hydrat'))  $('ferm-biga-hydrat').value  = state.biga.hydrat;
   if($('ferm-biga-temp'))    $('ferm-biga-temp').value    = state.biga.temp;
@@ -3637,7 +3552,7 @@ function fermentMigrateFromLegacy(data){
   // Poolish : préférer pool-* (partagé), fallback pz-pool-*
   state.poolish.pct  = parseFloat(data['pool-pct']  || data['pz-pool-pct'])  || 30;
   state.poolish.temp = parseFloat(data['pool-temp'] || data['pz-pool-temp']) || 22;
-  state.poolish.type = data['pool-type'] || data['pz-pool-type'] || 'fraiche';
+  state.poolish.type = data['pool-type'] || data['pz-pool-type'] || 'instant';
 
   // Biga (pizza only)
   state.biga.prop    = parseFloat(data['pz-biga-prop'])    || 50;
@@ -3673,8 +3588,8 @@ function initFermentPilotUI(){
     'ferm-h-ta':   'hTA',
     'ferm-h-cold': 'hCold',
     'ferm-t-cold': 'tCold',
-    'ferm-pool-pct':     'poolish.pct',
-    'ferm-pool-temp':    'poolish.temp',
+    'pool-temp':         'poolish.temp',
+    'pool-microsel':     'poolish.microsel',
     'ferm-biga-prop':    'biga.prop',
     'ferm-biga-hydrat':  'biga.hydrat',
     'ferm-biga-temp':    'biga.temp',
@@ -3689,11 +3604,13 @@ function initFermentPilotUI(){
       fermentUpdateField(path, parseFloat(el.value) || 0);
     });
   });
-  // Type levure poolish (string)
-  const poolType = $('ferm-pool-type');
-  if(poolType) poolType.addEventListener('change', () => {
-    fermentUpdateField('poolish.type', poolType.value);
-  });
+  // Selects poolish : change event
+  const poolPct  = $('pool-pct');
+  if(poolPct)  poolPct.addEventListener('change',  () => { fermentUpdateField('poolish.pct',   parseFloat(poolPct.value)  || 50); });
+  const poolDur  = $('pool-duree');
+  if(poolDur)  poolDur.addEventListener('change',  () => { fermentUpdateField('poolish.duree', parseFloat(poolDur.value)  || 4); });
+  const poolType = $('pool-type');
+  if(poolType) poolType.addEventListener('change', () => { fermentUpdateField('poolish.type',  poolType.value); });
   fermentRender();
 }
 
@@ -5032,7 +4949,7 @@ function computePizzaProtocol(){
   const hCold = isLong ? toNum($('pz-h-cold')?.value, 24) : 0;
   const tCold = toNum($('pz-t-cold')?.value, 4);
   const tTA   = toNum($('tb-fo')?.value, 22); // T° fournil partagée
-  const lType = $('pz-lev-type')?.value || 'fraiche';
+  const lType = $('pz-lev-type')?.value || 'instant';
 
   const hEq = pizzaHeqCompute(hTA, hCold, tCold, tTA);
   const yFresh = pizzaYeastInterp(hEq); // % fraîche sur farine
@@ -5346,7 +5263,7 @@ function computePizzaPreCore(){
   const hCold = isLong ? toNum($('pz-h-cold')?.value, 24) : 0;
   const tCold = toNum($('pz-t-cold')?.value, 4);
   const tTA   = toNum($('tb-fo')?.value, 22);
-  const lType = $('pz-lev-type')?.value || 'fraiche';
+  const lType = $('pz-lev-type')?.value || 'instant';
   const hEq   = pizzaHeqCompute(hTA, hCold, tCold, tTA);
   const yFresh = pizzaYeastInterp(hEq);
   const mult = lType==='instant'?0.33 : lType==='active'?0.5 : 1.0;
@@ -6060,7 +5977,7 @@ function computePoolish(){
   const pctPool  = toNum($('pool-pct')?.value,50)/100;
   const duree    = toNum($('pool-duree')?.value,4);
   const tempAmb  = toNum($('pool-temp')?.value,22);
-  const typeLev  = $('pool-type')?.value??'fraiche';
+  const typeLev  = $('pool-type')?.value??'instant';
   const microSel = toNum($('pool-microsel')?.value,0)/100;
 
   // V21.28 — Poolish 1:1 sur l'eau DISPONIBLE (après PF + Levain)
@@ -6147,7 +6064,7 @@ function computePizzaBiga(){
   const hydratBiga = toNum($('pz-biga-hydrat')?.value, 45);
   const dureeBiga  = toNum($('pz-biga-duree')?.value,  18);
   const tempBiga   = toNum($('pz-biga-temp')?.value,   18);
-  const typeLev    = $('pz-biga-type')?.value || 'fraiche';
+  const typeLev    = $('pz-biga-type')?.value || 'instant';
   const appointPct = toNum($('pz-biga-appoint')?.value, 0.1);
 
   // V21.28 — Biga calculée sur F/W DISPONIBLES (après PF + Levain)
@@ -7348,7 +7265,7 @@ function computeWaterTemp(){
   if(wb){
     const issues=[];
     waterTemps.forEach(w=>{
-      if(w.t<5)  issues.push(`eau ${w.label} trop froide`);
+      if(w.t<8)  issues.push(`eau ${w.label} trop froide`);
       if(w.t>35) issues.push(`eau ${w.label} trop chaude`);
     });
     if(issues.length){ wb.className='alert a-warn mt8'; wb.textContent='⚠️ '+issues.join(', '); wb.classList.remove('hidden'); }
