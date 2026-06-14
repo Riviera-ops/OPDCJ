@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.49</title>
+<title>Ô Pain De Ce Jour V21.50</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -697,8 +697,12 @@ body.dark .fcm-readout.fcm-ok{background:rgba(126,147,89,.22);}
 .fcm-row-pn .fcm-locked{font-size:9px;color:var(--prim);font-weight:700;letter-spacing:.3px;text-transform:uppercase;flex-basis:100%;margin-top:-2px;}
 
 /* V21.39 — Boutons du composeur en 36px de hauteur (mobile-first) */
-.fcm .btn-row{display:flex;gap:8px;flex-wrap:wrap;}
-.fcm .btn-row > .btn{min-height:36px;padding:0 14px;font-size:13px;}
+.fcm .btn-row{display:none;}
+.fcm-add{width:28px;height:28px;flex-shrink:0;font-size:18px;font-weight:700;line-height:1;
+  border:1px solid var(--prim);border-radius:6px;background:transparent;color:var(--prim);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;}
+.fcm-add:hover{background:var(--prim);color:#fff;}
+.fcm-row-pn .fcm-add{width:28px;height:28px;font-size:16px;}
 
 /* V21.47 — POINT 6 : bouton Supprimer des archives, sobre (texte rouge sans fond) */
 .rec-del-btn{color:var(--danger);border-color:var(--danger);background:transparent;}
@@ -3130,10 +3134,16 @@ function composerRender(slot){
     return `<option value="${f.id}">${escapeHTML(f.appellation)} — ${escapeHTML(sub)} · W${rnd(f.W)||'?'}</option>`;
   }).join('');
 
+  const atMax = picks.length >= FCM_MAX_ROWS;
+  const addBtn = (isLastRow) => isLastRow && !atMax
+    ? `<button type="button" class="fcm-add" onclick="composerAddRow('${slot}')" title="Ajouter une farine">+</button>`
+    : `<span style="width:28px;flex-shrink:0;"></span>`;
+
   // V21.39 — Layout dédié pour le slot pain (range + number synchronisés, idx 0 verrouillé)
   if(slot === 'pn'){
     rowsHost.innerHTML = picks.map((p, idx) => {
       const isLocked = (idx === 0);   // farine de base verrouillée (T65 par défaut)
+      const isLast = (idx === picks.length - 1);
       const pct = +p.pct || 0;
       return `
         <div class="fcm-row fcm-row-pn" data-idx="${idx}">
@@ -3146,12 +3156,15 @@ function composerRender(slot){
           <button type="button" class="fcm-remove" title="${isLocked?'Farine de base (non supprimable)':'Retirer'}"
                   ${isLocked?'disabled':''}
                   onclick="composerRemoveRow('${slot}', ${idx})">×</button>
+          ${addBtn(isLast)}
           ${isLocked?'<span class="fcm-locked">Farine de base</span>':''}
         </div>
       `;
     }).join('');
   } else {
-    rowsHost.innerHTML = picks.map((p, idx) => `
+    rowsHost.innerHTML = picks.map((p, idx) => {
+      const isLast = (idx === picks.length - 1);
+      return `
       <div class="fcm-row" data-idx="${idx}">
         <select class="fcm-flour" onchange="composerOnSelect('${slot}', ${idx}, this)">${opts}</select>
         <input type="number" class="fcm-pct" value="${+p.pct||0}" step="5" min="0" max="100"
@@ -3160,8 +3173,9 @@ function composerRender(slot){
         <button type="button" class="fcm-remove" title="Retirer"
                 ${picks.length<=1?'disabled':''}
                 onclick="composerRemoveRow('${slot}', ${idx})">×</button>
+        ${addBtn(isLast)}
       </div>
-    `).join('');
+    `}).join('');
   }
 
   // Set the selected values (innerHTML resets selections)
@@ -3456,6 +3470,7 @@ function fermentUpdateField(path, value){
   fermentRender();
   // V21.24 — Branchement métier : sync vers legacy + recompute
   fermentSyncToLegacy();
+  if(typeof renderPlanPhases === 'function') renderPlanPhases();
   if(typeof computeAll === 'function') computeAll();
 }
 
