@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.50</title>
+<title>Ô Pain De Ce Jour V21.51</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -4059,7 +4059,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.50';
+const APP_VERSION = 'V21.51';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -7882,6 +7882,11 @@ function planIcsRenderPhases() {
     return `${day} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
+  // V21.51 — POINT 12 : préserver les cases décochées par l'utilisateur avant re-render
+  const uncheckedIds = new Set(
+    [...container.querySelectorAll('input[type=checkbox]:not(:checked)')].map(cb => cb.value)
+  );
+
   container.innerHTML = steps.map((st, i) => {
     const startLabel = hasDate ? fmtTime(startTimes[i]) : '';
     const endLabel   = hasDate ? fmtTime(startTimes[i] + st.dur * 60000) : '';
@@ -7907,6 +7912,19 @@ function planIcsRenderPhases() {
       </span>
     </label>`;
   }).join('');
+
+  // Restaurer l'état décoché après re-render
+  container.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    if (uncheckedIds.has(cb.value)) {
+      cb.checked = false;
+      const lbl = cb.closest('label');
+      if (lbl) {
+        lbl.style.background  = 'var(--card)';
+        lbl.style.color       = 'var(--muted)';
+        lbl.style.borderColor = 'var(--border)';
+      }
+    }
+  });
 }
 
 function planIcsSelectAll(val) {
