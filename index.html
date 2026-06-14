@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.67</title>
+<title>Ô Pain De Ce Jour V21.68</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -4415,7 +4415,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.67';
+const APP_VERSION = 'V21.68';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5970,15 +5970,27 @@ function chronoBeep(){
   if(navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 400, 150, 800]);
 }
 
+function chronoIsEnded(){
+  return chronoIsActive() && chronoElapsedMs() >= ChronoState.phase.durationMs;
+}
+
 function chronoOnPhaseEnd(){
-  ChronoState.phase.endNotified = true;
+  // V21.68-fix — Arrêt propre du timer à la fin :
+  // sans ça, runStartTs reste set → chronoIsRunning() true → bouton Démarrer grisé.
+  const p = ChronoState.phase;
+  p.accumulatedMs = p.durationMs;  // cap à durationMs pour affichage propre
+  p.runStartTs = null;
+  p.endNotified = true;
+  if(ChronoState.rafId){ cancelAnimationFrame(ChronoState.rafId); ChronoState.rafId = null; }
+  chronoWakeLockRelease();
+
   const ring = document.querySelector('.chrono-ring');
   const timeEl = $('chrono-time');
   if(ring) ring.classList.add('ended');
   if(timeEl) timeEl.classList.add('ended');
   chronoBeep();
-  if(typeof toast === 'function') toast(`🔔 Phase ${ChronoState.phase.name || 'en cours'} terminée`);
-  // Retire la classe ended après l'animation
+  if(typeof toast === 'function') toast(`🔔 Phase ${p.name || 'en cours'} terminée`);
+  // Retire la classe ended après l'animation (3.5s)
   setTimeout(() => {
     if(ring) ring.classList.remove('ended');
     if(timeEl) timeEl.classList.remove('ended');
@@ -5990,6 +6002,8 @@ function chronoRender(){
   const elapsed = chronoElapsedMs();
   const remaining = Math.max(0, p.durationMs - elapsed);
   const progress = p.durationMs > 0 ? Math.min(1, elapsed / p.durationMs) : 0;
+  const ended = chronoIsActive() && elapsed >= p.durationMs;
+  const running = chronoIsRunning();
 
   // Affichage MM:SS principal = compte à rebours
   const timeEl = $('chrono-time');
@@ -5997,9 +6011,12 @@ function chronoRender(){
 
   // Phase label
   const phaseEl = $('chrono-phase');
-  if(phaseEl) phaseEl.textContent = chronoIsActive()
-    ? (p.name || 'Phase en cours')
-    : 'Aucune phase active';
+  if(phaseEl){
+    if(!chronoIsActive())   phaseEl.textContent = 'Aucune phase active';
+    else if(ended)          phaseEl.textContent = `✓ ${p.name || 'Phase'} terminée`;
+    else if(!running)       phaseEl.textContent = `⏸ ${p.name || 'Phase en pause'}`;
+    else                    phaseEl.textContent = p.name || 'Phase en cours';
+  }
 
   // Status row
   const setTxt = (id, t) => { const el = $(id); if(el) el.textContent = t; };
@@ -6014,27 +6031,29 @@ function chronoRender(){
   // Tag header
   const tag = $('chrono-tag');
   if(tag){
-    if(!chronoIsActive()) tag.textContent = 'Inactif';
-    else if(chronoIsRunning()) tag.textContent = `▶ ${chronoFmtMS(remaining)}`;
-    else tag.textContent = `⏸ ${chronoFmtMS(remaining)}`;
+    if(!chronoIsActive())   tag.textContent = 'Inactif';
+    else if(ended)          tag.textContent = '✓ Terminée';
+    else if(running)        tag.textContent = `▶ ${chronoFmtMS(remaining)}`;
+    else                    tag.textContent = `⏸ ${chronoFmtMS(remaining)}`;
   }
 
-  // Boutons transport
+  // Boutons transport (V21.68-fix : ended → Démarrer + Stop activables, Reprendre/Pause grisés)
   const btnStart  = $('chrono-btn-start');
   const btnPause  = $('chrono-btn-pause');
   const btnStop   = $('chrono-btn-stop');
   const btnManual = $('chrono-start-manual');
-  if(btnStart)  btnStart.disabled  = chronoIsRunning() || !chronoIsActive();
-  if(btnPause)  btnPause.disabled  = !chronoIsRunning();
+  if(btnStart)  btnStart.disabled  = running || !chronoIsActive() || ended;
+  if(btnPause)  btnPause.disabled  = !running;
   if(btnStop)   btnStop.disabled   = !chronoIsActive();
   if(btnManual){
-    btnManual.disabled = chronoIsRunning();
-    btnManual.innerHTML = chronoIsActive()
-      ? '<span class="icn">▶</span> Redémarrer'
-      : '<span class="icn">▶</span> Démarrer';
+    btnManual.disabled = running; // toujours activable sauf si un timer tourne actif
+    btnManual.innerHTML = ended
+      ? '<span class="icn">▶</span> Nouveau cycle'
+      : (chronoIsActive() ? '<span class="icn">▶</span> Redémarrer'
+                          : '<span class="icn">▶</span> Démarrer');
   }
 
-  // Notification de fin (une seule fois)
+  // Notification de fin (une seule fois) — appelle chronoOnPhaseEnd qui clean tout
   if(chronoIsActive() && elapsed >= p.durationMs && !p.endNotified){
     chronoOnPhaseEnd();
   }
