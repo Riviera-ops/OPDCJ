@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.65</title>
+<title>Ô Pain De Ce Jour V21.66</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -672,6 +672,23 @@ body.mode-brioche .sub-card[data-sub="autolyse"]{display:none;}
   padding:4px 10px;border-radius:12px;background:var(--surface-2);color:var(--muted);}
 .chrono-wakelock.active{background:rgba(126,147,89,.18);color:var(--ok,#5a7d2a);}
 .chrono-wakelock .dot{width:8px;height:8px;border-radius:50%;background:currentColor;}
+/* V21.66 — Chrono total recette */
+.chrono-recipe{display:flex;align-items:center;gap:12px;padding:10px 14px;width:100%;max-width:380px;
+  background:var(--acc-bg);border-radius:var(--r-sm);border:1px solid var(--border);}
+.chrono-recipe .cr-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+  font-weight:700;flex-shrink:0;}
+.chrono-recipe .cr-val{font-size:17px;font-weight:800;color:var(--prim-dk);font-variant-numeric:tabular-nums;flex:1;}
+.chrono-recipe .cr-reset{padding:5px 10px;border:1px solid var(--border);background:transparent;color:var(--muted);
+  border-radius:var(--r-sm);font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;
+  transition:background .12s,color .12s;}
+.chrono-recipe .cr-reset:hover{background:var(--surface-2);color:var(--prim-dk);}
+/* Flash de fin de phase */
+@keyframes chrono-end-flash{
+  0%,100%{stroke:var(--prim);}
+  50%{stroke:var(--ok,#7e9359);stroke-width:12;}
+}
+.chrono-ring.ended .fg{animation:chrono-end-flash 1s ease-in-out 3;}
+.chrono-time.ended{color:var(--ok,#5a7d2a);animation:chrono-end-flash 1s ease-in-out 3;}
 
 /* ── V21.58 — Sous-cards accordéon dans Fermentation & Process (mobile-first) ── */
 .sub-card{
@@ -2692,6 +2709,13 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           </div>
         </div>
 
+        <!-- V21.66 — Chrono total recette (auto-démarre au 1er Start, persiste localStorage) -->
+        <div class="chrono-recipe" id="chrono-recipe" style="display:none;">
+          <div class="cr-label">Recette démarrée il y a</div>
+          <div class="cr-val" id="chrono-recipe-elapsed">—</div>
+          <button type="button" class="cr-reset" id="chrono-recipe-reset" title="Démarrer une nouvelle recette">↺ Reset</button>
+        </div>
+
         <!-- Input durée manuelle -->
         <div class="chrono-input-row">
           <input type="number" id="chrono-input-min" value="30" min="1" max="999" step="1" placeholder="30">
@@ -4391,7 +4415,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.65';
+const APP_VERSION = 'V21.66';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5849,26 +5873,272 @@ function initCloudUI(){
 // ═════════════════════════════════════════════════════════════════
 
 
-// V21.65 — Module 4.4 Chronomètre : init UI (squelette, logique timer en V21.66)
-function initChrono(){
-  // Stub : démarrage manuel affiche un toast en attendant la logique timer
-  const startBtn = $('chrono-start-manual');
-  if(startBtn){
-    startBtn.addEventListener('click', () => {
-      const m = parseInt($('chrono-input-min')?.value || '0', 10);
-      if(!m || m < 1){ toast('⚠️ Saisis une durée valide'); return; }
-      toast(`▶ Démarrage ${m} min — logique timer en V21.66`);
-    });
+// ═══════════════════════════════════════════════════════════════════
+// V21.66 — Module 4.4 Chronomètre : logique timer
+// État centralisé, Date.now() based, requestAnimationFrame pour rendu fluide.
+// Wake Lock activation différée à V21.67.
+// ═══════════════════════════════════════════════════════════════════
+const ChronoState = {
+  phase: {
+    name: '',
+    durationMs: 0,
+    accumulatedMs: 0,   // somme des sessions de running terminées (pour gérer pause/reprise)
+    runStartTs: null,   // Date.now() de la session courante (null si paused/stopped)
+    endNotified: false  // évite de re-beep en boucle après la fin
+  },
+  recipe: {
+    startTs: null       // timestamp démarrage 1re phase, persisté localStorage
+  },
+  rafId: null,
+  audioCtx: null,
+  recipeIntervalId: null
+};
+const CHRONO_RING_CIRC = 678.58; // 2π × 108 (cf SVG)
+const CHRONO_LS_KEY = 'opdcj_chrono_recipe_start';
+
+function chronoElapsedMs(){
+  const p = ChronoState.phase;
+  return p.accumulatedMs + (p.runStartTs ? (Date.now() - p.runStartTs) : 0);
+}
+function chronoIsRunning(){ return ChronoState.phase.runStartTs !== null; }
+function chronoIsActive(){ return ChronoState.phase.durationMs > 0; }
+
+function chronoFmtMS(ms){
+  ms = Math.max(0, Math.round(ms / 1000));
+  const m = Math.floor(ms / 60);
+  const s = ms % 60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function chronoFmtHM(ms){
+  ms = Math.max(0, Math.round(ms / 60000));
+  const h = Math.floor(ms / 60);
+  const m = ms % 60;
+  return h > 0 ? `${h}h ${String(m).padStart(2,'0')}` : `${m} min`;
+}
+function chronoFmtDur(ms){
+  // Format compact pour les "cellules" du status row
+  const min = Math.round(ms / 60000);
+  if(min < 60) return `${min} min`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${h}h`;
+}
+
+function chronoBeep(){
+  try {
+    if(!ChronoState.audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return;
+      ChronoState.audioCtx = new AC();
+    }
+    const ctx = ChronoState.audioCtx;
+    // 3 beeps 880Hz × 180ms, espacés 150ms
+    for(let i = 0; i < 3; i++){
+      const t0 = ctx.currentTime + i * 0.33;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.18, t0 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0); osc.stop(t0 + 0.2);
+    }
+  } catch(e) { /* silent */ }
+  // Vibration mobile (si supportée)
+  if(navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
+}
+
+function chronoOnPhaseEnd(){
+  ChronoState.phase.endNotified = true;
+  const ring = document.querySelector('.chrono-ring');
+  const timeEl = $('chrono-time');
+  if(ring) ring.classList.add('ended');
+  if(timeEl) timeEl.classList.add('ended');
+  chronoBeep();
+  if(typeof toast === 'function') toast(`🔔 Phase ${ChronoState.phase.name || 'en cours'} terminée`);
+  // Retire la classe ended après l'animation
+  setTimeout(() => {
+    if(ring) ring.classList.remove('ended');
+    if(timeEl) timeEl.classList.remove('ended');
+  }, 3500);
+}
+
+function chronoRender(){
+  const p = ChronoState.phase;
+  const elapsed = chronoElapsedMs();
+  const remaining = Math.max(0, p.durationMs - elapsed);
+  const progress = p.durationMs > 0 ? Math.min(1, elapsed / p.durationMs) : 0;
+
+  // Affichage MM:SS principal = compte à rebours
+  const timeEl = $('chrono-time');
+  if(timeEl) timeEl.textContent = chronoFmtMS(remaining);
+
+  // Phase label
+  const phaseEl = $('chrono-phase');
+  if(phaseEl) phaseEl.textContent = chronoIsActive()
+    ? (p.name || 'Phase en cours')
+    : 'Aucune phase active';
+
+  // Status row
+  const setTxt = (id, t) => { const el = $(id); if(el) el.textContent = t; };
+  setTxt('chrono-total',     chronoIsActive() ? chronoFmtDur(p.durationMs) : '—');
+  setTxt('chrono-elapsed',   chronoIsActive() ? chronoFmtDur(elapsed) : '—');
+  setTxt('chrono-remaining', chronoIsActive() ? chronoFmtDur(remaining) : '—');
+
+  // Anneau : offset interpolé
+  const ringFg = $('chrono-ring-fg');
+  if(ringFg) ringFg.setAttribute('stroke-dashoffset', String(CHRONO_RING_CIRC * (1 - progress)));
+
+  // Tag header
+  const tag = $('chrono-tag');
+  if(tag){
+    if(!chronoIsActive()) tag.textContent = 'Inactif';
+    else if(chronoIsRunning()) tag.textContent = `▶ ${chronoFmtMS(remaining)}`;
+    else tag.textContent = `⏸ ${chronoFmtMS(remaining)}`;
   }
-  // Détection Wake Lock API (info utilisateur)
+
+  // Boutons transport
+  const btnStart  = $('chrono-btn-start');
+  const btnPause  = $('chrono-btn-pause');
+  const btnStop   = $('chrono-btn-stop');
+  const btnManual = $('chrono-start-manual');
+  if(btnStart)  btnStart.disabled  = chronoIsRunning() || !chronoIsActive();
+  if(btnPause)  btnPause.disabled  = !chronoIsRunning();
+  if(btnStop)   btnStop.disabled   = !chronoIsActive();
+  if(btnManual){
+    btnManual.disabled = chronoIsRunning();
+    btnManual.innerHTML = chronoIsActive()
+      ? '<span class="icn">▶</span> Redémarrer'
+      : '<span class="icn">▶</span> Démarrer';
+  }
+
+  // Notification de fin (une seule fois)
+  if(chronoIsActive() && elapsed >= p.durationMs && !p.endNotified){
+    chronoOnPhaseEnd();
+  }
+}
+
+function chronoTickFrame(){
+  chronoRender();
+  if(chronoIsRunning()){
+    ChronoState.rafId = requestAnimationFrame(chronoTickFrame);
+  } else {
+    ChronoState.rafId = null;
+  }
+}
+
+function chronoStart(durationMin, phaseName){
+  const ms = Math.max(1, Math.round(durationMin * 60000));
+  ChronoState.phase = {
+    name: phaseName || '',
+    durationMs: ms,
+    accumulatedMs: 0,
+    runStartTs: Date.now(),
+    endNotified: false
+  };
+  // Auto-démarrage du chrono recette si pas déjà lancé
+  if(!ChronoState.recipe.startTs){
+    ChronoState.recipe.startTs = Date.now();
+    try { localStorage.setItem(CHRONO_LS_KEY, String(ChronoState.recipe.startTs)); } catch(e){}
+    chronoRenderRecipe();
+  }
+  chronoRender();
+  if(!ChronoState.rafId) ChronoState.rafId = requestAnimationFrame(chronoTickFrame);
+}
+
+function chronoPause(){
+  const p = ChronoState.phase;
+  if(!p.runStartTs) return;
+  p.accumulatedMs += Date.now() - p.runStartTs;
+  p.runStartTs = null;
+  if(ChronoState.rafId){ cancelAnimationFrame(ChronoState.rafId); ChronoState.rafId = null; }
+  chronoRender();
+}
+
+function chronoResume(){
+  const p = ChronoState.phase;
+  if(p.runStartTs || !chronoIsActive()) return;
+  p.runStartTs = Date.now();
+  chronoRender();
+  if(!ChronoState.rafId) ChronoState.rafId = requestAnimationFrame(chronoTickFrame);
+}
+
+function chronoStop(){
+  if(ChronoState.rafId){ cancelAnimationFrame(ChronoState.rafId); ChronoState.rafId = null; }
+  ChronoState.phase = {
+    name: '', durationMs: 0, accumulatedMs: 0, runStartTs: null, endNotified: false
+  };
+  // Nettoie le visuel
+  const ring = document.querySelector('.chrono-ring');
+  const timeEl = $('chrono-time');
+  if(ring) ring.classList.remove('ended');
+  if(timeEl) timeEl.classList.remove('ended');
+  chronoRender();
+}
+
+// ── Chrono total recette ──
+function chronoRenderRecipe(){
+  const wrap = $('chrono-recipe');
+  const val  = $('chrono-recipe-elapsed');
+  if(!wrap || !val) return;
+  const ts = ChronoState.recipe.startTs;
+  if(!ts){ wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  val.textContent = chronoFmtHM(Date.now() - ts);
+}
+
+function chronoRecipeReset(){
+  if(!confirm('Démarrer une nouvelle recette ? Le chrono total sera remis à zéro.')) return;
+  ChronoState.recipe.startTs = null;
+  try { localStorage.removeItem(CHRONO_LS_KEY); } catch(e){}
+  chronoRenderRecipe();
+  if(typeof toast === 'function') toast('Chrono recette remis à zéro');
+}
+
+function initChrono(){
+  // Restaurer chrono recette depuis localStorage
+  try {
+    const saved = parseInt(localStorage.getItem(CHRONO_LS_KEY), 10);
+    if(saved > 0) ChronoState.recipe.startTs = saved;
+  } catch(e){}
+  chronoRenderRecipe();
+  // Refresh chrono recette toutes les 30s (suffit pour HH:MM)
+  ChronoState.recipeIntervalId = setInterval(chronoRenderRecipe, 30000);
+
+  // Bouton Démarrer manuel
+  $('chrono-start-manual')?.addEventListener('click', () => {
+    const m = parseInt($('chrono-input-min')?.value || '0', 10);
+    if(!m || m < 1){ toast('⚠️ Saisis une durée valide (min)'); return; }
+    chronoStart(m, `Chrono ${m} min`);
+  });
+
+  // Boutons transport
+  $('chrono-btn-start')?.addEventListener('click', chronoResume);
+  $('chrono-btn-pause')?.addEventListener('click', chronoPause);
+  $('chrono-btn-stop')?.addEventListener('click', () => {
+    if(!chronoIsActive()) return;
+    if(!confirm('Arrêter le chrono de phase ?')) return;
+    chronoStop();
+  });
+  // Suivante : V21.68 (intégration Planning)
+  $('chrono-btn-next')?.addEventListener('click', () => {
+    toast('⏭ Intégration Planning à venir V21.68');
+  });
+
+  // Reset chrono recette
+  $('chrono-recipe-reset')?.addEventListener('click', chronoRecipeReset);
+
+  // Wake Lock detection (info ; activation effective V21.67)
   const wlLabel = $('chrono-wakelock-label');
   if(wlLabel){
-    if('wakeLock' in navigator){
-      wlLabel.textContent = 'Wake Lock prêt (armé au démarrage)';
-    } else {
-      wlLabel.textContent = '⚠️ Wake Lock indisponible (l\'écran peut s\'éteindre)';
-    }
+    wlLabel.textContent = ('wakeLock' in navigator)
+      ? 'Wake Lock prêt (activation V21.67)'
+      : '⚠️ Wake Lock indisponible';
   }
+
+  // Premier rendu
+  chronoRender();
 }
 
 function init(){
