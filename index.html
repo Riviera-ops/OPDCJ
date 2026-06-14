@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.52</title>
+<title>Ô Pain De Ce Jour V21.53</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -2563,20 +2563,18 @@ function interpYeastTable(table, h, opts){
   return table[lo] + (table[hi] - table[lo]) * (h - lo) / (hi - lo);
 }
 
-// Correction Q10 ≈ 2 : g/kg de base ramené à une T° différente de la référence.
+// F-1.1 Step 3 — Q10=2.1, refT=24 (unifié avec fermentTempFactor).
 // T° plus élevée → fermentation plus rapide → moins de levure (factor > 1, on divise).
 function applyQ10Correction(baseGperKg, T, refT){
-  refT = (refT === undefined) ? 18 : refT;
-  const factor = Math.pow(2, (T - refT) / 10);
-  return baseGperKg / factor;
+  refT = (refT === undefined) ? 24 : refT;
+  return baseGperKg / fermentTempFactor(T, refT);
 }
 
-// Heures équivalentes à une T° de référence (loi d'Arrhenius approx Q10≈2).
+// Heures équivalentes à une T° de référence (Q10=2.1, unifié F-1.1).
 // Sert au calcul levure pizza pétrisée (long fermentation froid + TA).
 function computeHeqQ10(hTA, hCold, tCold, tTA){
-  tTA = (tTA === undefined) ? 22 : tTA;
-  const Q10 = 2;
-  const factor = Math.pow(Q10, (tTA - tCold) / 10);
+  tTA = (tTA === undefined) ? 24 : tTA;
+  const factor = fermentTempFactor(tCold, tTA);
   return hTA + hCold / Math.max(1, factor);
 }
 
@@ -2680,10 +2678,10 @@ const PIZZA_BIGA_YTBL = {
   48:  0.6,  // Extrême long
 };
 
-// Biga pizza — table log-linéaire + correction Q10 (réf 18°C)
+// Biga pizza — table log-linéaire + correction Q10 (réf 24°C, F-1.1)
 function pizzaBigaYeastInterp(duree, tempBiga) {
   const baseGperKg = interpYeastTable(PIZZA_BIGA_YTBL, duree, {log:true});
-  return applyQ10Correction(baseGperKg, tempBiga, 18);
+  return applyQ10Correction(baseGperKg, tempBiga, 24);
 }
 
 // Calcule le split biga / pétrisée pour la pizza
@@ -4072,7 +4070,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.52';
+const APP_VERSION = 'V21.53';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5244,7 +5242,7 @@ function updatePizzaFlowUI(){
 
 // V17-C1 — Item 4 : Style pizza actif (auto-fill hydratation + huile)
 const PIZZA_STYLE_PRESETS = {
-  napo:    { hydrat: 65, huile: 0, label: 'Napolitaine' },
+  napo:    { hydrat: 60, huile: 0, label: 'Napolitaine' },
   canotto: { hydrat: 70, huile: 0, label: 'Canotto' },
   romana:  { hydrat: 58, huile: 3, label: 'Romana' },
   teglia:  { hydrat: 80, huile: 2, label: 'Teglia/Pala' },
