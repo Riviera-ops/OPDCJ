@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.66</title>
+<title>Ô Pain De Ce Jour V21.67</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -4415,7 +4415,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.66';
+const APP_VERSION = 'V21.67';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5923,30 +5923,51 @@ function chronoFmtDur(ms){
   return m > 0 ? `${h}h${String(m).padStart(2,'0')}` : `${h}h`;
 }
 
-function chronoBeep(){
+function chronoEnsureAudioCtx(){
+  // V21.67 — Créer AudioContext sur user gesture (chronoStart) évite suspension iOS/Safari
+  if(ChronoState.audioCtx) return ChronoState.audioCtx;
   try {
-    if(!ChronoState.audioCtx){
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if(!AC) return;
-      ChronoState.audioCtx = new AC();
-    }
-    const ctx = ChronoState.audioCtx;
-    // 3 beeps 880Hz × 180ms, espacés 150ms
-    for(let i = 0; i < 3; i++){
-      const t0 = ctx.currentTime + i * 0.33;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.frequency.value = 880;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0, t0);
-      gain.gain.linearRampToValueAtTime(0.18, t0 + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(t0); osc.stop(t0 + 0.2);
-    }
-  } catch(e) { /* silent */ }
-  // Vibration mobile (si supportée)
-  if(navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 600]);
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    ChronoState.audioCtx = new AC();
+    return ChronoState.audioCtx;
+  } catch(e) { return null; }
+}
+
+function chronoBeep(){
+  const ctx = chronoEnsureAudioCtx();
+  if(ctx){
+    try {
+      if(ctx.state === 'suspended') ctx.resume();
+      // V21.67 — Plus fort + plus long : 4 beeps × 400ms à 0.55 vol, fondamentale + quinte juste
+      // Triangle wave porte mieux que sine sans devenir agressif comme square.
+      for(let i = 0; i < 4; i++){
+        const t0 = ctx.currentTime + i * 0.5;
+        // Fondamentale 880Hz
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.frequency.value = 880;
+        osc1.type = 'triangle';
+        gain1.gain.setValueAtTime(0, t0);
+        gain1.gain.linearRampToValueAtTime(0.55, t0 + 0.02);
+        gain1.gain.exponentialRampToValueAtTime(0.001, t0 + 0.4);
+        osc1.connect(gain1).connect(ctx.destination);
+        osc1.start(t0); osc1.stop(t0 + 0.45);
+        // Quinte juste 1320Hz (présence dans les aigus, sonne "alarme")
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.frequency.value = 1320;
+        osc2.type = 'triangle';
+        gain2.gain.setValueAtTime(0, t0);
+        gain2.gain.linearRampToValueAtTime(0.30, t0 + 0.02);
+        gain2.gain.exponentialRampToValueAtTime(0.001, t0 + 0.4);
+        osc2.connect(gain2).connect(ctx.destination);
+        osc2.start(t0); osc2.stop(t0 + 0.45);
+      }
+    } catch(e) { /* silent */ }
+  }
+  // Vibration mobile plus forte : 5 pulsations rythmées + finale longue
+  if(navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 400, 150, 800]);
 }
 
 function chronoOnPhaseEnd(){
@@ -6037,6 +6058,12 @@ function chronoStart(durationMin, phaseName){
     runStartTs: Date.now(),
     endNotified: false
   };
+  // V21.67 — Crée AudioContext sur user gesture (évite suspension iOS/Safari)
+  chronoEnsureAudioCtx();
+  // V21.67 — Wake Lock : maintient l'écran allumé pendant la phase
+  chronoWakeLockAcquire();
+  // V21.67 — Log diagnostic (visible console dev)
+  console.log('[Chrono] ▶ Start', { duration: ms + 'ms', phase: phaseName, ts: Date.now() });
   // Auto-démarrage du chrono recette si pas déjà lancé
   if(!ChronoState.recipe.startTs){
     ChronoState.recipe.startTs = Date.now();
@@ -6053,6 +6080,7 @@ function chronoPause(){
   p.accumulatedMs += Date.now() - p.runStartTs;
   p.runStartTs = null;
   if(ChronoState.rafId){ cancelAnimationFrame(ChronoState.rafId); ChronoState.rafId = null; }
+  chronoWakeLockRelease();
   chronoRender();
 }
 
@@ -6060,6 +6088,7 @@ function chronoResume(){
   const p = ChronoState.phase;
   if(p.runStartTs || !chronoIsActive()) return;
   p.runStartTs = Date.now();
+  chronoWakeLockAcquire();
   chronoRender();
   if(!ChronoState.rafId) ChronoState.rafId = requestAnimationFrame(chronoTickFrame);
 }
@@ -6069,12 +6098,49 @@ function chronoStop(){
   ChronoState.phase = {
     name: '', durationMs: 0, accumulatedMs: 0, runStartTs: null, endNotified: false
   };
+  chronoWakeLockRelease();
   // Nettoie le visuel
   const ring = document.querySelector('.chrono-ring');
   const timeEl = $('chrono-time');
   if(ring) ring.classList.remove('ended');
   if(timeEl) timeEl.classList.remove('ended');
   chronoRender();
+}
+
+// V21.67 — Wake Lock : maintient l'écran allumé pendant le chrono
+let _chronoWakeLockSentinel = null;
+
+async function chronoWakeLockAcquire(){
+  if(!('wakeLock' in navigator)) return;
+  if(_chronoWakeLockSentinel) return; // déjà actif
+  try {
+    _chronoWakeLockSentinel = await navigator.wakeLock.request('screen');
+    _chronoWakeLockSentinel.addEventListener('release', () => {
+      _chronoWakeLockSentinel = null;
+      chronoUpdateWakeLockUI(false);
+    });
+    chronoUpdateWakeLockUI(true);
+  } catch(e) {
+    console.warn('[Chrono] Wake Lock refusé:', e.message);
+  }
+}
+
+async function chronoWakeLockRelease(){
+  if(!_chronoWakeLockSentinel) return;
+  try { await _chronoWakeLockSentinel.release(); } catch(e){}
+  _chronoWakeLockSentinel = null;
+  chronoUpdateWakeLockUI(false);
+}
+
+function chronoUpdateWakeLockUI(active){
+  const wrap = $('chrono-wakelock');
+  const label = $('chrono-wakelock-label');
+  if(wrap) wrap.classList.toggle('active', active);
+  if(label){
+    if(active) label.textContent = 'Écran maintenu allumé';
+    else if(!('wakeLock' in navigator)) label.textContent = '⚠️ Wake Lock indisponible (écran peut s\'éteindre)';
+    else label.textContent = 'Écran libre de s\'éteindre';
+  }
 }
 
 // ── Chrono total recette ──
@@ -6129,13 +6195,14 @@ function initChrono(){
   // Reset chrono recette
   $('chrono-recipe-reset')?.addEventListener('click', chronoRecipeReset);
 
-  // Wake Lock detection (info ; activation effective V21.67)
-  const wlLabel = $('chrono-wakelock-label');
-  if(wlLabel){
-    wlLabel.textContent = ('wakeLock' in navigator)
-      ? 'Wake Lock prêt (activation V21.67)'
-      : '⚠️ Wake Lock indisponible';
-  }
+  // V21.67 — Wake Lock UI init (label dynamique selon support navigateur)
+  chronoUpdateWakeLockUI(false);
+  // Re-acquire Wake Lock au retour de visibilité (browser auto-release si page cachée)
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible' && chronoIsRunning() && !_chronoWakeLockSentinel){
+      chronoWakeLockAcquire();
+    }
+  });
 
   // Premier rendu
   chronoRender();
