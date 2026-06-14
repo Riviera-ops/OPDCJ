@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.60</title>
+<title>Ô Pain De Ce Jour V21.61</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1874,21 +1874,36 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
             <datalist id="dl-tb-fo"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"><option value="30"></datalist>
             <datalist id="dl-tb-pool"><option value="18"><option value="20"><option value="22"><option value="24"><option value="26"><option value="28"></datalist>
             <datalist id="dl-tb-reseau"><option value="8"><option value="10"><option value="12"><option value="15"><option value="18"><option value="20"><option value="25"></datalist>
-            <!-- V21.17 — Pétrin (toutes familles) : preset + friction modifiable -->
+            <!-- V21.17 → V21.61 — Pétrin pilote la TB (toutes familles).
+                 Sélection d'un type → propose TB, friction et durées V1/V2 par défaut.
+                 TB et durées restent éditables après. -->
             <div class="fg">
               <label>Pétrin</label>
               <select id="pz-petr-type">
-                <option value="hand">Manuel / Doux</option>
-                <option value="spiral-slow" selected>Spirale lent</option>
-                <option value="spiral-pro">Spirale rapide / Pro</option>
+                <option value="spirale" selected>Spirale</option>
+                <option value="oblique">Oblique / Artofex</option>
+                <option value="batteur">Batteur / Robot</option>
+                <option value="bras">Bras plongeants</option>
+                <option value="manuel">Manuel</option>
                 <option value="custom">Personnalisé</option>
               </select>
-              <div class="hint">Cible pâte 23-24°C · formule des 3T</div>
+              <div class="hint" id="pz-petr-hint">Propose TB et friction selon le type</div>
             </div>
             <div class="fg">
               <label>Friction du pétrin (°C)</label>
               <input type="number" inputmode="decimal" id="pz-friction" value="4" min="0" max="20" step="0.5">
               <div class="hint" id="pz-friction-hint">Échauffement par pétrissage</div>
+            </div>
+            <!-- V21.61 — Durées V1/V2 informatives (mémo fiche fournée, hors calcul) -->
+            <div class="fg">
+              <label>Durée vitesse 1 (min)</label>
+              <input type="number" inputmode="decimal" id="pz-petr-v1" value="5" min="0" max="60" step="1">
+              <div class="hint">Mémo · n'entre pas dans le calcul</div>
+            </div>
+            <div class="fg">
+              <label>Durée vitesse 2 (min)</label>
+              <input type="number" inputmode="decimal" id="pz-petr-v2" value="6" min="0" max="60" step="1">
+              <div class="hint">Mémo · n'entre pas dans le calcul</div>
             </div>
           </div>
           <div class="temp-boxes" id="tb-results"><!-- JS --></div>
@@ -2976,6 +2991,50 @@ const MODES = {
   'focaccia':   {icon:'🥯',label:'Focaccia',  pfx:'foc',   evap:false},
   'brioche':    {icon:'🧁',label:'Brioche',   pfx:'bri',   evap:true }
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// V21.61 — BLOC 2 : Le type de pétrin pilote la TB par défaut
+// TB et durées V1/V2 attachées à la recette (persistées via getFormData).
+// L'utilisateur peut éditer TB après la sélection (pétrin propose, user corrige).
+// ═══════════════════════════════════════════════════════════════════
+const PETR_TB_DEFAULTS = {
+  spirale: 56, oblique: 50, batteur: 60, bras: 62, manuel: 70
+};
+const PETR_FRICTION_DEFAULTS = {
+  spirale: 4, oblique: 3, batteur: 4, bras: 5, manuel: 0
+};
+const PETR_V1V2_DEFAULTS = {
+  spirale: {v1:5,  v2:6},
+  oblique: {v1:5,  v2:12},
+  batteur: {v1:5,  v2:6},
+  bras:    {v1:6,  v2:14},
+  manuel:  {v1:15, v2:0},
+};
+// Migration valeurs legacy (recettes V21.60-) → nouvelles clés V21.61+
+const PETR_LEGACY_MAP = {
+  'hand':        'manuel',
+  'spiral-slow': 'spirale',
+  'spiral-pro':  'spirale',
+};
+
+function petrMigrateLegacy(val){
+  return PETR_LEGACY_MAP[val] || val;
+}
+
+function applyPetrDefaults(petrType, opts){
+  // Applique TB, friction, V1, V2 par défaut pour le type donné.
+  // opts.skipTB / opts.skipFriction / opts.skipDurees pour contourner.
+  if(!petrType || petrType === 'custom') return;
+  const tb  = PETR_TB_DEFAULTS[petrType];
+  const fr  = PETR_FRICTION_DEFAULTS[petrType];
+  const dur = PETR_V1V2_DEFAULTS[petrType];
+  if(!opts?.skipTB       && tb  !== undefined && $('tb-base'))   $('tb-base').value   = tb;
+  if(!opts?.skipFriction && fr  !== undefined && $('pz-friction')) $('pz-friction').value = fr;
+  if(!opts?.skipDurees   && dur){
+    if($('pz-petr-v1')) $('pz-petr-v1').value = dur.v1;
+    if($('pz-petr-v2')) $('pz-petr-v2').value = dur.v2;
+  }
+}
 
 // ─────────────────────────────────────────────
 // DARK MODE — Mode Fournil
@@ -4190,7 +4249,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.60';
+const APP_VERSION = 'V21.61';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5684,7 +5743,9 @@ function init(){
 
   // Écouter les inputs TB dans l'onglet recette
   // V21.57 — ajout autolyse (4 inputs)
-  ['tb-f','tb-fo','tb-pool','tb-reseau',
+  // V21.61 — ajout TB + pétrin + V1/V2 (BLOC 2 : pétrin pilote TB)
+  ['tb-base','tb-f','tb-fo','tb-pool','tb-reseau',
+   'pz-petr-v1','pz-petr-v2',
    'autolyse-active','autolyse-duree','autolyse-sel','autolyse-bass'].forEach(id=>{
     const el=$(id); if(el){ el.addEventListener('input',computeAll); el.addEventListener('change',computeAll); }
   });
@@ -5706,12 +5767,17 @@ function init(){
   const tbEl = $('tb-base');
   if(tbEl){
     let saved; try{saved=parseInt(localStorage.getItem('opdcj_tb_'+MODE),10);}catch(e){}
-    tbEl.value = (saved>=52 && saved<=80) ? saved : (TB_DEFAULTS[MODE]||66);
+    // V21.61 — Priorité : localStorage > pétrin défaut > MODE fallback
+    const petrType = petrMigrateLegacy($('pz-petr-type')?.value || 'spirale');
+    const petrTB = PETR_TB_DEFAULTS[petrType];
+    tbEl.value = (saved>=52 && saved<=80) ? saved : (petrTB || TB_DEFAULTS[MODE] || 66);
     tbEl.addEventListener('input',()=>{
       try{localStorage.setItem('opdcj_tb_'+MODE, tbEl.value);}catch(e){}
       computeWaterTemp();
     });
   }
+  // V21.61 — Init friction + V1/V2 selon pétrin courant (si pas déjà saved)
+  applyPetrDefaults(petrMigrateLegacy($('pz-petr-type')?.value || 'spirale'), {skipTB:true});
 
   initTheme();
   initCollapsibles();
@@ -5832,21 +5898,24 @@ function init(){
   // V17-C1 — Item 4 : style pizza actif
   initPizzaStyleListener();
 
-  // V17-C2 — Item 1 : pétrissage pizza change → recompute eau
+  // V21.61 — Pétrin pilote TB + friction + V1/V2 (BLOC 2)
   $('pz-petr-type')?.addEventListener('change', () => {
-    // V17-Dfix3 : si on choisit un preset (non custom), forcer la friction au défaut
     const v = $('pz-petr-type').value;
-    const PRESETS = {hand:0,'spiral-slow':4,'spiral-pro':9};
+    // Applique TB + friction + V1/V2 défauts (preserve custom)
+    applyPetrDefaults(v);
+    // Le code historique ci-dessous est conservé pour rétro-compat custom :
+    const PRESETS = PETR_FRICTION_DEFAULTS;
     if(v !== 'custom' && PRESETS[v] !== undefined && $('pz-friction')){
       $('pz-friction').value = PRESETS[v];
     }
     computeAll();
   });
   // V17-Dfix3 — Friction modifiable : l'utilisateur saisit sa propre mesure
+  // V21.61 — Map mise à jour avec les nouveaux types de pétrin
   $('pz-friction')?.addEventListener('input', () => {
     // Si l'utilisateur modifie manuellement, basculer en "Personnalisé"
     const sel = $('pz-petr-type');
-    const PRESETS = {hand:0,'spiral-slow':4,'spiral-pro':9};
+    const PRESETS = PETR_FRICTION_DEFAULTS;
     const cur = parseFloat($('pz-friction').value);
     if(sel && sel.value !== 'custom' && PRESETS[sel.value] !== cur){
       sel.value = 'custom';
@@ -5967,7 +6036,10 @@ function switchMode(mode){
   const _tbEl = $('tb-base');
   if(_tbEl){
     let _sv; try{_sv=parseInt(localStorage.getItem('opdcj_tb_'+mode),10);}catch(e){}
-    _tbEl.value = (_sv>=52 && _sv<=80) ? _sv : (_TB_DEF[mode]||66);
+    // V21.61 — Priorité : localStorage > pétrin défaut > MODE fallback
+    const _petr = petrMigrateLegacy($('pz-petr-type')?.value || 'spirale');
+    const _petrTB = PETR_TB_DEFAULTS[_petr];
+    _tbEl.value = (_sv>=52 && _sv<=80) ? _sv : (_petrTB || _TB_DEF[mode] || 66);
   }
   document.querySelectorAll('.pb').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('vis'));
@@ -7367,8 +7439,10 @@ function computeWaterTemp(){
   const tbUser = toNum($('tb-base')?.value, _TB_DEFAULTS[MODE]||66);
 
   // V21.17 — Pétrin + friction désormais actifs sur TOUTES les familles
-  const petrType = $('pz-petr-type')?.value || 'spiral-slow';
-  const FRICTION_PRESETS = {'hand':0,'spiral-slow':4,'spiral-pro':9};
+  // V21.61 — petrType = nouveaux types (spirale/oblique/batteur/bras/manuel/custom)
+  let petrType = $('pz-petr-type')?.value || 'spirale';
+  petrType = petrMigrateLegacy(petrType); // tolère les anciennes recettes
+  const FRICTION_PRESETS = PETR_FRICTION_DEFAULTS;
   const frictionEl = $('pz-friction');
   // Auto-synchronise la friction au preset choisi (sauf en mode custom)
   if(frictionEl && petrType !== 'custom' && FRICTION_PRESETS[petrType] !== undefined){
@@ -7454,10 +7528,13 @@ function computeWaterTemp(){
   // V21.17 — Table pédagogique friction : visible TOUTES familles (était pizza-only)
   const tbPetrInfo=$('tb-petr-info');
   if(tbPetrInfo){
+    // V21.61 — Table pédagogique mise à jour avec les 5 types de pétrin BLOC 2
     const rows=[
-      {key:'hand',        label:'Manuel',       fr:0, active:petrType==='hand'},
-      {key:'spiral-slow', label:'Spirale lent', fr:4, active:petrType==='spiral-slow'},
-      {key:'spiral-pro',  label:'Spirale pro',  fr:9, active:petrType==='spiral-pro'},
+      {key:'spirale', label:'Spirale',           fr:4, active:petrType==='spirale'},
+      {key:'oblique', label:'Oblique / Artofex', fr:3, active:petrType==='oblique'},
+      {key:'batteur', label:'Batteur / Robot',   fr:4, active:petrType==='batteur'},
+      {key:'bras',    label:'Bras plongeants',   fr:5, active:petrType==='bras'},
+      {key:'manuel',  label:'Manuel',            fr:0, active:petrType==='manuel'},
     ];
     if(petrType === 'custom'){
       rows.push({key:'custom', label:'Personnalisé', fr:friction, active:true, isCustom:true});
@@ -8822,6 +8899,10 @@ function getFormData(){
 }
 
 function setFormData(data){
+  // V21.61 — Migration valeurs pétrin legacy (hand/spiral-slow/spiral-pro)
+  if(data && data['pz-petr-type']){
+    data['pz-petr-type'] = petrMigrateLegacy(data['pz-petr-type']);
+  }
   Object.entries(data).forEach(([id,v])=>{
     if(id === '_mode' || id === '_toppings' || id === '_levureType') return;  // métadonnées
     const el=$(id); if(!el)return;
