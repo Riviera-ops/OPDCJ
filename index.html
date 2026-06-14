@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.59</title>
+<title>Ô Pain De Ce Jour V21.60</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -220,8 +220,17 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Nunito',sans-serif;
   background:var(--bg);font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;
   color:var(--txt);transition:border-color .15s,box-shadow .15s;width:100%;
   -webkit-appearance:none;appearance:none;}
+/* V21.60 — Exception : restaurer le rendu natif des checkboxes dans .fg
+   (sinon appearance:none + background masquent le checkmark) */
+.fg input[type="checkbox"]{
+  -webkit-appearance:auto;appearance:auto;
+  padding:0;background:transparent;border:none;width:auto;
+  accent-color:var(--prim);
+}
 .fg input:focus,.fg select:focus{outline:none;border-color:var(--prim);
   box-shadow:0 0 0 3px rgba(184,114,48,.14);background:#fff;}
+.fg input[type="checkbox"]:focus{outline:2px solid var(--prim);outline-offset:2px;
+  box-shadow:none;background:transparent;}
 .fg .hint{font-size:10px;color:var(--muted);}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
@@ -519,7 +528,7 @@ body.dark .tl-step.is-cold{background:rgba(80,130,180,.12);}
 }
 .phase-row{
   display:flex;align-items:center;gap:8px;padding:7px 12px;
-  border-bottom:1px solid var(--border);transition:background .1s;
+  border-bottom:1px solid var(--border);transition:background .1s,opacity .18s;
 }
 .phase-row:last-child{border-bottom:none;}
 .phase-row.cold{
@@ -4181,7 +4190,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.59';
+const APP_VERSION = 'V21.60';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -7327,7 +7336,12 @@ function syncAutolyseToPlanning(){
   const planMode = (typeof getPlanMode === 'function') ? getPlanMode() : 'pain';
   const chk = $(`pchk-${planMode}-autolyse`);
   const dur = $(`pdur-${planMode}-autolyse`);
-  if(chk) chk.checked = auto.active;
+  if(chk){
+    chk.checked = auto.active;
+    // V21.60 — Sync visuel : retirer/ajouter .inactive sur la phase-row
+    // (sinon la ligne reste grisée même quand la checkbox est cochée par JS).
+    if(typeof togglePhaseRow === 'function') togglePhaseRow(`${planMode}-autolyse`, auto.active);
+  }
   if(dur && auto.active) dur.value = auto.duree;
 }
 
