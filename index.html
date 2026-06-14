@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.73</title>
+<title>Ô Pain De Ce Jour V21.74</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -802,6 +802,22 @@ body.dark .fcm-readout.fcm-warn .fcm-total-msg{color:#FFD0A8;}
 .fcm-readout.fcm-ok{background:rgba(126,147,89,.18);color:var(--ok);}
 .fcm-readout.fcm-ok .fcm-total-msg{color:var(--ok);}
 body.dark .fcm-readout.fcm-ok{background:rgba(126,147,89,.22);}
+
+/* V21.74 — Écho lecture-seule dose de levure dans la card Fermentation */
+.ferm-lev-echo{
+  background:var(--surface-2);
+  color:var(--muted);
+  padding:8px 11px;
+  margin-top:8px;
+  border-radius:var(--r-sm);
+  font-size:12px;
+  font-weight:600;
+}
+.ferm-lev-echo .fle-val{
+  color:var(--prim-dk);
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
 
 /* V21.39 — Layout dédié slot pain (pn) : select compact + stepper −/+ + remove
    V21.41 — Compact mobile-friendly (28px)
@@ -1697,6 +1713,9 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
           <input type="number" inputmode="decimal" id="ferm-t-cold" value="4" min="2" max="18" step="1">
         </div>
       </div>
+
+      <!-- V21.74 — Écho lecture-seule de la dose de levure résultante (adaptée à state.main) -->
+      <div id="ferm-lev-echo" class="ferm-lev-echo" aria-live="polite"></div>
 
       <!-- V21.27 : cards riches intégrées dans le Pilote (sous-paramètres détaillés)
            Pool/Biga visible selon state.main (XOR), PF/Levain selon state.addPF/addLevain.
@@ -4538,7 +4557,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.73';
+const APP_VERSION = 'V21.74';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -9635,7 +9654,30 @@ function computeAll(){
     renderBreadExtras();          // V17.4 : ingrédients extras pain
     computeFocacciaHeightHint(); // V17-H4c : hauteur calculée selon plaque (focaccia)
     updatePhaseDurHints();       // I1 : suggestions durées pointage/apprêt
+    renderFermLevEcho();         // V21.74 : écho lecture-seule dose levure (carte Fermentation)
   }catch(e){console.warn('computeAll err:',e);}
+}
+
+// V21.74 — Écho lecture-seule de la dose de levure dans la carte Fermentation.
+// Adapte le format à la stratégie courante (directe / poolish / biga).
+// Lit S (peuplé par computeAll), ne recalcule rien.
+function renderFermLevEcho(){
+  const el = document.getElementById('ferm-lev-echo'); if(!el) return;
+  let m = 'directe';
+  try { m = (fermentGetState && fermentGetState().main) || 'directe'; } catch(e){}
+  let txt;
+  if(m === 'poolish'){
+    const auto = (S.restY || 0) === 0;
+    txt = `Poolish ${fmtG(S.poolY||0, 2)}` +
+          (auto ? ' · pétrissée 0 g (auto-suffisante)' : ` + pétrissée ${fmtG(S.restY||0, 2)}`);
+  } else if(m === 'biga'){
+    const auto = (S.bigaResteY || 0) === 0 && (S.bigaY || 0) > 0;
+    txt = `Biga ${fmtG(S.bigaY||0, 2)}` +
+          (auto ? ' (biga auto-suffisante)' : ` + appoint ${fmtG(S.bigaResteY||0, 2)}`);
+  } else {
+    txt = `${fmtG(S.levure || 0, 2)}`;
+  }
+  el.innerHTML = `<span style="font-weight:700;">Levure</span> · <span class="fle-val">${txt}</span>`;
 }
 
 // V21.28 — Affichage du bandeau récap pré-ferments cumulés sous le Pilote
