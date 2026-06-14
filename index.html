@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.56</title>
+<title>Ô Pain De Ce Jour V21.57</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -622,6 +622,9 @@ body:not(.mode-pizza):not(.mode-focaccia) .pz-cost-summary-card{display:none;}
 /* ── V17.4 — Card extras pain (masquée en mode pizza/focaccia) ── */
 body.mode-pizza .bread-extras-card,
 body.mode-focaccia .bread-extras-card{display:none;}
+
+/* ── V21.57 — Card autolyse (masquée en mode brioche) ── */
+body.mode-brioche .autolyse-card{display:none;}
 
 /* ── V17.4 — Lignes ingrédients extras pain (même composant que pz-top-row) ── */
 .bex-cat{font-size:10px;font-weight:800;color:var(--prim);text-transform:uppercase;
@@ -1844,6 +1847,57 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <div id="tb-petr-info" class="hidden mt8"></div>
       <div id="tb-glace" class="hidden mt8"></div>
       <div id="tb-warn" class="hidden mt8"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       V21.57 — AUTOLYSE (Module 4.3)
+       Visible pain · petit-pain · pizza · focaccia (caché en brioche)
+       Effet sur computeWaterTemp : friction -2°C + shift tf→tfo après 60 min
+  ═════════════════════════════════════ -->
+  <div class="card autolyse-card">
+    <div class="ch collapsible" data-start="closed">
+      <div class="ico"><svg class="ic"><use href="#ic-leaf"/></svg></div>
+      <h3>Autolyse</h3>
+      <span class="tag" id="autolyse-tag">Optionnel</span>
+    </div>
+    <div class="cb">
+      <div class="hint" style="margin-bottom:10px;">
+        Repos farine + eau (sans levure) avant pétrissage final.
+        Réduit la friction (-2°C) et, au-delà de 60 min, décale la référence farine vers la T° fournil.
+      </div>
+      <div class="g2">
+        <div class="fg">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="autolyse-active" style="width:18px;height:18px;cursor:pointer;">
+            <span>Activer l'autolyse</span>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Durée (min)</label>
+          <input type="number" inputmode="decimal" id="autolyse-duree"
+                 value="30" min="10" max="240" step="5" list="dl-autolyse-duree">
+          <datalist id="dl-autolyse-duree">
+            <option value="20"><option value="30"><option value="45"><option value="60"><option value="90"><option value="120">
+          </datalist>
+          <div class="hint">Calvel : 20-60 min · Long : 90-120 min</div>
+        </div>
+      </div>
+      <div class="g2 mt8">
+        <div class="fg">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;">
+            <input type="checkbox" id="autolyse-sel" style="width:16px;height:16px;cursor:pointer;">
+            <span>Sel inclus (frasage prolongé)</span>
+          </label>
+        </div>
+        <div class="fg">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;">
+            <input type="checkbox" id="autolyse-bass" style="width:16px;height:16px;cursor:pointer;">
+            <span>Bassinage en fin de pétrissage</span>
+          </label>
+        </div>
+      </div>
+      <div id="autolyse-out" class="alert a-info mt8 hidden" style="font-size:12px;"></div>
     </div>
   </div>
 
@@ -4074,7 +4128,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.56';
+const APP_VERSION = 'V21.57';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5567,7 +5621,9 @@ function init(){
   });
 
   // Écouter les inputs TB dans l'onglet recette
-  ['tb-f','tb-fo','tb-pool','tb-reseau'].forEach(id=>{
+  // V21.57 — ajout autolyse (4 inputs)
+  ['tb-f','tb-fo','tb-pool','tb-reseau',
+   'autolyse-active','autolyse-duree','autolyse-sel','autolyse-bass'].forEach(id=>{
     const el=$(id); if(el){ el.addEventListener('input',computeAll); el.addEventListener('change',computeAll); }
   });
 
@@ -7144,6 +7200,58 @@ function computeCosts(){
   cl.innerHTML = out;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// V21.57 — AUTOLYSE (Module 4.3)
+// État partagé entre Recette (inputs) et Planning (phase autolyse).
+// Effet sur computeWaterTemp : friction effective réduite + ref farine shift.
+// ═══════════════════════════════════════════════════════════════════
+function readAutolyseState(){
+  return {
+    active:    $('autolyse-active')?.checked || false,
+    duree:     toNum($('autolyse-duree')?.value, 30),
+    selInclus: $('autolyse-sel')?.checked || false,
+    bassinage: $('autolyse-bass')?.checked || false
+  };
+}
+
+function renderAutolyseOut(){
+  const out = $('autolyse-out');
+  const tag = $('autolyse-tag');
+  if(!out) return;
+  const auto = readAutolyseState();
+  if(MODE === 'brioche' || !auto.active){
+    out.classList.add('hidden');
+    if(tag) tag.textContent = 'Optionnel';
+    return;
+  }
+  const tfo = toNum($('tb-fo')?.value, 22);
+  const tf  = toNum($('tb-f')?.value,  20);
+  let shiftLine = '';
+  if(auto.duree > 60){
+    const pct = Math.round(Math.min(1, (auto.duree-60)/90) * 100);
+    const tfEff = tf + (tfo - tf) * Math.min(1, (auto.duree-60)/90);
+    shiftLine = ` · Réf farine ${rnd(tf)}°C → ${rnd(tfEff)}°C (shift ${pct}%)`;
+  }
+  const extra = [];
+  if(auto.selInclus) extra.push('sel inclus');
+  if(auto.bassinage) extra.push('bassinage');
+  const extraTag = extra.length ? ` · ${extra.join(' · ')}` : '';
+  out.innerHTML = `Autolyse <b>${auto.duree} min</b> : friction effective -2°C${shiftLine}${extraTag}`;
+  out.classList.remove('hidden');
+  if(tag) tag.textContent = `${auto.duree}'${auto.selInclus ? ' · +sel' : ''}`;
+}
+
+// Sync vers la phase Planning 'autolyse' du planMode courant
+function syncAutolyseToPlanning(){
+  const auto = readAutolyseState();
+  if(MODE === 'brioche') return;
+  const planMode = (typeof getPlanMode === 'function') ? getPlanMode() : 'pain';
+  const chk = $(`pchk-${planMode}-autolyse`);
+  const dur = $(`pdur-${planMode}-autolyse`);
+  if(chk) chk.checked = auto.active;
+  if(dur && auto.active) dur.value = auto.duree;
+}
+
 // ─────────────────────────────────────────────
 // COMPUTE WATER TEMPS
 // Formule TB : T°eau = TB − T°fournil − T°farine
@@ -7176,15 +7284,30 @@ function computeWaterTemp(){
   }
   const friction = toNum(frictionEl?.value, 4);
 
+  // V21.57 — Effet autolyse sur computeWaterTemp (Module 4.3)
+  // (a) Friction effective réduite de -2°C si autolyse active
+  // (b) Réf farine shift vers fournil au-delà de 60 min (100% à 150 min)
+  const auto = (typeof readAutolyseState === 'function') ? readAutolyseState() : {active:false};
+  const autoActive = auto.active && MODE !== 'brioche';
+  const frictionEff = autoActive ? Math.max(0, friction - 2) : friction;
+  const autoFrictionBonus = autoActive ? Math.min(friction, 2) : 0; // pour le mode TB preset
+  let tfEff = tf;
+  let tfShiftPct = 0;
+  if(autoActive && auto.duree > 60){
+    tfShiftPct = Math.min(1, (auto.duree - 60) / 90);
+    tfEff = tf + (tfo - tf) * tfShiftPct;
+  }
+
   // Cible pâte (constante du référentiel) — utilisée en mode Personnalisé (formule 3T explicite)
   const TPATE_CIBLE = 23;
 
   // Mettre à jour le tag dans le titre
   const tag=$('tb-tag');
   if(tag){
-    const modeLbl = petrType==='custom' ? `Perso · ${friction}°C frict.` : `TB ${tbUser}`;
-    if(S.surPool) tag.textContent=`${modeLbl} · Poolish`;
-    else tag.textContent=`${modeLbl} · Direct`;
+    const modeLbl = petrType==='custom' ? `Perso · ${frictionEff}°C frict.` : `TB ${tbUser}`;
+    const autoTag = autoActive ? ` · Autolyse ${auto.duree}'` : '';
+    if(S.surPool) tag.textContent=`${modeLbl} · Poolish${autoTag}`;
+    else tag.textContent=`${modeLbl} · Direct${autoTag}`;
   }
 
   const colorVal=(t)=>{
@@ -7202,18 +7325,18 @@ function computeWaterTemp(){
   const resEl=$('tb-results');
   if(!resEl) return;
 
-  // V21.17 — Formule unifiée :
-  //   - presets (hand/spiral-slow/spiral-pro) : TB encapsule friction → twDirect = TB - tf - tfo
-  //   - personnalisé : 3T explicite → twDirect = TPATE×3 - tf - tfo - friction
+  // V21.17 — Formule unifiée (modifiée V21.57 pour intégrer autolyse) :
+  //   - presets (hand/spiral-slow/spiral-pro) : TB encapsule friction → twDirect = TB - tfEff - tfo + autoFrictionBonus
+  //   - personnalisé : 3T explicite → twDirect = TPATE×3 - tfEff - tfo - frictionEff
   const _formula = (petrType === 'custom')
-    ? () => TPATE_CIBLE * 3 - tf - tfo - friction
-    : () => tbUser - tf - tfo;
+    ? () => TPATE_CIBLE * 3 - tfEff - tfo - frictionEff
+    : () => tbUser - tfEff - tfo + autoFrictionBonus;
   const _formulaPool = (petrType === 'custom')
-    ? () => TPATE_CIBLE * 3 - ((tf + tpl)/2) - tfo - friction
-    : () => tbUser - ((tf + tpl)/2) - tfo;
+    ? () => TPATE_CIBLE * 3 - ((tfEff + tpl)/2) - tfo - frictionEff
+    : () => tbUser - ((tfEff + tpl)/2) - tfo + autoFrictionBonus;
   const _formulaLabel = (petrType === 'custom')
-    ? `Personnalisé · friction ${friction}°C`
-    : `TB = ${tbUser}`;
+    ? `Personnalisé · friction ${frictionEff}°C${autoActive ? ' (autolyse -2°C)' : ''}`
+    : `TB = ${tbUser}${autoActive ? ` (autolyse +${autoFrictionBonus}°C eau)` : ''}`;
 
   // Note levure sèche (toutes familles non-pizza/foc qui partagent le type pain)
   const _levTypeEl = (MODE === 'pizza') ? null : $((MODES[MODE]||{}).pfx + '-lev-type');
@@ -8524,7 +8647,9 @@ function computeAll(){
     renderIngredients();     // affichage basé sur S complet
     renderFermOut();         // V21.28 : résumé pré-ferments combinés + alertes
     computeCosts();
-    computeWaterTemp();
+    syncAutolyseToPlanning(); // V21.57 : sync recette → phase Planning AVANT computeWaterTemp + computeTimeline
+    computeWaterTemp();      // V21.57 : applique frictionEff + tfEff (autolyse)
+    renderAutolyseOut();     // V21.57 : tag + bandeau info autolyse
     computeTimeline();
     computePizzaCostSummary(); // V17-C3 : récap coût pizza (matière + garniture)
     renderBreadExtras();          // V17.4 : ingrédients extras pain

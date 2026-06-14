@@ -437,6 +437,115 @@ console.log('\nT11 — Hint Q10 unifié');
 
 
 // ══════════════════════════════════════════════════════════════════════
+// T12-T14 — Autolyse (Module 4.3, V21.57)
+// ══════════════════════════════════════════════════════════════════════
+
+// Réplique de la logique computeWaterTemp + readAutolyseState (formules pures)
+function autolyseEffects(auto, friction, tf, tfo){
+  const active = !!auto.active;
+  const frictionEff = active ? Math.max(0, friction - 2) : friction;
+  const autoFrictionBonus = active ? Math.min(friction, 2) : 0;
+  let tfEff = tf;
+  let tfShiftPct = 0;
+  if(active && auto.duree > 60){
+    tfShiftPct = Math.min(1, (auto.duree - 60) / 90);
+    tfEff = tf + (tfo - tf) * tfShiftPct;
+  }
+  return { frictionEff, autoFrictionBonus, tfEff, tfShiftPct };
+}
+
+// Réplique formule eau 3T custom : TPATE*3 - tfEff - tfo - frictionEff
+function water3T(auto, tpate, tf, tfo, friction){
+  const eff = autolyseEffects(auto, friction, tf, tfo);
+  return tpate * 3 - eff.tfEff - tfo - eff.frictionEff;
+}
+
+// Réplique formule eau TB preset : tbUser - tfEff - tfo + autoFrictionBonus
+function waterTB(auto, tbUser, tf, tfo, friction){
+  const eff = autolyseEffects(auto, friction, tf, tfo);
+  return tbUser - eff.tfEff - tfo + eff.autoFrictionBonus;
+}
+
+
+console.log('\nT12 — Autolyse INACTIVE : aucun effet sur l\'eau');
+{
+  const inactive = { active:false, duree:30 };
+  const tf=18, tfo=22, friction=4, tbUser=66;
+
+  const e3T_off = water3T(inactive, 23, tf, tfo, friction);
+  const eTB_off = waterTB(inactive, tbUser, tf, tfo, friction);
+  const e3T_ref = 23*3 - 18 - 22 - 4;  // 25
+  const eTB_ref = 66 - 18 - 22;         // 26
+
+  assert('T12a — autolyse inactive, formule 3T inchangée', near(e3T_off, e3T_ref), `${e3T_off} vs ${e3T_ref}`);
+  assert('T12b — autolyse inactive, formule TB inchangée',  near(eTB_off, eTB_ref), `${eTB_off} vs ${eTB_ref}`);
+}
+
+
+console.log('\nT13 — Autolyse 30 min : friction -2°C, pas de shift tf');
+{
+  const auto = { active:true, duree:30 };
+  const tf=18, tfo=22, friction=4, tbUser=66;
+  const eff = autolyseEffects(auto, friction, tf, tfo);
+
+  assert('T13a — frictionEff = friction - 2 = 2', eff.frictionEff === 2, `frictionEff=${eff.frictionEff}`);
+  assert('T13b — autoFrictionBonus = 2 (TB mode)', eff.autoFrictionBonus === 2);
+  assert('T13c — duree ≤ 60 : tfEff = tf (pas de shift)', eff.tfEff === tf, `tfEff=${eff.tfEff}`);
+  assert('T13d — tfShiftPct = 0', eff.tfShiftPct === 0);
+
+  // Eau +2°C par rapport à inactive
+  const e3T_on  = water3T(auto, 23, tf, tfo, friction);
+  const e3T_off = water3T({active:false}, 23, tf, tfo, friction);
+  assert('T13e — eau 3T = eau inactive + 2°C', near(e3T_on - e3T_off, 2), `Δ=${(e3T_on - e3T_off).toFixed(2)}`);
+
+  const eTB_on  = waterTB(auto, tbUser, tf, tfo, friction);
+  const eTB_off = waterTB({active:false}, tbUser, tf, tfo, friction);
+  assert('T13f — eau TB = eau inactive + 2°C', near(eTB_on - eTB_off, 2), `Δ=${(eTB_on - eTB_off).toFixed(2)}`);
+
+  // Garde-fou : friction < 2 → frictionEff clamped à 0
+  const eff_low = autolyseEffects(auto, 1, tf, tfo);
+  assert('T13g — friction faible (1°C) : frictionEff clamp à 0', eff_low.frictionEff === 0);
+  assert('T13h — friction faible : autoFrictionBonus = min(friction, 2) = 1',
+    eff_low.autoFrictionBonus === 1);
+}
+
+
+console.log('\nT14 — Autolyse longue : shift tf vers tfo');
+{
+  const tf=18, tfo=24, friction=4;
+
+  // À 60 min : seuil exact → shift 0 %
+  const eff60 = autolyseEffects({active:true, duree:60}, friction, tf, tfo);
+  assert('T14a — durée 60 min (seuil) : tfShiftPct = 0',
+    eff60.tfShiftPct === 0, `pct=${eff60.tfShiftPct}`);
+
+  // À 105 min : (105-60)/90 = 0.5 → 50 % du chemin tf→tfo
+  const eff105 = autolyseEffects({active:true, duree:105}, friction, tf, tfo);
+  assert('T14b — durée 105 min : tfShiftPct = 0.5',
+    near(eff105.tfShiftPct, 0.5, 0.01), `pct=${eff105.tfShiftPct}`);
+  assert('T14c — durée 105 min : tfEff = 18 + (24-18)×0.5 = 21°C',
+    near(eff105.tfEff, 21), `tfEff=${eff105.tfEff}`);
+
+  // À 150 min : shift = 1 (100 %) → tfEff = tfo
+  const eff150 = autolyseEffects({active:true, duree:150}, friction, tf, tfo);
+  assert('T14d — durée 150 min : tfShiftPct = 1 (100 %)',
+    eff150.tfShiftPct === 1, `pct=${eff150.tfShiftPct}`);
+  assert('T14e — durée 150 min : tfEff = tfo',
+    near(eff150.tfEff, tfo), `tfEff=${eff150.tfEff} vs tfo=${tfo}`);
+
+  // Au-delà : clamp à 1
+  const eff240 = autolyseEffects({active:true, duree:240}, friction, tf, tfo);
+  assert('T14f — durée 240 min : tfShiftPct clamp à 1', eff240.tfShiftPct === 1);
+
+  // Effet net sur l'eau : tfEff > tf → eau plus froide (compense farine chaude)
+  const e_court = water3T({active:true, duree:30}, 23, tf, tfo, friction);
+  const e_long  = water3T({active:true, duree:150}, 23, tf, tfo, friction);
+  assert('T14g — autolyse longue : eau plus froide qu\'autolyse courte',
+    e_long < e_court, `e_long=${e_long.toFixed(1)} vs e_court=${e_court.toFixed(1)}`);
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
 // BILAN
 // ══════════════════════════════════════════════════════════════════════
 console.log(`\n${'═'.repeat(60)}`);
