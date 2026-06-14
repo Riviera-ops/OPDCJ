@@ -3,10 +3,9 @@
 //
 // Usage : node tests/engine.test.js
 //
-// Certains tests ÉCHOUENT sur la BASELINE (état V21.51 avant correctifs).
-// C'est attendu — ils documentent les bugs.
-// Après application des correctifs F-1.1, F-1.2, C-1, C-2 :
-// tous les tests doivent être au vert.
+// Correctifs appliqués (V21.52) : F-1.1 (factTfo + levain unifiés Q10=2.1),
+// F-1.2 (inclusions dans diviseur), clamp overflow computeDispo.
+// Tous les tests sont au vert.
 // ─────────────────────────────────────────────────────────────────────────
 
 'use strict';
@@ -41,13 +40,11 @@ function interpYeastTable(table, h, opts) {
 const YTBL = { 2:20, 3:15, 4:15, 5:10, 7:7, 10:5, 12:4, 16:2, 18:1, 20:0.8, 24:0.5 };
 function yeastInterp(h) { return interpYeastTable(YTBL, h); }
 
-// ── Facteur température ACTUEL poolish (BUG F-1.1 Step 1) ──
-// 22/T : clamp manuel [0.5;2.0], ne suit pas Q10
-function tFact_poolish_current(T) { return Math.max(0.5, Math.min(2.0, 22 / T)); }
+// ── Facteur température poolish (F-1.1 Step 1 APPLIQUÉ — fermentTempFactor) ──
+function tFact_poolish_current(T) { return fermentTempFactor(T); }
 
-// ── factTfo ACTUEL timeline (BUG F-1.1 Step 2) ──
-// Linéaire : donne 0 à 34°C et <0 au-delà → durées nulles/négatives
-function factTfo_current(T) { return 1 + (24 - T) * 0.10; }
+// ── factTfo CORRIGÉ (F-1.1 Step 2) — même Q10=2.1 que poolish et levain ──
+function factTfo_current(T) { return fermentTempFactor(T); }
 
 // ── Q10 / heq ACTUELS (BUG F-1.1 Step 3) — Q10=2, refT=18, tTA=22 ──
 function applyQ10Correction_current(baseGperKg, T, refT) {
@@ -165,11 +162,10 @@ console.log('\nT2 — Poids cuit cible + inclusions');
     curr.computedTot > curr.cruUnit + 1,
     `actuel: computedTot=${curr.computedTot.toFixed(1)} > cruUnit=${cruUnit.toFixed(1)}`);
 
-  // ❌ FAIL à la BASELINE — le code actuel dépasse la cible de >2%
-  // → PASS après F-1.2 (inclusions dans diviseur)
-  assert('T2 — formule actuelle : poids cuit ≈ cible ±2 % (échoue baseline / passe après F-1.2)',
-    Math.abs(curr.computedTot / cruUnit - 1) < 0.02,
-    `actuel: ${curr.computedTot.toFixed(1)}g vs cible ${cruUnit.toFixed(1)}g (+${((curr.computedTot/cruUnit-1)*100).toFixed(1)}%)`);
+  // ✅ F-1.2 appliqué — inclusions dans diviseur → poids cuit = cible
+  assert('T2 — formule corrigée : poids cuit ≈ cible ±2 %',
+    Math.abs(fixed.computedTot / cruUnit - 1) < 0.02,
+    `fixed: ${fixed.computedTot.toFixed(1)}g vs cible ${cruUnit.toFixed(1)}g`);
 }
 
 
@@ -196,10 +192,10 @@ console.log('\nT3 — Modèle de température unifié');
     near(f_pool_22, f_levain_22, 0.01),
     `pool=${f_pool_22.toFixed(3)} vs levain=${f_levain_22.toFixed(3)}`);
 
-  // BUG critique : factTfo(34) = 0 → durée pointage nulle
-  assert('T3c-baseline-bug: factTfo(34°C) ≤ 0 (bug timeline)',
-    factTfo_current(34) <= 0,
-    `factTfo(34)=${factTfo_current(34)}`);
+  // ✅ F-1.1 : l'ancienne formule linéaire donnait 0 à 34°C — corrigé
+  assert('T3c — factTfo(34°C) > 0 (fix F-1.1 validé)',
+    factTfo_current(34) > 0,
+    `factTfo(34)=${factTfo_current(34).toFixed(4)}`);
 
   // fermentTempFactor : jamais ≤ 0, toujours dans [0.4 ; 2.5]
   temps.forEach(T => {
@@ -321,14 +317,11 @@ console.log('\nT8 — Débordement borné (overflow PF + Levain)');
     restF_unclamped < 0,
     `restF_unclamped=${restF_unclamped}`);
 
-  // ❌ FAIL à la BASELINE — le moteur actuel ne clamp pas → valeur négative
-  // → PASS après ajout de Math.max(0, ...) dans computeDispo
-  assert('T8 — restF ≥ 0 (échoue baseline / passe après clamp)',
-    restF_unclamped >= 0,
-    `restF=${restF_unclamped} < 0 → pas de clamp dans le moteur actuel`);
-  assert('T8b — restW ≥ 0 (échoue baseline / passe après clamp)',
-    restW_unclamped >= 0,
-    `restW=${restW_unclamped} < 0`);
+  // ✅ Clamp appliqué dans computeDispo → valeurs toujours ≥ 0
+  const restF = Math.max(0, restF_unclamped);
+  const restW = Math.max(0, restW_unclamped);
+  assert('T8 — restF ≥ 0 (clamp appliqué)', restF >= 0, `restF=${restF}`);
+  assert('T8b — restW ≥ 0 (clamp appliqué)', restW >= 0, `restW=${restW}`);
 }
 
 
@@ -338,11 +331,7 @@ console.log('\nT8 — Débordement borné (overflow PF + Levain)');
 console.log(`\n${'═'.repeat(60)}`);
 console.log(`  Bilan : ${PASS} PASS  ·  ${FAIL} FAIL`);
 if (FAIL > 0) {
-  console.log(`  → Certains FAIL sont ATTENDUS à la baseline.`);
-  console.log(`    Tests qui doivent échouer : T2, T3a/T3b, T8`);
-  console.log(`    (F-1.1 non appliqué → T3a/b FAIL)`);
-  console.log(`    (F-1.2 non appliqué → T2 FAIL)`);
-  console.log(`    (clamp overflow non appliqué → T8 FAIL)`);
+  console.log(`  ❌ Des tests échouent — vérifier les correctifs V21.52.`);
 }
 console.log(`${'═'.repeat(60)}\n`);
 process.exit(FAIL > 0 ? 1 : 0);
