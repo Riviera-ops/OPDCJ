@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.53</title>
+<title>Ô Pain De Ce Jour V21.54</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -2526,7 +2526,7 @@ function fillSel(el,min,max,step,def){
 //   → Chaud (>22°C) = facteur <1 = moins de levure
 //   → Froid (<22°C) = facteur >1 = plus de levure
 // ─────────────────────────────────────────────
-const YTBL = { 2:20, 3:15, 4:15, 5:10, 7:7, 10:5, 12:4, 16:2, 18:1, 20:0.8, 24:0.5 };
+const YTBL = { 2:20, 3:13, 4:8, 5:8, 7:6.5, 10:5, 12:4, 16:2.5, 18:1.5, 20:1, 24:0.5 };
 
 // ═══════════════════════════════════════════════════════════════════
 // F-1.1 — Modèle de température unifié (Q10=2.1, refT=24, clamp [0.4;2.5])
@@ -4070,7 +4070,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.53';
+const APP_VERSION = 'V21.54';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.

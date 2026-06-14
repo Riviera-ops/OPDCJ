@@ -36,8 +36,8 @@ function interpYeastTable(table, h, opts) {
   return table[lo] + (table[hi] - table[lo]) * (h - lo) / (hi - lo);
 }
 
-// ── Table YTBL poolish pain (BASELINE — C-1 à recalibrer) ──
-const YTBL = { 2:20, 3:15, 4:15, 5:10, 7:7, 10:5, 12:4, 16:2, 18:1, 20:0.8, 24:0.5 };
+// ── Table YTBL poolish pain (C-1 appliqué — courbe log, ancres Calvel) ──
+const YTBL = { 2:20, 3:13, 4:8, 5:8, 7:6.5, 10:5, 12:4, 16:2.5, 18:1.5, 20:1, 24:0.5 };
 function yeastInterp(h) { return interpYeastTable(YTBL, h); }
 
 // ── Facteur température poolish (F-1.1 Step 1 APPLIQUÉ — fermentTempFactor) ──
