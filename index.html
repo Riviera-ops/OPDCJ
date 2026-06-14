@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.55</title>
+<title>Ô Pain De Ce Jour V21.56</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -2564,10 +2564,12 @@ function interpYeastTable(table, h, opts){
 }
 
 // F-1.1 Step 3 — Q10=2.1, refT=24 (unifié avec fermentTempFactor).
-// T° plus élevée → fermentation plus rapide → moins de levure (factor > 1, on divise).
+// V21.56 — MULTIPLY : fermentTempFactor renvoie déjà le multiplicateur dose
+// (>1 au froid → plus de levure, <1 au chaud → moins de levure).
+// Équivalent à l'ancien `base / Math.pow(2,(T-refT)/10)` au signe près (Q10 2→2.1).
 function applyQ10Correction(baseGperKg, T, refT){
   refT = (refT === undefined) ? 24 : refT;
-  return baseGperKg / fermentTempFactor(T, refT);
+  return baseGperKg * fermentTempFactor(T, refT);
 }
 
 // Heures équivalentes à une T° de référence (Q10=2.1, unifié F-1.1).
@@ -4072,7 +4074,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.55';
+const APP_VERSION = 'V21.56';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.

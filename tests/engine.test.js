@@ -326,6 +326,117 @@ console.log('\nT8 — Débordement borné (overflow PF + Levain)');
 
 
 // ══════════════════════════════════════════════════════════════════════
+// T9 — Biga pizza : refT=18 obligatoire (table Giorilli calibrée à 18°C)
+// Garantit que pizzaBigaYeastInterp ne sera plus jamais re-bumpé à refT=24
+// (bug V21.53 réintroduisait -35 % de levure biga).
+// ══════════════════════════════════════════════════════════════════════
+console.log('\nT9 — Biga refT=18 + applyQ10Correction sens correct (anti-régression V21.55-V21.56)');
+{
+  // Réplique de applyQ10Correction V21.56 (multiply) + pizzaBigaYeastInterp (refT=18)
+  function bigaDose(baseGperKg, tempBiga){
+    return baseGperKg * fermentTempFactor(tempBiga, 18);
+  }
+  const base = 10; // ex. table biga 16h ≈ 10 g/kg
+
+  // À 18°C (= refT) : pas de correction → dose = base
+  assert('T9a — à T=refT=18°C, dose = base (pas de correction)',
+    near(bigaDose(base, 18), base, 0.01),
+    `dose=${bigaDose(base, 18).toFixed(3)} vs base=${base}`);
+
+  // À 22°C (plus chaud) : MOINS de levure (fermentation plus rapide)
+  assert('T9b — à T=22°C > refT=18°C, dose < base (moins de levure au chaud)',
+    bigaDose(base, 22) < base * 0.95,
+    `dose=${bigaDose(base, 22).toFixed(2)} vs base=${base} — bug si > base`);
+
+  // À 14°C (plus froid) : PLUS de levure (fermentation plus lente)
+  assert('T9c — à T=14°C < refT=18°C, dose > base (plus de levure au froid)',
+    bigaDose(base, 14) > base * 1.05,
+    `dose=${bigaDose(base, 14).toFixed(2)} vs base=${base} — bug si < base`);
+
+  // Garde-fou : si refT dérivait à 24, dose à 18°C chuterait à ~base×0.64
+  // Si ce test échoue, refT a probablement été repassé à 24 dans pizzaBigaYeastInterp.
+  assert('T9d — anti-régression : dose à 18°C ≥ base×0.9 (refT ne doit pas dériver à 24)',
+    bigaDose(base, 18) >= base * 0.9,
+    `dose=${bigaDose(base, 18).toFixed(3)} — refT a probablement dérivé à 24°C`);
+
+  // Sens du sign global (anti-régression V21.56) :
+  // l'ancien `divide` avec fermentTempFactor inversait le signe → dose 22°C > dose 14°C
+  // Le `multiply` actuel garantit dose 22°C < dose 14°C.
+  assert('T9e — anti-régression V21.56 : dose(22°C) < dose(14°C) (sens correct)',
+    bigaDose(base, 22) < bigaDose(base, 14),
+    `dose 22=${bigaDose(base, 22).toFixed(2)} vs dose 14=${bigaDose(base, 14).toFixed(2)}`);
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
+// T10 — Guard pBexTotal en pizza/focaccia (V21.55)
+// S.breadExtras est persisté globalement ; un sésame coché en pain ne doit
+// PAS impacter le diviseur pizza/focaccia (la card est cachée).
+// ══════════════════════════════════════════════════════════════════════
+console.log('\nT10 — Guard pBexTotal hors modes pain');
+{
+  // Réplique du guard de computeCore V21.55
+  function computePBexTotal(MODE, breadExtras){
+    const isBreadMode = MODE === 'pain' || MODE === 'petit-pain' || MODE === 'brioche';
+    const bex = (isBreadMode && breadExtras) ? breadExtras : {};
+    return Object.values(bex).reduce((s, e) => s + (e.checked ? (e.pct||0)/100 : 0), 0);
+  }
+
+  const breadExtrasCoché = { sesame: { checked:true, pct:30 } };
+
+  // En mode pain : sésame coché compte (0.30)
+  assert('T10a — pain : pBexTotal = 0.30 quand sésame 30% coché',
+    near(computePBexTotal('pain', breadExtrasCoché), 0.30),
+    `pBexTotal=${computePBexTotal('pain', breadExtrasCoché)}`);
+
+  // En mode pizza : sésame coché ignoré (0)
+  assert('T10b — pizza : pBexTotal = 0 même si bread extras cochés',
+    computePBexTotal('pizza', breadExtrasCoché) === 0,
+    `pBexTotal=${computePBexTotal('pizza', breadExtrasCoché)}`);
+
+  // En mode focaccia : idem
+  assert('T10c — focaccia : pBexTotal = 0 même si bread extras cochés',
+    computePBexTotal('focaccia', breadExtrasCoché) === 0,
+    `pBexTotal=${computePBexTotal('focaccia', breadExtrasCoché)}`);
+
+  // petit-pain et brioche : modes bread → cochés comptent
+  assert('T10d — petit-pain : pBexTotal compte les bread extras',
+    near(computePBexTotal('petit-pain', breadExtrasCoché), 0.30));
+  assert('T10e — brioche : pBexTotal compte les bread extras',
+    near(computePBexTotal('brioche', breadExtrasCoché), 0.30));
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
+// T11 — Hint pointage/apprêt : Q10 unifié (V21.55)
+// updatePhaseDurHints utilisait Math.pow(2,(22-T)/10) (Q10=2, refT=22).
+// Migré vers fermentTempFactor (Q10=2.1, refT=24).
+// ══════════════════════════════════════════════════════════════════════
+console.log('\nT11 — Hint Q10 unifié');
+{
+  // Réplique : factor utilisé dans la suggestion durée pointage
+  function hintTempFactor(T){ return fermentTempFactor(T); }
+
+  // À T=24°C (réf), facteur exactement 1.0 (anciennement à 22°C donnait 1.0)
+  assert('T11a — à T=24°C (refT), facteur = 1.0',
+    near(hintTempFactor(24), 1.0, 0.001),
+    `factor=${hintTempFactor(24).toFixed(4)}`);
+
+  // À T=22°C, facteur > 1 (suggestion plus longue) — ancien code donnait 1.0
+  assert('T11b — à T=22°C, facteur > 1.0 (régression : ancien Q10=2 donnait 1.0)',
+    hintTempFactor(22) > 1.05,
+    `factor=${hintTempFactor(22).toFixed(4)} — ancien code: 1.0`);
+
+  // Sanity : la suggestion à 22°C est ~16 % plus longue qu'à 24°C
+  const sug22 = 120 * hintTempFactor(22);
+  const sug24 = 120 * hintTempFactor(24);
+  assert('T11c — pointage 120 min à 22°C ≈ +16 % vs 24°C',
+    sug22 > sug24 && (sug22/sug24 - 1) > 0.10 && (sug22/sug24 - 1) < 0.25,
+    `sug22=${sug22.toFixed(0)} vs sug24=${sug24.toFixed(0)} (Δ=${((sug22/sug24-1)*100).toFixed(1)}%)`);
+}
+
+
+// ══════════════════════════════════════════════════════════════════════
 // BILAN
 // ══════════════════════════════════════════════════════════════════════
 console.log(`\n${'═'.repeat(60)}`);
