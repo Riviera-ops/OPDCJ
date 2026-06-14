@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.61</title>
+<title>Ô Pain De Ce Jour V21.62</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1582,9 +1582,9 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
     </div>
     <div class="cb">
 
-      <!-- ══════ Sous-section 1 : Pré-ferments & maturation (OUVERT) ══════ -->
+      <!-- ══════ Sous-section 1 : Pré-ferments & maturation (REPLIÉ depuis V21.62) ══════ -->
       <div class="sub-card" data-sub="ferment">
-        <div class="sub-ch" data-start="open">
+        <div class="sub-ch" data-start="closed">
           <h4>Pré-ferments &amp; maturation</h4>
           <span class="sub-tag" id="ferm-sub-tag">Directe · Tout TA</span>
           <span class="sub-caret">▾</span>
@@ -1881,9 +1881,9 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
               <label>Pétrin</label>
               <select id="pz-petr-type">
                 <option value="spirale" selected>Spirale</option>
-                <option value="oblique">Oblique / Artofex</option>
+                <option value="oblique">Oblique</option>
                 <option value="batteur">Batteur / Robot</option>
-                <option value="bras">Bras plongeants</option>
+                <option value="bras">Bras plongeants / Artofex</option>
                 <option value="manuel">Manuel</option>
                 <option value="custom">Personnalisé</option>
               </select>
@@ -3675,6 +3675,24 @@ function fermentSyncToLegacy(){
   const isPF     = !!state.addPF;
   const isLevain = !!state.addLevain;
 
+  // V21.62 — Sync plan-agent depuis ferment.main pour que renderPlanPhases
+  // active correctement la phase preferm (poolish/levain). Sans ce sync,
+  // sélectionner Poolish dans le Pilote (Recette) ne cochait pas la phase
+  // preferm du Planning sur les modes non-pizza.
+  const planAgentEl = $('plan-agent');
+  if(planAgentEl){
+    let newAgent = 'levure';
+    if(isPoolish)      newAgent = 'poolish';
+    else if(isLevain)  newAgent = 'levain';
+    else if(isPF)      newAgent = 'pf';
+    if(planAgentEl.value !== newAgent){
+      planAgentEl.value = newAgent;
+      document.querySelectorAll('#plan-agent-seg .rseg-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.val === newAgent);
+      });
+    }
+  }
+
   // Toggles surpool par famille
   ['pain','foc','pp','bri','pizza'].forEach(pfx => {
     const t = $(pfx + '-surpool');
@@ -4249,7 +4267,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.61';
+const APP_VERSION = 'V21.62';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -7529,12 +7547,13 @@ function computeWaterTemp(){
   const tbPetrInfo=$('tb-petr-info');
   if(tbPetrInfo){
     // V21.61 — Table pédagogique mise à jour avec les 5 types de pétrin BLOC 2
+    // V21.62 — Artofex repositionné sur bras plongeants (mécanique correcte)
     const rows=[
-      {key:'spirale', label:'Spirale',           fr:4, active:petrType==='spirale'},
-      {key:'oblique', label:'Oblique / Artofex', fr:3, active:petrType==='oblique'},
-      {key:'batteur', label:'Batteur / Robot',   fr:4, active:petrType==='batteur'},
-      {key:'bras',    label:'Bras plongeants',   fr:5, active:petrType==='bras'},
-      {key:'manuel',  label:'Manuel',            fr:0, active:petrType==='manuel'},
+      {key:'spirale', label:'Spirale',                    fr:4, active:petrType==='spirale'},
+      {key:'oblique', label:'Oblique',                    fr:3, active:petrType==='oblique'},
+      {key:'batteur', label:'Batteur / Robot',            fr:4, active:petrType==='batteur'},
+      {key:'bras',    label:'Bras plongeants / Artofex',  fr:5, active:petrType==='bras'},
+      {key:'manuel',  label:'Manuel',                     fr:0, active:petrType==='manuel'},
     ];
     if(petrType === 'custom'){
       rows.push({key:'custom', label:'Personnalisé', fr:friction, active:true, isCustom:true});
