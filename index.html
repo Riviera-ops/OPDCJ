@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.69</title>
+<title>Ô Pain De Ce Jour V21.70</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -540,6 +540,19 @@ body.dark .phase-row.cold .phase-label{color:#7EC8F0;}
 .phase-row input[type="checkbox"]{
   width:16px;height:16px;accent-color:var(--prim);flex-shrink:0;cursor:pointer;
 }
+/* V21.70 — Bouton ▶ par phase Planning pour démarrer le chrono */
+.phase-row .phase-play-btn{
+  width:30px;height:30px;flex-shrink:0;
+  border:1px solid var(--prim);background:transparent;color:var(--prim);
+  border-radius:50%;cursor:pointer;font-size:11px;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:background .12s,color .12s,transform .08s;
+}
+.phase-row .phase-play-btn:hover{background:var(--prim);color:#fff;}
+.phase-row .phase-play-btn:active{transform:translateY(1px);}
+.phase-row.inactive .phase-play-btn{display:none;}
+.phase-row.cold .phase-play-btn{border-color:#5BA3D0;color:#5BA3D0;}
+.phase-row.cold .phase-play-btn:hover{background:#5BA3D0;color:#fff;}
 .phase-icon{font-size:15px;flex-shrink:0;}
 .phase-label{
   flex:1;font-size:12.5px;color:var(--txt-m);font-weight:600;line-height:1.3;
@@ -4416,7 +4429,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.69';
+const APP_VERSION = 'V21.70';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5890,6 +5903,9 @@ const ChronoState = {
   recipe: {
     startTs: null       // timestamp démarrage 1re phase, persisté localStorage
   },
+  planning: {
+    currentPrefixId: null  // V21.70 — phase Planning courante (pour bouton Suivante)
+  },
   rafId: null,
   audioCtx: null,
   recipeIntervalId: null
@@ -5975,6 +5991,93 @@ function chronoIsEnded(){
   return chronoIsActive() && chronoElapsedMs() >= ChronoState.phase.durationMs;
 }
 
+// V21.70 — Récupère la durée ajustée d'une phase Planning (réplique getAdjDur de computeTimeline)
+// prefixId = "pain-pointage" → planMode + phaseId. Retourne durée en minutes.
+function chronoGetPhaseAdjustedDurMin(prefixId){
+  const dash = prefixId.indexOf('-');
+  if(dash < 0) return 0;
+  const planMode = prefixId.substring(0, dash);
+  const phaseId  = prefixId.substring(dash + 1);
+  const sets = {pain: PHASES_PAIN, pizza: PHASES_PIZZA, focaccia: PHASES_FOCACCIA};
+  const phases = sets[planMode] || PHASES_PAIN;
+  const ph = phases.find(p => p.id === phaseId);
+  if(!ph) return 0;
+
+  const agent = $('plan-agent')?.value || 'levure';
+  const petr  = $('plan-petrissage')?.value || 'pa';
+  const tfo   = toNum($('tb-fo')?.value, 22);
+  const factTfo  = (typeof fermentTempFactor === 'function') ? fermentTempFactor(tfo) : 1;
+  const factPetr = (typeof PETR_FACTORS === 'object' ? PETR_FACTORS[petr] : 1) || 1;
+
+  // Preferm poolish/biga : durée recette (heures → minutes)
+  if(ph.type === 'preferm' && (agent === 'poolish' || (MODE === 'pizza' && !!$('pizza-surpool')?.checked))){
+    const src = (MODE === 'pizza') ? $('pz-pool-duree') : $('pool-duree');
+    return toNum(src?.value, 4) * 60;
+  }
+  if(ph.type === 'preferm' && $('pizza-surbiga')?.checked && MODE === 'pizza'){
+    return toNum($('pz-biga-duree')?.value, 18) * 60;
+  }
+  // Froid : input en heures → minutes
+  if(ph.type === 'froid'){
+    return Math.round(toNum($('pdur-' + prefixId)?.value, ph.dur / 60) * 60);
+  }
+  // Normal : input en minutes + ajustements pétrissage/fournil
+  const base = toNum($('pdur-' + prefixId)?.value, ph.dur);
+  switch(ph.type){
+    case 'manual': case 'preferm': return base;
+    case 'pointage': return Math.round(Math.max(15, base * factPetr) * factTfo);
+    case 'appret': case 'retourTA': case 'ferm': return Math.round(base * factTfo);
+    default: return base;
+  }
+}
+
+// V21.70 — Trouve la prochaine phase cochée dans le Planning (ordre DOM)
+function chronoFindNextPhasePrefixId(currentPrefixId){
+  const body = $('plan-phases-body');
+  if(!body) return null;
+  const checkboxes = body.querySelectorAll('input[type="checkbox"][id^="pchk-"]:checked');
+  let found = false;
+  for(const cb of checkboxes){
+    const prefixId = cb.id.replace('pchk-', '');
+    if(found) return prefixId;
+    if(prefixId === currentPrefixId) found = true;
+  }
+  return null;
+}
+
+// V21.70 — Démarre le chrono à partir d'une phase Planning + bascule sur l'onglet Chrono
+function chronoStartFromPhase(prefixId){
+  const dur = chronoGetPhaseAdjustedDurMin(prefixId);
+  if(!dur || dur < 1){
+    if(typeof toast === 'function') toast('⚠️ Durée invalide pour cette phase');
+    return;
+  }
+  // Récupère le label de la phase depuis le DOM
+  const chk = $(`pchk-${prefixId}`);
+  const row = chk?.closest('.phase-row');
+  const label = row?.querySelector('.phase-label')?.textContent?.trim() || prefixId;
+
+  ChronoState.planning = { currentPrefixId: prefixId };
+  chronoStart(dur, label);
+  // Bascule sur l'onglet Chrono
+  document.querySelector('.nav-btn[data-tab="chrono"]')?.click();
+}
+
+// V21.70 — Phase suivante du Planning
+function chronoNextPhase(){
+  const cur = ChronoState.planning?.currentPrefixId;
+  if(!cur){
+    if(typeof toast === 'function') toast('⚠️ Démarre d\'abord une phase depuis le Planning');
+    return;
+  }
+  const next = chronoFindNextPhasePrefixId(cur);
+  if(!next){
+    if(typeof toast === 'function') toast('🏁 Dernière phase atteinte — pas de suivante');
+    return;
+  }
+  chronoStartFromPhase(next);
+}
+
 function chronoOnPhaseEnd(){
   // V21.68-fix — Arrêt propre du timer à la fin :
   // sans ça, runStartTs reste set → chronoIsRunning() true → bouton Démarrer grisé.
@@ -6053,6 +6156,9 @@ function chronoRender(){
   if(btnStart)  btnStart.disabled  = running || !chronoIsActive() || ended;
   if(btnPause)  btnPause.disabled  = !running;
   if(btnStop)   btnStop.disabled   = !chronoIsActive();
+  // V21.70 — Suivante activable si une phase Planning est courante
+  const btnNext = $('chrono-btn-next');
+  if(btnNext) btnNext.disabled = !ChronoState.planning?.currentPrefixId;
   if(btnManual){
     btnManual.disabled = running; // toujours activable sauf si un timer tourne actif
     btnManual.innerHTML = ended
@@ -6217,10 +6323,8 @@ function initChrono(){
     if(!confirm('Arrêter le chrono de phase ?')) return;
     chronoStop();
   });
-  // Suivante : V21.68 (intégration Planning)
-  $('chrono-btn-next')?.addEventListener('click', () => {
-    toast('⏭ Intégration Planning à venir V21.68');
-  });
+  // V21.70 — Suivante : phase Planning suivante
+  $('chrono-btn-next')?.addEventListener('click', chronoNextPhase);
 
   // Reset chrono recette
   $('chrono-recipe-reset')?.addEventListener('click', chronoRecipeReset);
@@ -8421,6 +8525,8 @@ function renderPhaseRow(ph, mode, agent){
     <label for="${chkId}" class="phase-label${tipClass}" ${tipAttr}>${phLabel}</label>
     ${isCold?'<span style="font-size:10px;color:#5BA3D0;font-weight:700;white-space:nowrap;">4–6°C</span>':''}
     ${durHTML}
+    <button type="button" class="phase-play-btn" title="Démarrer cette phase dans le chronomètre"
+            onclick="chronoStartFromPhase('${prefixId}')">▶</button>
   </div>`;
 }
 
