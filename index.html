@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.76</title>
+<title>Ô Pain De Ce Jour V21.77</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -55,6 +55,7 @@
   --ok:      #7A8B5C;
   --warn:    #C06020;
   --danger:  #A83030;
+  --cold:    #5BA3D0;   /* V21.77 — bleu froid (phases frigo, badges) */
   --sh-sm:   0 2px 8px rgba(120,60,30,.10);
   --sh:      0 4px 16px rgba(120,60,30,.14);
   --r:14px; --r-sm:8px; --r-card:20px; --r-pill:24px;
@@ -532,7 +533,7 @@ body.dark .tl-step.is-cold{background:rgba(80,130,180,.12);}
 }
 .phase-row:last-child{border-bottom:none;}
 .phase-row.cold{
-  background:rgba(120,180,240,.09);border-left:3px solid #5BA3D0;padding-left:9px;
+  background:rgba(120,180,240,.09);border-left:3px solid var(--cold);padding-left:9px;
 }
 body.dark .phase-row.cold{background:rgba(80,130,180,.10);}
 .phase-row.cold .phase-label{color:#3d82aa;}
@@ -551,8 +552,8 @@ body.dark .phase-row.cold .phase-label{color:#7EC8F0;}
 .phase-row .phase-play-btn:hover{background:var(--prim);color:#fff;}
 .phase-row .phase-play-btn:active{transform:translateY(1px);}
 .phase-row.inactive .phase-play-btn{display:none;}
-.phase-row.cold .phase-play-btn{border-color:#5BA3D0;color:#5BA3D0;}
-.phase-row.cold .phase-play-btn:hover{background:#5BA3D0;color:#fff;}
+.phase-row.cold .phase-play-btn{border-color:var(--cold);color:var(--cold);}
+.phase-row.cold .phase-play-btn:hover{background:var(--cold);color:#fff;}
 .phase-icon{font-size:15px;flex-shrink:0;}
 .phase-label{
   flex:1;font-size:12.5px;color:var(--txt-m);font-weight:600;line-height:1.3;
@@ -602,7 +603,7 @@ body.dark .phase-row.cold.inactive .phase-label{color:#7EC8F0;}
 .tl-badge-item.cold{background:rgba(120,180,240,.15);border-color:#9ECBE8;color:#3d82aa;}
 .tl-step.is-cold{background:rgba(120,180,240,.07);border-radius:6px;margin:2px 0;}
 body.dark .tl-step.is-cold{background:rgba(80,130,180,.10);}
-.tl-cold-badge{font-size:9px;font-weight:800;color:#5BA3D0;
+.tl-cold-badge{font-size:9px;font-weight:800;color:var(--cold);
   background:rgba(120,180,240,.2);border-radius:8px;padding:1px 6px;margin-left:4px;}
 body.dark .tl-cold-badge{color:#7EC8F0;}
 .tl-day-tag{font-size:9px;font-weight:800;color:var(--prim);
@@ -3291,6 +3292,13 @@ const MODES = {
 // Centralisé ici (était dupliqué 3× dans init / switchMode / computeWaterTemp avant V21.76).
 const TB_FALLBACK_BY_MODE = { pain:66, pizza:63, focaccia:64, 'petit-pain':66, brioche:60 };
 
+// V21.77 — Defaults focaccia (centralisés ; étaient dupliqués HTML + 2 sites JS).
+const FOC_DEFAULTS = {
+  densite:  0.65,  // g/cm³, pâte crue avant levée
+  plaqueL:  40,    // cm
+  plaqueW:  30     // cm
+};
+
 const PETR_TB_DEFAULTS = {
   spirale: 56, oblique: 50, batteur: 60, bras: 62, manuel: 70
 };
@@ -4561,7 +4569,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.76';
+const APP_VERSION = 'V21.77';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5140,9 +5148,9 @@ function computeFocacciaHeightHint(){
   if(!hint) return;
   if(MODE !== 'focaccia'){ hint.classList.add('hidden'); return; }
 
-  const L   = toNum($('foc-plaque-l')?.value, 40);
-  const W   = toNum($('foc-plaque-w')?.value, 30);
-  const rho = toNum($('foc-densite')?.value, 0.65);
+  const L   = toNum($('foc-plaque-l')?.value, FOC_DEFAULTS.plaqueL);
+  const W   = toNum($('foc-plaque-w')?.value, FOC_DEFAULTS.plaqueW);
+  const rho = toNum($('foc-densite')?.value, FOC_DEFAULTS.densite);
   const qte = toNum($('foc-qty')?.value, 1);
   // Poids total pâte = somme S (cf. computeCore)
   const mPateUnit = (S.farine||0) + (S.eau||0) + (S.sel||0) + (S.levure||0) + (S.huile||0);
@@ -8725,7 +8733,7 @@ function renderPhaseRow(ph, mode, agent){
       onchange="togglePhaseRow('${prefixId}',this.checked);computeAll();">
     <span class="phase-icon">${phIconHtml}</span>
     <label for="${chkId}" class="phase-label${tipClass}" ${tipAttr}>${phLabel}</label>
-    ${isCold?'<span style="font-size:10px;color:#5BA3D0;font-weight:700;white-space:nowrap;">4–6°C</span>':''}
+    ${isCold?'<span style="font-size:10px;color:var(--cold);font-weight:700;white-space:nowrap;">4–6°C</span>':''}
     ${durHTML}
     <button type="button" class="phase-play-btn" title="Démarrer cette phase dans le chronomètre"
             onclick="chronoStartFromPhase('${prefixId}')">▶</button>
@@ -10305,9 +10313,9 @@ function buildPrintableRecipe(r){
     const ep     = toNum($('foc-cuisson-ep')?.value, 22);
     const tCu    = toNum($('foc-cuisson-min')?.value, 18);
     const tFour  = toNum($('foc-cuisson-t')?.value, 230);
-    const plL    = toNum($('foc-plaque-l')?.value, 40);
-    const plW    = toNum($('foc-plaque-w')?.value, 30);
-    const rho    = toNum($('foc-densite')?.value, 0.65);
+    const plL    = toNum($('foc-plaque-l')?.value, FOC_DEFAULTS.plaqueL);
+    const plW    = toNum($('foc-plaque-w')?.value, FOC_DEFAULTS.plaqueW);
+    const rho    = toNum($('foc-densite')?.value, FOC_DEFAULTS.densite);
     const surPool= $('foc-surpool')?.checked || false;
     const qte    = $('foc-qty')?.value;
     const w      = $('foc-weight')?.value;
