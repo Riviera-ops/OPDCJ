@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.70</title>
+<title>Ô Pain De Ce Jour V21.71</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -4429,7 +4429,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.70';
+const APP_VERSION = 'V21.71';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5991,8 +5991,12 @@ function chronoIsEnded(){
   return chronoIsActive() && chronoElapsedMs() >= ChronoState.phase.durationMs;
 }
 
-// V21.70 — Récupère la durée ajustée d'une phase Planning (réplique getAdjDur de computeTimeline)
-// prefixId = "pain-pointage" → planMode + phaseId. Retourne durée en minutes.
+// V21.70 → V21.71 — Récupère la durée d'une phase Planning pour le Chrono.
+// FIX V21.71 : utilise la valeur input brute (pas d'ajustement factPetr/factTfo
+// ni clamp Math.max(15) pour pointage). Ces ajustements sont des règles de
+// calcul Planning (timeline), pas un compte à rebours physique.
+// Le user attend "1 min input → 1 min chrono", pas "1 min input → 17 min chrono".
+// Cas spéciaux préservés : préferm (lit recette) et froid (heures → minutes).
 function chronoGetPhaseAdjustedDurMin(prefixId){
   const dash = prefixId.indexOf('-');
   if(dash < 0) return 0;
@@ -6004,12 +6008,8 @@ function chronoGetPhaseAdjustedDurMin(prefixId){
   if(!ph) return 0;
 
   const agent = $('plan-agent')?.value || 'levure';
-  const petr  = $('plan-petrissage')?.value || 'pa';
-  const tfo   = toNum($('tb-fo')?.value, 22);
-  const factTfo  = (typeof fermentTempFactor === 'function') ? fermentTempFactor(tfo) : 1;
-  const factPetr = (typeof PETR_FACTORS === 'object' ? PETR_FACTORS[petr] : 1) || 1;
 
-  // Preferm poolish/biga : durée recette (heures → minutes)
+  // Préferm poolish/biga : durée lue depuis la recette (champs pool-duree/biga-duree, en heures)
   if(ph.type === 'preferm' && (agent === 'poolish' || (MODE === 'pizza' && !!$('pizza-surpool')?.checked))){
     const src = (MODE === 'pizza') ? $('pz-pool-duree') : $('pool-duree');
     return toNum(src?.value, 4) * 60;
@@ -6017,18 +6017,12 @@ function chronoGetPhaseAdjustedDurMin(prefixId){
   if(ph.type === 'preferm' && $('pizza-surbiga')?.checked && MODE === 'pizza'){
     return toNum($('pz-biga-duree')?.value, 18) * 60;
   }
-  // Froid : input en heures → minutes
+  // Froid : input en HEURES → conversion en minutes
   if(ph.type === 'froid'){
     return Math.round(toNum($('pdur-' + prefixId)?.value, ph.dur / 60) * 60);
   }
-  // Normal : input en minutes + ajustements pétrissage/fournil
-  const base = toNum($('pdur-' + prefixId)?.value, ph.dur);
-  switch(ph.type){
-    case 'manual': case 'preferm': return base;
-    case 'pointage': return Math.round(Math.max(15, base * factPetr) * factTfo);
-    case 'appret': case 'retourTA': case 'ferm': return Math.round(base * factTfo);
-    default: return base;
-  }
+  // Toutes les autres phases : valeur input brute (en minutes), sans ajustement
+  return Math.max(1, Math.round(toNum($('pdur-' + prefixId)?.value, ph.dur)));
 }
 
 // V21.70 — Trouve la prochaine phase cochée dans le Planning (ordre DOM)
