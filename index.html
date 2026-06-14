@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.71</title>
+<title>Ô Pain De Ce Jour V21.72</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -4429,7 +4429,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.71';
+const APP_VERSION = 'V21.72';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5912,6 +5912,7 @@ const ChronoState = {
 };
 const CHRONO_RING_CIRC = 678.58; // 2π × 108 (cf SVG)
 const CHRONO_LS_KEY = 'opdcj_chrono_recipe_start';
+const CHRONO_SESSION_KEY = 'opdcj_chrono_session'; // V21.72 — session phase persistée
 
 function chronoElapsedMs(){
   const p = ChronoState.phase;
@@ -6081,6 +6082,7 @@ function chronoOnPhaseEnd(){
   p.endNotified = true;
   if(ChronoState.rafId){ cancelAnimationFrame(ChronoState.rafId); ChronoState.rafId = null; }
   chronoWakeLockRelease();
+  chronoSaveSession(); // V21.72 — persiste l'état terminé
 
   const ring = document.querySelector('.chrono-ring');
   const timeEl = $('chrono-time');
@@ -6194,6 +6196,7 @@ function chronoStart(durationMin, phaseName){
     try { localStorage.setItem(CHRONO_LS_KEY, String(ChronoState.recipe.startTs)); } catch(e){}
     chronoRenderRecipe();
   }
+  chronoSaveSession(); // V21.72
   chronoRender();
   if(!ChronoState.rafId) ChronoState.rafId = requestAnimationFrame(chronoTickFrame);
 }
@@ -6205,6 +6208,7 @@ function chronoPause(){
   p.runStartTs = null;
   if(ChronoState.rafId){ cancelAnimationFrame(ChronoState.rafId); ChronoState.rafId = null; }
   chronoWakeLockRelease();
+  chronoSaveSession(); // V21.72
   chronoRender();
 }
 
@@ -6213,6 +6217,7 @@ function chronoResume(){
   if(p.runStartTs || !chronoIsActive()) return;
   p.runStartTs = Date.now();
   chronoWakeLockAcquire();
+  chronoSaveSession(); // V21.72
   chronoRender();
   if(!ChronoState.rafId) ChronoState.rafId = requestAnimationFrame(chronoTickFrame);
 }
@@ -6222,7 +6227,9 @@ function chronoStop(){
   ChronoState.phase = {
     name: '', durationMs: 0, accumulatedMs: 0, runStartTs: null, endNotified: false
   };
+  ChronoState.planning = { currentPrefixId: null }; // V21.72 — reset planning courant
   chronoWakeLockRelease();
+  chronoClearSession(); // V21.72
   // Nettoie le visuel
   const ring = document.querySelector('.chrono-ring');
   const timeEl = $('chrono-time');
@@ -6265,6 +6272,74 @@ function chronoUpdateWakeLockUI(active){
     else if(!('wakeLock' in navigator)) label.textContent = '⚠️ Wake Lock indisponible (écran peut s\'éteindre)';
     else label.textContent = 'Écran libre de s\'éteindre';
   }
+}
+
+// V21.72 — Persistance session chrono (phase active + planning current)
+function chronoSaveSession(){
+  try {
+    if(!chronoIsActive()){ localStorage.removeItem(CHRONO_SESSION_KEY); return; }
+    const session = {
+      v: 1,
+      phase: { ...ChronoState.phase },
+      planning: { ...ChronoState.planning },
+      savedAt: Date.now()
+    };
+    localStorage.setItem(CHRONO_SESSION_KEY, JSON.stringify(session));
+  } catch(e) {}
+}
+function chronoClearSession(){
+  try { localStorage.removeItem(CHRONO_SESSION_KEY); } catch(e){}
+}
+function chronoLoadSession(){
+  try {
+    const raw = localStorage.getItem(CHRONO_SESSION_KEY);
+    if(!raw) return;
+    const sess = JSON.parse(raw);
+    if(!sess || sess.v !== 1 || !sess.phase || !sess.phase.durationMs) return;
+
+    ChronoState.phase = {
+      name:           sess.phase.name || '',
+      durationMs:     sess.phase.durationMs,
+      accumulatedMs:  sess.phase.accumulatedMs || 0,
+      runStartTs:     sess.phase.runStartTs || null,
+      endNotified:    !!sess.phase.endNotified
+    };
+    if(sess.planning) ChronoState.planning = { ...sess.planning };
+
+    if(ChronoState.phase.runStartTs){
+      // Phase était en cours au save. Recalcul à partir de maintenant.
+      const elapsed = chronoElapsedMs();
+      if(elapsed >= ChronoState.phase.durationMs){
+        // Phase terminée pendant l'absence
+        const overshootMin = Math.round((elapsed - ChronoState.phase.durationMs) / 60000);
+        ChronoState.phase.accumulatedMs = ChronoState.phase.durationMs;
+        ChronoState.phase.runStartTs = null;
+        ChronoState.phase.endNotified = true;
+        chronoSaveSession();
+        // Toast différé (après que le DOM soit prêt)
+        setTimeout(() => {
+          if(typeof toast === 'function'){
+            const lbl = ChronoState.phase.name || 'Phase';
+            toast(overshootMin > 0
+              ? `🔔 ${lbl} terminée il y a ${overshootMin} min`
+              : `🔔 ${lbl} vient de se terminer`);
+          }
+        }, 600);
+      } else {
+        // Reprendre le rAF + Wake Lock
+        chronoEnsureAudioCtx();
+        chronoWakeLockAcquire();
+        if(!ChronoState.rafId) ChronoState.rafId = requestAnimationFrame(chronoTickFrame);
+        setTimeout(() => {
+          if(typeof toast === 'function'){
+            const remMin = Math.round((ChronoState.phase.durationMs - elapsed) / 60000);
+            toast(`▶ Reprise ${ChronoState.phase.name || 'phase'} · ${remMin} min restant`);
+          }
+        }, 600);
+      }
+    }
+    // Si paused (runStartTs=null mais durationMs>0) ou ended : restauré tel quel.
+  } catch(e) { console.warn('[Chrono] Restore session échec:', e); }
 }
 
 // ── Chrono total recette ──
@@ -6331,6 +6406,10 @@ function initChrono(){
       chronoWakeLockAcquire();
     }
   });
+
+  // V21.72 — Restaure la session chrono (phase active + planning) depuis localStorage.
+  // Doit être AVANT le premier render pour que les boutons reflètent l'état restauré.
+  chronoLoadSession();
 
   // Premier rendu
   chronoRender();
