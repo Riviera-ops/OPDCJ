@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.74</title>
+<title>Ô Pain De Ce Jour V21.75</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -1150,11 +1150,11 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <h1 class="app-title serif">Ô Pain De Ce Jour</h1>
       <p id="app-version-line">Mon carnet de boulang'eric · V21.5 - Juin 2026</p>
     </div>
-    <button id="theme-btn" title="Mode Fournil / Jour"><svg class="ic"><use href="#ic-moon"/></svg></button>
+    <button id="theme-btn" title="Mode Fournil / Jour" aria-label="Basculer mode jour / fournil"><svg class="ic"><use href="#ic-moon"/></svg></button>
   </div>
   <!-- ═══════════════ NAV ═══════════════ -->
   <nav class="nav">
-    <button class="nav-btn active" data-tab="recette"><span class="ni"><svg class="ic"><use href="#ic-grain"/></svg></span>Recette</button>
+    <button class="nav-btn active" data-tab="recette" aria-current="page"><span class="ni"><svg class="ic"><use href="#ic-grain"/></svg></span>Recette</button>
     <button class="nav-btn" data-tab="planning"><span class="ni"><svg class="ic"><use href="#ic-clock"/></svg></span>Planning</button>
     <button class="nav-btn" data-tab="couts"><span class="ni"><svg class="ic"><use href="#ic-coin"/></svg></span>Coûts</button>
     <button class="nav-btn" data-tab="recettes"><span class="ni"><svg class="ic"><use href="#ic-folder"/></svg></span>Archives</button>
@@ -1185,8 +1185,8 @@ body.dark .subheader-wrapper{background:#1a0a00;box-shadow:0 3px 10px rgba(0,0,0
       <span class="rec-quick-icon" id="rec-quick-icon-fixed"><svg class="ic"><use href="#ic-bread"/></svg></span>
       <input type="text" id="rec-quick-name-fixed" class="rec-quick-name-input"
         placeholder="Nom…" autocomplete="off" style="flex:1;min-width:0;max-width:none;width:0;">
-      <button class="rec-quick-mini-btn" id="rec-quick-save-fixed" title="Sauvegarder"><svg class="ic"><use href="#ic-save"/></svg></button>
-      <button class="rec-quick-mini-btn" id="rec-quick-new-fixed" title="Nouvelle recette">+</button>
+      <button class="rec-quick-mini-btn" id="rec-quick-save-fixed" title="Sauvegarder" aria-label="Sauvegarder la recette"><svg class="ic"><use href="#ic-save"/></svg></button>
+      <button class="rec-quick-mini-btn" id="rec-quick-new-fixed" title="Nouvelle recette" aria-label="Nouvelle recette">+</button>
       <div class="rec-select-wrap">
         <select id="rec-quick-select-fixed" class="rec-quick-select"></select>
       </div>
@@ -4557,7 +4557,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.74';
+const APP_VERSION = 'V21.75';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -4574,7 +4574,7 @@ const APP_VERSION = 'V21.74';
       });
       localStorage.removeItem('opdcj_default_recipes');
       localStorage.setItem(purgeKey, '1');
-      console.log('[V18] Recettes purgées.');
+      // V21.75 — log V18 purge retiré (prod hygiene)
     }
   } catch(e) { console.warn('[V18] Purge skipped:', e); }
 })();
@@ -6317,7 +6317,7 @@ function chronoStart(durationMin, phaseName){
   // V21.67 — Wake Lock : maintient l'écran allumé pendant la phase
   chronoWakeLockAcquire();
   // V21.67 — Log diagnostic (visible console dev)
-  console.log('[Chrono] ▶ Start', { duration: ms + 'ms', phase: phaseName, ts: Date.now() });
+  // V21.75 — log [Chrono] Start retiré (prod hygiene). Diagnostic via safeStorage.errors() si besoin.
   // Auto-démarrage du chrono recette si pas déjà lancé
   if(!ChronoState.recipe.startTs){
     ChronoState.recipe.startTs = Date.now();
@@ -6543,11 +6543,15 @@ function init(){
   fillSel($('foc-hydrat'),   65,90,1,80); // V17-H1 : élargi à 65 (couvre Recco basse hydrat)
   fillSel($('bri-hydrat'),   30,70,1,45); fillSel($('bri-evap'),    10,18,1,13);
 
-  // Navigation onglets
+  // Navigation onglets (V21.75 : ajout aria-current pour lecteurs d'écran)
   document.querySelectorAll('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b=>{
+      b.classList.remove('active');
+      b.removeAttribute('aria-current');
+    });
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     btn.classList.add('active');
+    btn.setAttribute('aria-current', 'page');
     const tp=$('tab-'+btn.dataset.tab); if(tp) tp.classList.add('active');
     const sub=document.getElementById('subheader-wrapper');
     if(sub) sub.classList.toggle('tab-recette-active', btn.dataset.tab==='recette');
@@ -11843,8 +11847,7 @@ window.addEventListener('DOMContentLoaded',()=>{
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('/OPDCJ/sw.js')
-      .then(()=>console.log('[PWA] Service worker OK'))
-      .catch(e=>console.warn('[PWA] SW erreur:', e));
+      .catch(e=>console.warn('[PWA] SW erreur:', e)); // V21.75 — log succès retiré, on garde erreur
   });
 }
 </script>
