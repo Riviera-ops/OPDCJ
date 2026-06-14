@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Ô Pain De Ce Jour V21.54</title>
+<title>Ô Pain De Ce Jour V21.55</title>
 
 <!-- ── PWA : plein écran mobile ── -->
 <meta name="mobile-web-app-capable" content="yes">
@@ -2678,10 +2678,12 @@ const PIZZA_BIGA_YTBL = {
   48:  0.6,  // Extrême long
 };
 
-// Biga pizza — table log-linéaire + correction Q10 (réf 24°C, F-1.1)
+// Biga pizza — table log-linéaire + correction Q10 (réf 18°C — Giorilli)
+// V21.55 — refT=18 obligatoire : la table PIZZA_BIGA_YTBL est calibrée à 18°C.
+// Q10=2.1 (F-1.1) reste hérité de fermentTempFactor via applyQ10Correction.
 function pizzaBigaYeastInterp(duree, tempBiga) {
   const baseGperKg = interpYeastTable(PIZZA_BIGA_YTBL, duree, {log:true});
-  return applyQ10Correction(baseGperKg, tempBiga, 24);
+  return applyQ10Correction(baseGperKg, tempBiga, 18);
 }
 
 // Calcule le split biga / pétrisée pour la pizza
@@ -4070,7 +4072,7 @@ const CLOUD_KEYS = {
 // Nom du fichier dans le Gist
 const CLOUD_FILENAME = 'opdcj-data.json';
 // Format de payload (pour pouvoir évoluer sans tout casser)
-const APP_VERSION = 'V21.54';
+const APP_VERSION = 'V21.55';
 // V18 — Purge des recettes héritées au premier lancement V18
 // V18-1 FIX — Utilise idb() (qui crée le store si absent) au lieu d'un open() direct
 // sans onupgradeneeded, ce qui laissait la base sans store 'recipes' sur un appareil neuf.
@@ -5898,7 +5900,10 @@ function computeCore(){
   const pOeufs  = toNum($(`${p}-oeufs`)?.value, 0)/100;
 
   // F-1.2 — Inclusions (graines, noix, fromages…) dans le diviseur
-  const bex = S.breadExtras || {};
+  // V21.55 — skip en pizza/focaccia : la card bread-extras est cachée par CSS,
+  // un état `checked:true` rémanent depuis un mode pain casserait l'hydratation.
+  const isBreadMode = MODE === 'pain' || MODE === 'petit-pain' || MODE === 'brioche';
+  const bex = (isBreadMode && S.breadExtras) ? S.breadExtras : {};
   const pBexTotal = Object.values(bex).reduce((s, e) => s + (e.checked ? (e.pct||0)/100 : 0), 0);
   const divisor = 1 + hydrat + pSel + pLev + pHuile + pSucre + pBeurre + pOeufs + pBexTotal;
   const totalF  = totalPate / divisor;
@@ -8487,7 +8492,7 @@ function updatePhaseDurHints(){
   const modes4hint = ['pain','petit-pain','focaccia','brioche'];
   if(!modes4hint.includes(MODE)) return;
 
-  const tempFactor = Math.pow(2, (22 - T) / 10);
+  const tempFactor = fermentTempFactor(T);  // V21.55 — unifié F-1.1 (Q10=2.1, refT=24)
   const levFactor  = (1.2 / Math.max(levFraichePct, 0.01));
   const factor     = tempFactor * levFactor;
 
